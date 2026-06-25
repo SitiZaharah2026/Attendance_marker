@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intervention Recommendation Agent – CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.int-layout { display:grid; grid-template-columns:340px 1fr; gap:24px; }
+.strategy-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px; border-left:4px solid var(--success); transition:var(--transition); margin-bottom:12px; }
+.strategy-card:hover { transform:translateX(4px); box-shadow:var(--shadow); }
+.strategy-priority { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.strategy-title { font-size:15px; font-weight:700; margin-bottom:6px; }
+.strategy-desc { font-size:13px; color:var(--text-muted); line-height:1.5; }
+.strategy-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+.resource-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:16px; display:flex; gap:14px; align-items:flex-start; transition:var(--transition); margin-bottom:10px; }
+.resource-card:hover { border-color:var(--primary); transform:translateX(4px); }
+.resource-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.resource-title { font-size:14px; font-weight:700; margin-bottom:3px; }
+.resource-desc { font-size:12px; color:var(--text-muted); line-height:1.4; }
+.timeline-item { display:flex; gap:14px; margin-bottom:16px; position:relative; }
+.timeline-item::before { content:''; position:absolute; left:19px; top:38px; bottom:-4px; width:2px; background:var(--border); }
+.timeline-item:last-child::before { display:none; }
+.timeline-dot { width:40px; height:40px; border-radius:50%; background:var(--bg-card); border:2px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; flex-shrink:0; color:var(--primary-light); }
+.timeline-content { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:14px; flex:1; }
+.timeline-week { font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px; }
+.timeline-title { font-size:14px; font-weight:700; margin-bottom:4px; }
+.timeline-desc { font-size:13px; color:var(--text-muted); }
+@media(max-width:768px){ .int-layout{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">
+      <div class="brand-icon">CS</div>
+      <div><span class="brand-name">CelikSense AI</span><span class="brand-tagline" data-i18n="tagline">Agentic Multi-Sensory Learning</span></div>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="dashboard.html" data-i18n="nav_dashboard">Dashboard</a>
+      <div class="nav-dropdown">
+        <button data-i18n="nav_agents" aria-haspopup="true" aria-expanded="false">Agents ▾</button>
+        <div class="dropdown-menu">
+          <a href="ai-librarian.html">📚 AI Librarian</a>
+          <a href="reading-companion.html">📖 Reading Companion</a>
+          <a href="adhd-agent.html">🧠 ADHD Agent</a>
+          <a href="dyslexia-agent.html">👁️ Dyslexia Agent</a>
+          <a href="blind-audio.html">🔊 Blind Audio Agent</a>
+          <a href="sign-language.html">🤟 Sign Language Agent</a>
+          <a href="early-warning.html">⚠️ Early Warning Agent</a>
+          <a href="intervention.html">💡 Intervention Agent</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">BM</button>
+      <a href="profile.html" class="btn btn-ghost btn-sm">👤 Profile</a>
+      <a href="dashboard.html" class="btn btn-outline btn-sm">← Dashboard</a>
+      <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
+      <button class="nav-hamburger" onclick="toggleNav()">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+  <div class="page-header-card">
+    <div class="page-badge">💡</div>
+    <h1 class="page-title">Intervention Recommendation Agent</h1>
+    <p class="page-subtitle">AI-generated personalised intervention strategies, action plans, and curated learning resources for every learner profile.</p>
+  </div>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:60px;">
+  <div class="int-layout">
+
+    <!-- Left: Profile Input -->
+    <div>
+      <div class="control-panel">
+        <div class="panel-title">👤 Learner Profile</div>
+
+        <div class="form-group">
+          <label class="form-label" for="lName">Learner Name</label>
+          <input type="text" class="form-control" id="lName" placeholder="Name or ID…" value="Ahmad Zaki">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lNeed">Primary Need</label>
+          <select class="form-control" id="lNeed">
+            <option value="adhd" selected>ADHD</option>
+            <option value="dyslexia">Dyslexia</option>
+            <option value="blind">Blind / Low Vision</option>
+            <option value="deaf">Deaf / Hard of Hearing</option>
+            <option value="general">General Learner</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lRisk">Risk Level</label>
+          <select class="form-control" id="lRisk">
+            <option value="low">Low Risk</option>
+            <option value="medium" selected>Medium Risk</option>
+            <option value="high">High Risk</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lGrade">Grade Level</label>
+          <select class="form-control" id="lGrade">
+            <option>Primary 1–3</option>
+            <option selected>Primary 4–6</option>
+            <option>Secondary 1–3</option>
+            <option>Secondary 4–5</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lWeakness">Weakest Area</label>
+          <select class="form-control" id="lWeakness">
+            <option value="focus">Focus / Attention</option>
+            <option value="reading">Reading Fluency</option>
+            <option value="comprehension">Comprehension</option>
+            <option value="writing">Writing</option>
+            <option value="maths">Maths</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lSupport">Available Support</label>
+          <select class="form-control" id="lSupport">
+            <option value="teacher">Class Teacher Only</option>
+            <option value="specialist" selected>Specialist + Teacher</option>
+            <option value="family">Family + School</option>
+            <option value="full">Full MDT Support</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lLang">Language Preference</label>
+          <select class="form-control" id="lLang">
+            <option value="en">English</option>
+            <option value="bm" selected>Bahasa Melayu</option>
+            <option value="both">Bilingual</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary w-full btn-lg" onclick="generateIntervention()">🤖 Generate Intervention Plan</button>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="control-panel" style="margin-top:16px;">
+        <div class="panel-title">⚡ Quick Actions</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <a href="adhd-agent.html" class="btn btn-ghost">🧠 Open ADHD Agent</a>
+          <a href="dyslexia-agent.html" class="btn btn-ghost">🔤 Open Dyslexia Agent</a>
+          <a href="reading-companion.html" class="btn btn-ghost">📖 Reading Companion</a>
+          <a href="early-warning.html" class="btn btn-ghost">⚠️ Back to Early Warning</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Results -->
+    <div id="resultsPanel" aria-live="polite" aria-atomic="true">
+      <div class="alert alert-info">
+        <span>💡</span>
+        <div>Complete the learner profile and click <strong>Generate Intervention Plan</strong> to receive personalised AI recommendations.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2026 CelikSense AI · <a href="index.html" style="color:var(--primary-light)">Home</a> · <a href="dashboard.html" style="color:var(--primary-light)">Dashboard</a></span>
+      <span>💡 Intervention Recommendation Agent</span>
+    </div>
+  </div>
+</footer>
+
+<script src="shared.js"></script>
+<script>
+const interventionDB = {
+  adhd: {
+    strategies: [
+      { priority:'P1 – Immediate', title:'Micro-Session Reading Strategy', desc:'Break all reading tasks into 5–10 minute focused sessions with mandatory 3–5 minute movement breaks between sessions. Use a visible timer.', tags:['ADHD','Focus','Micro-learning'], color:'#f59e0b', link:'adhd-agent.html' },
+      { priority:'P2 – This Week', title:'Focus Window Mode', desc:'Enable the ADHD reading window so only one or two lines of text are visible at a time. This reduces visual distraction and improves focus.', tags:['ADHD','Visual Focus'], color:'#6366f1', link:'adhd-agent.html' },
+      { priority:'P2 – This Week', title:'Interest-Based Reading Selection', desc:'Identify learner\'s top 3 interests and select reading materials that align with them. Dopamine-driven engagement significantly improves reading persistence.', tags:['Engagement','Motivation'], color:'#22c55e', link:'ai-librarian.html' },
+      { priority:'P3 – Ongoing', title:'Smart Highlighting & Note Builder', desc:'Teach learner to actively highlight key ideas and build their own notes in the AI Note Builder. Active processing compensates for working memory challenges.', tags:['Active Learning','Notes'], color:'#ec4899', link:'adhd-agent.html' },
+      { priority:'P3 – Ongoing', title:'Multi-Book Rotation Strategy', desc:'Maintain 2–3 books simultaneously at different focus-level requirements. Switch based on energy levels during the session.', tags:['ADHD','Strategy','Multi-modal'], color:'#8b5cf6', link:'ai-librarian.html' },
+    ],
+    resources: [
+      { icon:'🧠', title:'ADHD Agent', desc:'Use the ADHD Adaptive Reading Agent for every reading session.', link:'adhd-agent.html', bg:'rgba(245,158,11,0.1)' },
+      { icon:'📚', title:'AI Librarian', desc:'Find ADHD-friendly books tailored to learner interests.', link:'ai-librarian.html', bg:'rgba(99,102,241,0.1)' },
+      { icon:'📖', title:'Reading Companion', desc:'Use TTS support to reduce cognitive load during reading.', link:'reading-companion.html', bg:'rgba(6,182,212,0.1)' },
+    ],
+    timeline: [
+      { week:'Week 1–2', title:'Establish Micro-Session Routine', desc:'Begin with 5-minute reading sessions twice daily. Set timers and track completion in the dashboard.' },
+      { week:'Week 3–4', title:'Introduce Focus Window', desc:'Enable focus window mode in the ADHD agent. Gradually increase session to 10 minutes.' },
+      { week:'Week 5–6', title:'Interest Alignment', desc:'Confirm top interests with learner and select 3 matching books from AI Librarian.' },
+      { week:'Week 7–8', title:'Review & Adjust', desc:'Review early warning scores. Adjust strategy based on focus score trends. Increase sessions if positive.' },
+    ]
+  },
+  dyslexia: {
+    strategies: [
+      { priority:'P1 – Immediate', title:'OpenDyslexic Font + Colour Overlay', desc:'Switch all reading to OpenDyslexic font with green or yellow overlay immediately. This reduces visual crowding and letter confusion.', tags:['Dyslexia','Visual','Font'], color:'#22c55e', link:'dyslexia-agent.html' },
+      { priority:'P1 – Immediate', title:'Text-to-Speech for All Reading', desc:'Enable TTS for every reading activity. Hearing text simultaneously with reading activates more brain pathways and compensates for decoding difficulty.', tags:['TTS','Audio','Dyslexia'], color:'#06b6d4', link:'dyslexia-agent.html' },
+      { priority:'P2 – This Week', title:'Reading Ruler Activation', desc:'Enable the reading ruler in Dyslexia Agent to reduce tracking difficulties and help learner focus on one line at a time.', tags:['Visual Aid','Tracking'], color:'#6366f1', link:'dyslexia-agent.html' },
+      { priority:'P3 – Ongoing', title:'Mind Map Visual Summaries', desc:'After each reading session, generate a mind map visual to reinforce key concepts in a non-linear, visual format.', tags:['Visual Learning','Comprehension'], color:'#8b5cf6', link:'dyslexia-agent.html' },
+    ],
+    resources: [
+      { icon:'🔤', title:'Dyslexia Agent', desc:'Use dyslexia-friendly mode for all reading tasks.', link:'dyslexia-agent.html', bg:'rgba(34,197,94,0.1)' },
+      { icon:'📚', title:'Dyslexia Book List', desc:'Browse dyslexia-friendly books in the AI Librarian.', link:'ai-librarian.html', bg:'rgba(99,102,241,0.1)' },
+      { icon:'🔊', title:'Audio Support', desc:'Use Reading Companion with TTS for all texts.', link:'reading-companion.html', bg:'rgba(6,182,212,0.1)' },
+    ],
+    timeline: [
+      { week:'Week 1', title:'Enable Dyslexic Display Settings', desc:'Configure OpenDyslexic font, colour overlay, and reading ruler as the default for all sessions.' },
+      { week:'Week 2–3', title:'TTS for All Reading', desc:'Read every text aloud using TTS. Build comfort with audio-assisted reading.' },
+      { week:'Week 4–5', title:'Visual Mind Maps', desc:'Generate mind maps after each session to consolidate learning visually.' },
+      { week:'Week 6+', title:'Monitor & Scale', desc:'Review performance trend. Increase reading duration as comfort grows.' },
+    ]
+  },
+  blind: {
+    strategies: [
+      { priority:'P1 – Immediate', title:'Full Audio Navigation Mode', desc:'Switch learner to Blind Audio Agent as the primary reading interface. All content must be TTS-accessible.', tags:['Audio','TTS','Blind'], color:'#8b5cf6', link:'blind-audio.html' },
+      { priority:'P2 – This Week', title:'Keyboard Navigation Training', desc:'Teach learner all keyboard shortcuts in the Blind Audio Agent. Space=Guide, R=Read, S=Stop, H=Help.', tags:['Accessibility','Keyboard'], color:'#6366f1', link:'blind-audio.html' },
+      { priority:'P3 – Ongoing', title:'Audio-First Book Selection', desc:'Use AI Librarian to filter for audiobook-compatible titles only.', tags:['Audiobook','Library'], color:'#06b6d4', link:'ai-librarian.html' },
+    ],
+    resources: [
+      { icon:'🔊', title:'Blind Audio Agent', desc:'Primary interface for all learning activities.', link:'blind-audio.html', bg:'rgba(139,92,246,0.1)' },
+      { icon:'📚', title:'Audiobook Library', desc:'Filter for audio-accessible books in AI Librarian.', link:'ai-librarian.html', bg:'rgba(99,102,241,0.1)' },
+    ],
+    timeline: [
+      { week:'Week 1', title:'Setup Audio Navigation', desc:'Configure Blind Audio Agent as primary tool. Practice keyboard shortcuts daily.' },
+      { week:'Week 2–3', title:'Audio Book Programme', desc:'Begin structured audiobook reading programme with comprehension checks via voice.' },
+      { week:'Week 4+', title:'Independence Building', desc:'Gradually reduce guided navigation and encourage self-directed audio reading.' },
+    ]
+  },
+  deaf: {
+    strategies: [
+      { priority:'P1 – Immediate', title:'MSL/BIM Sign Language Integration', desc:'Use Sign Language Agent to pair all vocabulary with corresponding BIM signs. Visual learning reinforces text understanding.', tags:['BIM','MSL','Sign'], color:'#ec4899', link:'sign-language.html' },
+      { priority:'P2 – This Week', title:'Visual Reading Support', desc:'Enable dyslexia-friendly display mode for enhanced visual clarity. Deaf learners benefit from high-contrast, clear typography.', tags:['Visual','Reading'], color:'#22c55e', link:'dyslexia-agent.html' },
+      { priority:'P3 – Ongoing', title:'Subtitle & Caption Awareness', desc:'Ensure all video content used in learning has accurate captions or subtitles. Promote caption literacy.', tags:['Captions','Accessibility'], color:'#6366f1', link:'sign-language.html' },
+    ],
+    resources: [
+      { icon:'🤟', title:'Sign Language Agent', desc:'MSL/BIM cards and phrase library for all topics.', link:'sign-language.html', bg:'rgba(236,72,153,0.1)' },
+      { icon:'🔤', title:'Visual Reading Mode', desc:'Enhanced visual reading for deaf learners.', link:'dyslexia-agent.html', bg:'rgba(34,197,94,0.1)' },
+    ],
+    timeline: [
+      { week:'Week 1–2', title:'Sign Language Vocabulary Building', desc:'Practice 5–10 new BIM signs daily using the Sign Language Agent alphabet and phrase cards.' },
+      { week:'Week 3–4', title:'Visual Reading Programme', desc:'Begin structured reading with visual support tools enabled.' },
+      { week:'Week 5+', title:'Communication Integration', desc:'Combine sign language, visual reading, and writing activities in daily learning routine.' },
+    ]
+  },
+  general: {
+    strategies: [
+      { priority:'P1 – Recommended', title:'Reading Companion Programme', desc:'Use the Reading Companion Agent for all reading tasks. Generate comprehension questions after each session.', tags:['General','Reading','Comprehension'], color:'#6366f1', link:'reading-companion.html' },
+      { priority:'P2 – Ongoing', title:'Vocabulary Building Routine', desc:'Use the vocabulary lookup feature in Reading Companion to build word knowledge systematically.', tags:['Vocabulary','Language'], color:'#06b6d4', link:'reading-companion.html' },
+      { priority:'P3 – Monitor', title:'Regular Progress Checks', desc:'Use Early Warning Agent monthly to track reading progress and comprehension scores.', tags:['Monitoring','Progress'], color:'#22c55e', link:'early-warning.html' },
+    ],
+    resources: [
+      { icon:'📖', title:'Reading Companion', desc:'Daily reading with comprehension support.', link:'reading-companion.html', bg:'rgba(6,182,212,0.1)' },
+      { icon:'📚', title:'AI Librarian', desc:'Curated book recommendations by grade and interest.', link:'ai-librarian.html', bg:'rgba(99,102,241,0.1)' },
+    ],
+    timeline: [
+      { week:'Week 1–2', title:'Establish Reading Routine', desc:'Daily 20-minute reading sessions with Reading Companion. Generate questions after each session.' },
+      { week:'Week 3–4', title:'Vocabulary Focus', desc:'Build vocabulary bank of 10 words per week using the vocabulary helper.' },
+      { week:'Week 5+', title:'Independent Reading', desc:'Transition to independent reading with periodic comprehension checks.' },
+    ]
+  }
+};
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+let _planName = '', _planNeed = '', _planRisk = '';
+
+function generateIntervention() {
+  const name = escapeHtml(document.getElementById('lName').value || 'Learner');
+  const need = escapeHtml(document.getElementById('lNeed').value);
+  const risk = escapeHtml(document.getElementById('lRisk').value);
+  const grade = escapeHtml(document.getElementById('lGrade').value);
+  const weakness = escapeHtml(document.getElementById('lWeakness').value);
+  const support = escapeHtml(document.getElementById('lSupport').value);
+  _planName = name; _planNeed = need; _planRisk = risk;
+
+  const data = interventionDB[need] || interventionDB.general;
+  const riskColors = { low:'var(--success)', medium:'var(--warning)', high:'var(--danger)' };
+  const riskLabels = { low:'Low Risk', medium:'Medium Risk', high:'High Risk' };
+
+  document.getElementById('resultsPanel').innerHTML = `
+
+    <!-- Header -->
+    <div class="card" style="margin-bottom:20px;background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.08));border-color:rgba(99,102,241,0.2);">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">Intervention Plan for</div>
+          <div style="font-size:22px;font-weight:800;">${name}</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">${grade} · ${need.toUpperCase()} · Weakness: ${weakness}</div>
+        </div>
+        <div style="text-align:right;">
+          <span class="badge badge-${risk==='high'?'danger':risk==='medium'?'warning':'success'}" style="font-size:13px;padding:6px 14px;">${riskLabels[risk]}</span>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">Generated by AI · ${new Date().toLocaleDateString()}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Strategies -->
+    <div class="section-header">
+      <h3 class="section-title">✅ Recommended Strategies</h3>
+      <p class="section-desc">${data.strategies.length} personalised strategies for ${name}</p>
+    </div>
+    <div style="margin-bottom:24px;">
+      ${data.strategies.map(s=>`
+        <div class="strategy-card" style="border-left-color:${s.color};">
+          <div class="strategy-priority" style="color:${s.color};">${s.priority}</div>
+          <div class="strategy-title">${s.title}</div>
+          <div class="strategy-desc">${s.desc}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;flex-wrap:wrap;gap:8px;">
+            <div class="strategy-tags">${s.tags.map(t=>`<span class="badge badge-primary">${t}</span>`).join('')}</div>
+            <a href="${s.link}" class="btn btn-primary btn-sm">Open Agent →</a>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- Action Plan Timeline -->
+    <div class="section-header">
+      <h3 class="section-title">📅 Action Plan Timeline</h3>
+      <p class="section-desc">Step-by-step intervention roadmap</p>
+    </div>
+    <div style="margin-bottom:24px;">
+      ${data.timeline.map((t,i)=>`
+        <div class="timeline-item">
+          <div class="timeline-dot">${i+1}</div>
+          <div class="timeline-content">
+            <div class="timeline-week">${t.week}</div>
+            <div class="timeline-title">${t.title}</div>
+            <div class="timeline-desc">${t.desc}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- Resources -->
+    <div class="section-header">
+      <h3 class="section-title">📚 Recommended Resources</h3>
+    </div>
+    <div style="margin-bottom:24px;">
+      ${data.resources.map(r=>`
+        <div class="resource-card">
+          <div class="resource-icon" style="background:${r.bg};">${r.icon}</div>
+          <div style="flex:1;">
+            <div class="resource-title">${r.title}</div>
+            <div class="resource-desc">${r.desc}</div>
+          </div>
+          <a href="${r.link}" class="btn btn-outline btn-sm">Open →</a>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- Export -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-lg" onclick="exportPlan(_planName,_planNeed,_planRisk)">📤 Export Plan</button>
+      <a href="early-warning.html" class="btn btn-outline btn-lg">⚠️ Back to Risk Assessment</a>
+      <button class="btn btn-ghost btn-lg" onclick="speak(_planName+' intervention plan: ${data.strategies.length} strategies recommended.')">🔊 Read Aloud</button>
+    </div>
+  `;
+
+  speak(`Intervention plan generated for ${name}. ${data.strategies.length} personalised strategies recommended for ${need} learner at ${riskLabels[risk]}.`);
+}
+
+function exportPlan(name, need, risk) {
+  const text = `CelikSense AI – Intervention Plan\n\nLearner: ${name}\nNeed: ${need.toUpperCase()}\nRisk: ${risk}\nDate: ${new Date().toLocaleDateString()}\n\nThis plan was generated by the CelikSense AI Intervention Recommendation Agent.\nAccess your full plan at: dashboard.html`;
+  const blob = new Blob([text],{type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `celiksense-intervention-${name.replace(/\s/g,'-').toLowerCase()}.txt`;
+  a.click();
+}
+</script>
+</body>
+</html>

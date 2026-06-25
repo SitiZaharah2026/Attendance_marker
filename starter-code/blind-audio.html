@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CelikSense AI – Voice-First Blind Navigation</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Base Reset & Variables ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f172a;
+      --surface:  #1e293b;
+      --border:   #334155;
+      --text:     #f8fafc;
+      --muted:    #94a3b8;
+      --accent:   #6366f1;
+      --accent2:  #818cf8;
+      --success:  #10b981;
+      --warning:  #f59e0b;
+      --error:    #ef4444;
+      --radius:   12px;
+    }
+
+    html { font-size: 18px; scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Skip Link ── */
+    .skip-link {
+      position: absolute;
+      top: -999px;
+      left: 0;
+      background: var(--accent);
+      color: #fff;
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: 700;
+      z-index: 9999;
+      border-radius: 0 0 var(--radius) 0;
+      text-decoration: none;
+    }
+    .skip-link:focus { top: 0; }
+
+    /* ── Screen-reader-only utility ── */
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    /* ── ARIA Live Region ── */
+    #announcer {
+      position: absolute;
+      width: 1px; height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    /* ── Header / Hero ── */
+    .hero {
+      text-align: center;
+      padding: 3rem 1rem 2rem;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px; height: 80px;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      border-radius: 20px;
+      font-size: 2rem;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -1px;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 0 40px rgba(99,102,241,0.45);
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+
+    .hero .subtitle {
+      font-size: 1.25rem;
+      color: var(--accent2);
+      margin-top: 0.5rem;
+      font-weight: 600;
+    }
+
+    /* ── Mic Orb ── */
+    .mic-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      margin: 2.5rem 0 2rem;
+    }
+
+    .mic-orb-wrapper {
+      position: relative;
+      width: 180px; height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Ripple rings */
+    .mic-orb-wrapper::before,
+    .mic-orb-wrapper::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(99,102,241,0.25);
+      animation: ripple 2.5s ease-out infinite;
+    }
+    .mic-orb-wrapper::after { animation-delay: 1.25s; }
+
+    @keyframes ripple {
+      0%   { transform: scale(0.85); opacity: 0.7; }
+      100% { transform: scale(1.45); opacity: 0; }
+    }
+
+    .mic-orb {
+      position: relative;
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 60px rgba(99,102,241,0.5);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.3s;
+      border: none;
+      outline: none;
+      animation: pulse-idle 3s ease-in-out infinite;
+    }
+
+    .mic-orb:focus-visible {
+      outline: 4px solid var(--warning);
+      outline-offset: 6px;
+    }
+
+    @keyframes pulse-idle {
+      0%, 100% { transform: scale(1);    box-shadow: 0 0 60px rgba(99,102,241,0.5); }
+      50%       { transform: scale(1.04); box-shadow: 0 0 80px rgba(99,102,241,0.7); }
+    }
+
+    .mic-orb.listening {
+      background: linear-gradient(135deg, var(--success), #059669);
+      box-shadow: 0 0 80px rgba(16,185,129,0.7);
+      animation: pulse-listen 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse-listen {
+      0%, 100% { transform: scale(1);    box-shadow: 0 0 60px rgba(16,185,129,0.6); }
+      50%       { transform: scale(1.08); box-shadow: 0 0 100px rgba(16,185,129,0.9); }
+    }
+
+    .mic-orb.speaking {
+      background: linear-gradient(135deg, var(--warning), #d97706);
+      box-shadow: 0 0 80px rgba(245,158,11,0.7);
+      animation: pulse-speak 0.7s ease-in-out infinite;
+    }
+
+    @keyframes pulse-speak {
+      0%, 100% { transform: scale(1);    }
+      50%       { transform: scale(1.06); }
+    }
+
+    .mic-orb.error-state {
+      background: linear-gradient(135deg, var(--error), #dc2626);
+      box-shadow: 0 0 80px rgba(239,68,68,0.7);
+      animation: none;
+    }
+
+    .mic-icon {
+      font-size: 4rem;
+      color: #fff;
+      user-select: none;
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    /* ── Status Text ── */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      padding: 0.5rem 1.25rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      min-width: 220px;
+      justify-content: center;
+    }
+
+    .status-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .status-dot.listening { background: var(--success); }
+    .status-dot.speaking  { background: var(--warning); }
+    .status-dot.ready     { background: var(--accent); }
+    .status-dot.error-state { background: var(--error); }
+
+    .status-hint {
+      text-align: center;
+      color: var(--muted);
+      font-size: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    /* ── Command / Speech Display ── */
+    .info-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0 2rem;
+    }
+
+    @media (max-width: 560px) { .info-cards { grid-template-columns: 1fr; } }
+
+    .info-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+    }
+
+    .info-card .card-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .info-card .card-value {
+      font-size: 1.05rem;
+      color: var(--text);
+      min-height: 1.6em;
+      font-style: italic;
+    }
+
+    /* ── Quick Access Buttons ── */
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 2rem;
+    }
+
+    .quick-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      min-height: 80px;
+      padding: 1rem;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      text-decoration: none;
+    }
+
+    .quick-btn:hover, .quick-btn:focus-visible {
+      border-color: var(--accent);
+      background: rgba(99,102,241,0.12);
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    .quick-btn:focus-visible { outline: 3px solid var(--warning); outline-offset: 3px; }
+
+    .quick-btn .btn-icon { font-size: 1.75rem; line-height: 1; }
+    .quick-btn.accent  { border-color: var(--accent);  background: rgba(99,102,241,0.15); }
+    .quick-btn.success { border-color: var(--success); background: rgba(16,185,129,0.12); }
+
+    /* ── Feature Grid ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .feature-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      min-height: 100px;
+      padding: 1.25rem 0.75rem;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+      text-align: center;
+    }
+
+    .feature-btn:hover, .feature-btn:focus-visible {
+      border-color: var(--accent2);
+      background: rgba(99,102,241,0.1);
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    .feature-btn:focus-visible { outline: 3px solid var(--warning); outline-offset: 3px; }
+
+    .feature-btn .feat-icon { font-size: 2.25rem; line-height: 1; }
+
+    /* ── Keyboard Shortcuts ── */
+    .shortcuts-panel {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .shortcuts-panel h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .shortcut-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.6rem;
+    }
+
+    .shortcut-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 36px; height: 36px;
+      padding: 0 8px;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--accent2);
+      flex-shrink: 0;
+    }
+
+    .shortcut-desc { font-size: 0.95rem; color: var(--muted); }
+
+    /* ── Voice Login Section ── */
+    #voice-login {
+      display: none;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    #voice-login.visible { display: block; }
+
+    #voice-login h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      color: var(--accent2);
+    }
+
+    #voice-login p { color: var(--muted); font-size: 1rem; margin-bottom: 1.25rem; }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 1.05rem;
+    }
+
+    .login-form input:focus { outline: 3px solid var(--accent); border-color: var(--accent); }
+
+    .login-form button {
+      padding: 0.9rem;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .login-form button:hover { background: var(--accent2); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border);
+    }
+
+    footer a { color: var(--accent2); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <!-- Skip Link -->
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <!-- ARIA Live Region -->
+  <div id="announcer" role="status" aria-live="assertive" aria-atomic="true"></div>
+
+  <main id="main" tabindex="-1">
+    <div class="container">
+
+      <!-- Hero -->
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="logo-badge" aria-hidden="true">CS</div>
+        <h1 id="hero-title">CelikSense AI</h1>
+        <p class="subtitle">Voice-First Blind Navigation</p>
+      </section>
+
+      <!-- Mic Orb -->
+      <section class="mic-section" aria-labelledby="mic-section-label">
+        <h2 id="mic-section-label" class="sr-only">Voice Control</h2>
+
+        <div class="mic-orb-wrapper" role="presentation">
+          <button
+            id="mic-orb"
+            class="mic-orb"
+            aria-label="Microphone — click or press Space to toggle listening"
+            aria-pressed="false"
+            type="button"
+          >
+            <span class="mic-icon" aria-hidden="true">&#127908;</span>
+          </button>
+        </div>
+
+        <div class="status-badge" aria-live="polite" aria-atomic="true" id="status-badge">
+          <span class="status-dot ready" id="status-dot" aria-hidden="true"></span>
+          <span id="status-text">Ready</span>
+        </div>
+
+        <p class="status-hint" id="status-hint">
+          Say <strong>"Start Guide"</strong> or <strong>"Help"</strong> to begin
+        </p>
+      </section>
+
+      <!-- Braille Mode Toggle -->
+      <div style="display:flex;justify-content:center;margin:20px 0;">
+        <button id="brailleToggle" class="braille-toggle-btn" onclick="toggleBrailleMode()" aria-label="Toggle Braille Mode" aria-pressed="false">
+          ⠃ <span data-i18n="braille_toggle">Braille Mode</span>
+        </button>
+      </div>
+      <div id="brailleOutputSection" style="max-width:700px;margin:0 auto;display:none;" class="braille-panel" aria-label="Braille Output Section"></div>
+
+      <!-- Last Command / Last Speech -->
+      <section aria-label="Voice activity log">
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="card-label">Last Recognised Command</div>
+            <div class="card-value" id="last-command" aria-live="polite" aria-atomic="true">&#8212;</div>
+          </div>
+          <div class="info-card">
+            <div class="card-label">Last Spoken Text</div>
+            <div class="card-value" id="last-speech" aria-live="polite" aria-atomic="true">&#8212;</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Access -->
+      <section aria-labelledby="quick-label">
+        <p class="section-title" id="quick-label">Quick Access</p>
+        <div class="quick-grid" role="group" aria-labelledby="quick-label">
+          <button class="quick-btn accent" id="btn-start-guide" type="button" aria-label="Start Guide — hear full instructions">
+            <span class="btn-icon" aria-hidden="true">&#128218;</span>
+            Start Guide
+          </button>
+          <button class="quick-btn success" id="btn-guest" type="button" aria-label="Guest Mode — begin without login">
+            <span class="btn-icon" aria-hidden="true">&#128100;</span>
+            Guest Mode
+          </button>
+          <a class="quick-btn" href="dashboard.html" id="btn-dashboard" aria-label="Open Dashboard">
+            <span class="btn-icon" aria-hidden="true">&#127968;</span>
+            Open Dashboard
+          </a>
+          <button class="quick-btn" id="btn-help" type="button" aria-label="Help — hear all available commands">
+            <span class="btn-icon" aria-hidden="true">&#10067;</span>
+            Help
+          </button>
+        </div>
+      </section>
+
+      <!-- Feature Grid -->
+      <section aria-labelledby="features-label">
+        <p class="section-title" id="features-label">Features</p>
+        <div class="feature-grid" role="group" aria-labelledby="features-label">
+          <a class="feature-btn" href="ocr-agent.html" aria-label="OCR — scan and read text from images">
+            <span class="feat-icon" aria-hidden="true">&#128247;</span>
+            OCR
+          </a>
+          <a class="feature-btn" href="reading-companion.html" aria-label="Read Page — have any page read aloud">
+            <span class="feat-icon" aria-hidden="true">&#128266;</span>
+            Read Page
+          </a>
+          <a class="feature-btn" href="ai-librarian.html" aria-label="Library — browse accessible reading materials">
+            <span class="feat-icon" aria-hidden="true">&#128218;</span>
+            Library
+          </a>
+          <a class="feature-btn" href="reading-companion.html" aria-label="Reading — adaptive reading mode">
+            <span class="feat-icon" aria-hidden="true">&#128221;</span>
+            Reading
+          </a>
+          <a class="feature-btn" href="adhd-agent.html" aria-label="ADHD — focus-friendly reading support">
+            <span class="feat-icon" aria-hidden="true">&#129504;</span>
+            ADHD
+          </a>
+          <a class="feature-btn" href="sign-language.html" aria-label="Sign Language — sign language support">
+            <span class="feat-icon" aria-hidden="true">&#129335;</span>
+            Sign Language
+          </a>
+        </div>
+      </section>
+
+      <!-- Voice Login (hidden until triggered) -->
+      <section id="voice-login" aria-labelledby="login-title" aria-hidden="true">
+        <h2 id="login-title">Voice Login</h2>
+        <p>Speak your credentials or type them below. Your data is never stored.</p>
+        <form class="login-form" id="login-form" novalidate>
+          <label for="login-email" class="sr-only">Email address</label>
+          <input
+            type="email"
+            id="login-email"
+            name="email"
+            placeholder="Email address"
+            autocomplete="email"
+            aria-required="true"
+          />
+          <label for="login-password" class="sr-only">Password</label>
+          <input
+            type="password"
+            id="login-password"
+            name="password"
+            placeholder="Password"
+            autocomplete="current-password"
+            aria-required="true"
+          />
+          <button type="submit">Sign In</button>
+        </form>
+      </section>
+
+      <!-- Keyboard Shortcuts -->
+      <section class="shortcuts-panel" aria-labelledby="shortcuts-title">
+        <h2 id="shortcuts-title">Keyboard Fallbacks</h2>
+        <ul class="shortcut-list" aria-label="Keyboard shortcuts">
+          <li class="shortcut-item"><kbd>Space</kbd><span class="shortcut-desc">Start / stop listening</span></li>
+          <li class="shortcut-item"><kbd>R</kbd>    <span class="shortcut-desc">Repeat last speech</span></li>
+          <li class="shortcut-item"><kbd>H</kbd>    <span class="shortcut-desc">Help</span></li>
+          <li class="shortcut-item"><kbd>G</kbd>    <span class="shortcut-desc">Guest mode</span></li>
+          <li class="shortcut-item"><kbd>D</kbd>    <span class="shortcut-desc">Open Dashboard</span></li>
+          <li class="shortcut-item"><kbd>Esc</kbd>  <span class="shortcut-desc">Stop all</span></li>
+          <li class="shortcut-item"><kbd>B</kbd>    <span class="shortcut-desc">Toggle Braille Mode</span></li>
+        </ul>
+      </section>
+
+    </div>
+  </main>
+
+  <footer>
+    <p>CelikSense AI &mdash; Empowering every learner &mdash; <a href="dashboard.html">Dashboard</a></p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="shared.js"></script>
+  <script src="voice-system.js"></script>
+  <script src="braille-system.js"></script>
+  <script>
+    /* ================================================================
+       blind-audio.html — page controller
+       ================================================================ */
+
+    var WELCOME_MSG =
+      "Welcome to CelikSense AI. I am your AI accessibility assistant. " +
+      "You may control this application completely using your voice. " +
+      "Please allow microphone access when prompted. " +
+      "Say Start Guide to hear full instructions. " +
+      "Say Guest Mode to begin immediately. " +
+      "Say Login to sign in.";
+
+    var HELP_MSG =
+      "Available voice commands: " +
+      "Say Start Guide for full instructions. " +
+      "Say Guest Mode to explore without an account. " +
+      "Say Login to show the sign-in form. " +
+      "Say Dashboard to go to the main dashboard. " +
+      "Say OCR to open the camera scanner. " +
+      "Say Read Page to have any page read aloud. " +
+      "Say Library to browse reading materials. " +
+      "Say ADHD for focus support. " +
+      "Say Sign Language for signing tools. " +
+      "Say Stop to end listening at any time.";
+
+    var START_GUIDE_MSG =
+      "Welcome to the full guide. " +
+      "CelikSense AI is an AI-powered accessibility platform. " +
+      "All features are voice-controlled. " +
+      "The microphone button in the centre of the screen pulses green when it is listening. " +
+      "After speaking a command, wait for the assistant to respond. " +
+      "To navigate features, say the feature name such as Library, Reading, or OCR. " +
+      "To go to the main dashboard say Dashboard. " +
+      "For a list of all commands say Help at any time. " +
+      "Keyboard shortcuts are also available. Press Space to toggle listening. " +
+      "Press H for help. Press Escape to stop everything. " +
+      "You are now ready to begin. Say a command to continue.";
+
+    function toggleBrailleMode() {
+      var btn = document.getElementById('brailleToggle');
+      var isEnabled = btn && btn.getAttribute('aria-pressed') === 'true';
+      if (isEnabled) {
+        if (window.CS_BRAILLE) CS_BRAILLE.disable();
+        if (btn) { btn.setAttribute('aria-pressed','false'); btn.classList.remove('active'); }
+      } else {
+        if (window.CS_BRAILLE) CS_BRAILLE.enable();
+        if (btn) { btn.setAttribute('aria-pressed','true'); btn.classList.add('active'); }
+      }
+    }
+
+    /* DOM refs */
+    var orbEl      = document.getElementById("mic-orb");
+    var statusDot  = document.getElementById("status-dot");
+    var statusText = document.getElementById("status-text");
+    var lastCmd    = document.getElementById("last-command");
+    var lastSpeech = document.getElementById("last-speech");
+    var announcer  = document.getElementById("announcer");
+    var voiceLogin = document.getElementById("voice-login");
+
+    var lastUtterance = "";
+    var isListening   = false;
+
+    /* Helpers */
+    function announce(msg) {
+      announcer.textContent = "";
+      requestAnimationFrame(function() { announcer.textContent = msg; });
+    }
+
+    function setStatus(label, state) {
+      statusText.textContent = label;
+      statusDot.className    = "status-dot " + state;
+      var orbClass = "mic-orb";
+      if (state !== "ready") orbClass += " " + state;
+      orbEl.className = orbClass;
+      orbEl.setAttribute("aria-pressed", state === "listening" ? "true" : "false");
+    }
+
+    function showLastCommand(cmd) {
+      lastCmd.textContent = cmd || "—";
+    }
+
+    function showLastSpeech(text) {
+      lastSpeech.textContent = text || "—";
+    }
+
+    /* TTS wrapper */
+    function speak(text, onEnd) {
+      setStatus("Speaking…", "speaking");
+      announce("Speaking: " + text);
+      showLastSpeech(text);
+      lastUtterance = text;
+
+      if (window.CS_VOICE && typeof CS_VOICE.speak === "function") {
+        CS_VOICE.speak(text, function() {
+          setStatus("Ready", "ready");
+          if (typeof onEnd === "function") onEnd();
+        });
+        return;
+      }
+
+      window.speechSynthesis && window.speechSynthesis.cancel();
+      var utt = new SpeechSynthesisUtterance(text);
+      utt.lang = "en-GB";
+      utt.rate = 0.92;
+      utt.onend = function() {
+        setStatus("Ready", "ready");
+        if (typeof onEnd === "function") onEnd();
+      };
+      window.speechSynthesis && window.speechSynthesis.speak(utt);
+    }
+
+    /* Voice command dispatcher */
+    function handleCommand(raw) {
+      var cmd = (raw || "").toLowerCase().trim();
+      showLastCommand(raw);
+      if (!cmd) return;
+
+      if (cmd.indexOf("start guide") !== -1 || cmd.indexOf("guide") !== -1) {
+        speak(START_GUIDE_MSG);
+      } else if (cmd.indexOf("help") !== -1 || cmd.indexOf("commands") !== -1) {
+        speak(HELP_MSG);
+      } else if (cmd.indexOf("guest") !== -1) {
+        speak("Entering guest mode.", function() { window.location.href = "dashboard.html"; });
+      } else if (cmd.indexOf("login") !== -1 || cmd.indexOf("sign in") !== -1) {
+        voiceLogin.classList.add("visible");
+        voiceLogin.removeAttribute("aria-hidden");
+        speak("Login form is now visible. Please type or speak your credentials.");
+        document.getElementById("login-email").focus();
+      } else if (cmd.indexOf("dashboard") !== -1 || cmd.indexOf("home") !== -1) {
+        speak("Opening dashboard.", function() { window.location.href = "dashboard.html"; });
+      } else if (cmd.indexOf("ocr") !== -1 || cmd.indexOf("camera") !== -1 || cmd.indexOf("scan") !== -1) {
+        speak("Opening OCR scanner.", function() { window.location.href = "ocr-agent.html"; });
+      } else if (cmd.indexOf("read page") !== -1) {
+        speak("Opening read page.", function() { window.location.href = "reading-companion.html"; });
+      } else if (cmd.indexOf("library") !== -1) {
+        speak("Opening library.", function() { window.location.href = "ai-librarian.html"; });
+      } else if (cmd.indexOf("reading") !== -1) {
+        speak("Opening adaptive reading.", function() { window.location.href = "reading-companion.html"; });
+      } else if (cmd.indexOf("adhd") !== -1 || cmd.indexOf("focus") !== -1) {
+        speak("Opening ADHD support.", function() { window.location.href = "adhd-agent.html"; });
+      } else if (cmd.indexOf("sign language") !== -1 || cmd.indexOf("signing") !== -1) {
+        speak("Opening sign language tools.", function() { window.location.href = "sign-language.html"; });
+      } else if (cmd.indexOf("stop") !== -1 || cmd.indexOf("cancel") !== -1) {
+        window.speechSynthesis && window.speechSynthesis.cancel();
+        if (window.CS_VOICE && typeof CS_VOICE.stop === "function") CS_VOICE.stop();
+        setStatus("Ready", "ready");
+        announce("Stopped.");
+      } else {
+        speak("Sorry, I did not understand \"" + raw + "\". Say Help for a list of commands.");
+      }
+    }
+
+    /* Listening toggle */
+    function startListening() {
+      if (isListening) return;
+      isListening = true;
+      setStatus("Listening…", "listening");
+      announce("Listening for voice commands.");
+
+      if (window.CS_VOICE && typeof CS_VOICE.listen === "function") {
+        CS_VOICE.listen(
+          function(result) { isListening = false; handleCommand(result); },
+          function(err)    { isListening = false; setStatus("Ready", "ready"); announce("Microphone error: " + err); }
+        );
+        return;
+      }
+
+      var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) {
+        isListening = false;
+        setStatus("Not supported", "error-state");
+        announce("Speech recognition is not supported in this browser. Please use Google Chrome.");
+        return;
+      }
+      var recog = new SR();
+      recog.lang             = "en-GB";
+      recog.interimResults   = false;
+      recog.maxAlternatives  = 1;
+      recog.onresult = function(e) { isListening = false; handleCommand(e.results[0][0].transcript); };
+      recog.onerror  = function()  { isListening = false; setStatus("Ready", "ready"); };
+      recog.onend    = function()  { if (isListening) { isListening = false; setStatus("Ready", "ready"); } };
+      recog.start();
+    }
+
+    function stopListening() {
+      isListening = false;
+      setStatus("Ready", "ready");
+    }
+
+    /* Mic orb click */
+    orbEl.addEventListener("click", function() {
+      if (isListening) { stopListening(); }
+      else             { startListening(); }
+    });
+
+    /* Quick buttons */
+    document.getElementById("btn-start-guide").addEventListener("click", function() { speak(START_GUIDE_MSG); });
+    document.getElementById("btn-guest").addEventListener("click",       function() { speak("Entering guest mode.", function() { window.location.href = "dashboard.html"; }); });
+    document.getElementById("btn-help").addEventListener("click",        function() { speak(HELP_MSG); });
+
+    /* Keyboard shortcuts */
+    document.addEventListener("keydown", function(e) {
+      var tag = document.activeElement && document.activeElement.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+      switch (e.code) {
+        case "Space":
+          e.preventDefault();
+          if (isListening) { stopListening(); } else { startListening(); }
+          break;
+        case "KeyR":
+          if (lastUtterance) speak(lastUtterance);
+          break;
+        case "KeyH":
+          speak(HELP_MSG);
+          break;
+        case "KeyG":
+          speak("Entering guest mode.", function() { window.location.href = "dashboard.html"; });
+          break;
+        case "KeyD":
+          speak("Opening dashboard.", function() { window.location.href = "dashboard.html"; });
+          break;
+        case "KeyB":
+          toggleBrailleMode();
+          announce(document.getElementById("brailleToggle") && document.getElementById("brailleToggle").getAttribute("aria-pressed") === "true" ? "Braille Mode enabled." : "Braille Mode disabled.");
+          break;
+        case "Escape":
+          window.speechSynthesis && window.speechSynthesis.cancel();
+          stopListening();
+          announce("Stopped.");
+          break;
+      }
+    });
+
+    /* Init */
+    document.addEventListener("DOMContentLoaded", function() {
+      if (window.CS_BRAILLE) {
+        CS_BRAILLE.injectStyles();
+        CS_BRAILLE.init();
+      }
+
+      if (window.CS_VOICE) {
+        if (typeof CS_VOICE.init === "function") CS_VOICE.init();
+        if (typeof CS_VOICE.setPageContext === "function") {
+          CS_VOICE.setPageContext(
+            "Blind Audio Agent",
+            "Say Start Guide for instructions. Say Guest Mode to begin without login. Say Login to sign in."
+          );
+        }
+        if (typeof CS_VOICE.onCommand === "function") {
+          CS_VOICE.onCommand(handleCommand);
+        }
+      }
+
+      setTimeout(function() {
+        speak(WELCOME_MSG);
+      }, 500);
+    });
+  </script>
+</body>
+</html>

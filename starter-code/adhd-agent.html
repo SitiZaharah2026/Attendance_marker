@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADHD Adaptive Agent – CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.adhd-layout { display:grid; grid-template-columns:1fr 280px; gap:24px; }
+.focus-window-wrap { position:relative; border-radius:var(--radius); overflow:hidden; }
+.focus-mask-top,.focus-mask-bot { position:absolute; left:0; right:0; background:rgba(15,23,42,0.85); pointer-events:none; z-index:2; }
+.focus-mask-top { top:0; }
+.focus-mask-bot { bottom:0; }
+.focus-line { position:absolute; left:0; right:0; height:68px; border-top:2px solid rgba(99,102,241,0.5); border-bottom:2px solid rgba(99,102,241,0.5); z-index:3; pointer-events:none; background:transparent; }
+.session-btn { padding:12px 20px; border-radius:var(--radius); border:2px solid var(--border); background:var(--bg-card); color:var(--text-muted); font-size:14px; font-weight:700; cursor:pointer; transition:var(--transition); min-width:80px; }
+.session-btn.active,.session-btn:hover { background:var(--primary); color:white; border-color:var(--primary); }
+.break-banner { background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(239,68,68,0.1)); border:1px solid rgba(245,158,11,0.3); border-radius:var(--radius-lg); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.highlight-toolbar { display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+.hl-btn { padding:5px 12px; border-radius:6px; border:none; font-size:12px; font-weight:700; cursor:pointer; }
+@media(max-width:768px){ .adhd-layout{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">
+      <div class="brand-icon">CS</div>
+      <div><span class="brand-name">CelikSense AI</span><span class="brand-tagline" data-i18n="tagline">Agentic Multi-Sensory Learning</span></div>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="dashboard.html" data-i18n="nav_dashboard">Dashboard</a>
+      <div class="nav-dropdown">
+        <button data-i18n="nav_agents" aria-haspopup="true" aria-expanded="false">Agents ▾</button>
+        <div class="dropdown-menu">
+          <a href="ai-librarian.html">📚 AI Librarian</a>
+          <a href="reading-companion.html">📖 Reading Companion</a>
+          <a href="adhd-agent.html">🧠 ADHD Agent</a>
+          <a href="dyslexia-agent.html">👁️ Dyslexia Agent</a>
+          <a href="blind-audio.html">🔊 Blind Audio Agent</a>
+          <a href="sign-language.html">🤟 Sign Language Agent</a>
+          <a href="early-warning.html">⚠️ Early Warning Agent</a>
+          <a href="intervention.html">💡 Intervention Agent</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn" aria-label="Switch to Bahasa Melayu">BM</button>
+      <a href="profile.html" class="btn btn-ghost btn-sm">👤 Profile</a>
+      <a href="dashboard.html" class="btn btn-outline btn-sm">← Dashboard</a>
+      <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
+      <button class="nav-hamburger" onclick="toggleNav()">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+  <div class="page-header-card">
+    <div class="page-badge">🧠</div>
+    <h1 class="page-title">ADHD Adaptive Reading Agent</h1>
+    <p class="page-subtitle">Focus-optimised reading with micro-sessions, timers, highlighting, and smart note builder.</p>
+  </div>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:60px;">
+
+  <!-- Break Banner (hidden initially) -->
+  <div class="break-banner hidden" id="breakBanner" style="margin-bottom:20px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:24px;">⏸️</span>
+      <div>
+        <div style="font-weight:700;font-size:15px;">Time for a Focus Break!</div>
+        <div style="font-size:13px;color:var(--text-muted);">Great work! Take a 5-minute break before continuing.</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-warning btn-sm" onclick="startBreak()">Take Break</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('breakBanner').classList.add('hidden')">Skip</button>
+    </div>
+  </div>
+
+  <div class="adhd-layout">
+    <!-- Main Reading Panel -->
+    <div>
+
+      <!-- Session Controls -->
+      <div class="control-panel" style="margin-bottom:20px;">
+        <div class="panel-title">⏱ Micro-Reading Session</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+          <span style="font-size:13px;color:var(--text-muted);margin-right:4px;">Session Length:</span>
+          <button class="session-btn" onclick="setSession(5,this)">5 min</button>
+          <button class="session-btn active" onclick="setSession(10,this)">10 min</button>
+          <button class="session-btn" onclick="setSession(15,this)">15 min</button>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <div>
+            <div class="timer-display" id="timerDisplay">10:00</div>
+            <div class="timer-label" id="timerLabel">Session Timer</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-left:16px;">
+            <button class="btn btn-success" id="startBtn" onclick="startSession()">▶ Start Session</button>
+            <button class="btn btn-ghost" id="pauseBtn" onclick="pauseSession()" disabled>⏸ Pause</button>
+            <button class="btn btn-danger btn-sm" onclick="stopSession()">⏹ Stop</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interest Input + Strategy -->
+      <div class="control-panel" style="margin-bottom:20px;">
+        <div class="panel-title">🎯 Interest & Strategy</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">My Interests</label>
+            <input type="text" class="form-control" id="interestInput" placeholder="e.g. science, football, music…">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Reading Mode</label>
+            <select class="form-control" id="readingMode" onchange="applyMode()">
+              <option value="focus">Focus Window Mode</option>
+              <option value="chunk">Chunk Reading Mode</option>
+              <option value="free">Free Reading Mode</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="generateStrategy()">🤖 Generate Strategy</button>
+        <div id="strategyOutput" class="hidden" style="margin-top:12px;padding:14px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:var(--radius);font-size:13px;line-height:1.6;"></div>
+      </div>
+
+      <!-- Reading Area with Focus Window -->
+      <div class="control-panel" style="margin-bottom:20px;">
+        <div class="panel-title">📖 Reading Area</div>
+
+        <!-- Highlight Toolbar -->
+        <div class="highlight-toolbar">
+          <button class="hl-btn" style="background:#fbbf2440;color:#92400e;" onclick="hlColor('#fbbf2440')">Yellow</button>
+          <button class="hl-btn" style="background:#6ee7b740;color:#065f46;" onclick="hlColor('#6ee7b740')">Green</button>
+          <button class="hl-btn" style="background:#a5b4fc40;color:#3730a3;" onclick="hlColor('#a5b4fc40')">Purple</button>
+          <button class="hl-btn" style="background:#fca5a540;color:#7f1d1d;" onclick="hlColor('#fca5a540')">Red</button>
+          <button class="hl-btn" style="background:transparent;border:1px solid var(--border);color:var(--text-muted);" onclick="clearHighlights()">Clear</button>
+        </div>
+
+        <div id="focusWrapper" class="focus-window-wrap" style="position:relative;">
+          <div class="focus-mask-top hidden" id="maskTop" style="height:0;"></div>
+          <div class="focus-line hidden" id="focusLine"></div>
+          <div class="reading-area" id="readingArea" contenteditable="true" style="min-height:220px;outline:none;"
+            onmousemove="moveFocusLine(event)"
+          >Scientists have discovered that the human brain is incredibly adaptable. This remarkable quality, known as neuroplasticity, means that our brains can form new connections throughout our lives. Regular reading has been shown to strengthen these neural pathways. For learners with ADHD, short focused reading sessions are particularly effective. The key is to match the reading content to areas of genuine interest. When students read about topics they love, their brain naturally produces dopamine, which helps maintain focus. Try reading for just 5 to 10 minutes at a time, then take a short break before continuing. This micro-reading approach works with the ADHD brain rather than against it.</div>
+          <div class="focus-mask-bot hidden" id="maskBot" style="height:0;"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="readAreaAloud()">🔊 Read Aloud</button>
+          <button class="btn btn-ghost btn-sm" id="focusToggle" onclick="toggleFocusWindow()">👁 Focus Window</button>
+          <button class="btn btn-ghost btn-sm" onclick="stopSpeech()">⏹ Stop</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sidebar -->
+    <div>
+      <!-- Focus Score -->
+      <div class="control-panel" style="margin-bottom:16px;text-align:center;">
+        <div class="panel-title">🎯 Focus Score</div>
+        <div class="gauge" id="focusGauge" style="--pct:72;">
+          <div class="gauge-value" id="focusVal">72</div>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:10px;" id="focusMsg">Good Focus Level 👍</div>
+        <button class="btn btn-ghost btn-sm w-full" style="margin-top:10px;" onclick="simulateFocus()">↻ Simulate Score</button>
+      </div>
+
+      <!-- Multi-Book Strategy -->
+      <div class="control-panel" style="margin-bottom:16px;">
+        <div class="panel-title">📚 Multi-Book Strategy</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:10px;">ADHD learners often thrive reading 2–3 books simultaneously. Rotate based on energy level:</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="background:var(--bg);border-radius:8px;padding:10px;display:flex;gap:8px;align-items:center;"><span>🔵</span><span style="font-size:13px;"><strong>High Focus:</strong> Science / Maths</span></div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;display:flex;gap:8px;align-items:center;"><span>🟡</span><span style="font-size:13px;"><strong>Medium Focus:</strong> Stories</span></div>
+          <div style="background:var(--bg);border-radius:8px;padding:10px;display:flex;gap:8px;align-items:center;"><span>🟢</span><span style="font-size:13px;"><strong>Low Focus:</strong> Comics / BIM</span></div>
+        </div>
+      </div>
+
+      <!-- Note Builder -->
+      <div class="control-panel" style="margin-bottom:16px;">
+        <div class="panel-title">📝 AI Note Builder</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input type="text" class="form-control" id="noteInput" placeholder="Add a note or quote…" style="flex:1;">
+          <button class="btn btn-primary btn-sm" onclick="addNote()">+</button>
+        </div>
+        <div id="notesList"></div>
+        <button class="btn btn-ghost btn-sm w-full" onclick="exportNotes()" style="margin-top:8px;">📤 Export Notes</button>
+      </div>
+
+      <!-- Intervention Rec -->
+      <div class="control-panel">
+        <div class="panel-title">💡 ADHD Intervention</div>
+        <div id="interventionRec" style="font-size:13px;color:var(--text-muted);line-height:1.6;">
+          Start a session to receive personalised ADHD reading interventions.
+        </div>
+        <a href="intervention.html" class="btn btn-outline btn-sm w-full" style="margin-top:10px;">View Full Intervention Plan</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2026 CelikSense AI · <a href="index.html" style="color:var(--primary-light)">Home</a> · <a href="dashboard.html" style="color:var(--primary-light)">Dashboard</a></span>
+      <span>🧠 ADHD Adaptive Reading Agent</span>
+    </div>
+  </div>
+</footer>
+
+<script src="shared.js"></script>
+<script>
+let sessionMins = 10;
+let timerInterval = null;
+let timerSecs = 0;
+let timerRunning = false;
+let hlColorCurrent = '#fbbf2440';
+let notes = [];
+let focusWindowOn = false;
+let completedSessions = 0;
+let currentFocusScore = 72;  // track for analytics logging
+
+function setSession(mins, btn) {
+  sessionMins = mins;
+  document.querySelectorAll('.session-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  timerSecs = mins * 60;
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSecs/60).toString().padStart(2,'0');
+  const s = (timerSecs%60).toString().padStart(2,'0');
+  document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+}
+
+function startSession() {
+  if (timerRunning) return;
+  if (timerSecs <= 0) timerSecs = sessionMins * 60;
+  timerRunning = true;
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('pauseBtn').disabled = false;
+
+  /* ── Analytics: start session ── */
+  CS.analytics.startSession('adhd');
+
+  timerInterval = setInterval(()=>{
+    if (timerSecs > 0) { timerSecs--; updateTimerDisplay(); }
+    else {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      completedSessions++;
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('pauseBtn').disabled = true;
+      document.getElementById('breakBanner').classList.remove('hidden');
+
+      /* ── Analytics: log focus + end session ── */
+      const finalScore = simulateFocus();
+      CS.analytics.logFocus({ score: finalScore, agent: 'adhd', sessionMins });
+      CS.analytics.endSession({ completedSessions, sessionMins, focusScore: finalScore });
+
+      showIntervention();
+      speak('Great work! Session complete. Your focus score is ' + finalScore + '. Time for a short break.');
+    }
+  },1000);
+}
+
+function pauseSession() {
+  if (!timerRunning) return;
+  clearInterval(timerInterval);
+  timerRunning = false;
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('pauseBtn').disabled = true;
+
+  /* ── Analytics: log partial focus on pause ── */
+  CS.analytics.logFocus({ score: currentFocusScore, agent: 'adhd', partial: true });
+}
+
+function stopSession() {
+  if (timerRunning || CS.analytics._session) {
+    /* ── Analytics: end session early ── */
+    CS.analytics.logFocus({ score: currentFocusScore, agent: 'adhd', partial: true });
+    CS.analytics.endSession({ completedSessions, sessionMins, focusScore: currentFocusScore, stoppedEarly: true });
+  }
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSecs = sessionMins * 60;
+  updateTimerDisplay();
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('pauseBtn').disabled = true;
+}
+
+function startBreak() {
+  document.getElementById('breakBanner').classList.add('hidden');
+  speak('Great work! Time for a 5-minute break. Stand up, stretch, and rest your eyes.');
+}
+
+function toggleFocusWindow() {
+  focusWindowOn = !focusWindowOn;
+  const maskTop = document.getElementById('maskTop');
+  const maskBot = document.getElementById('maskBot');
+  const focusLine = document.getElementById('focusLine');
+  const btn = document.getElementById('focusToggle');
+  if (focusWindowOn) {
+    maskTop.classList.remove('hidden');
+    maskBot.classList.remove('hidden');
+    focusLine.classList.remove('hidden');
+    btn.classList.add('active');
+    btn.style.background = 'var(--primary)';
+    btn.style.color = 'white';
+    initFocusWindow();
+  } else {
+    maskTop.classList.add('hidden');
+    maskBot.classList.add('hidden');
+    focusLine.classList.add('hidden');
+    btn.style.background = '';
+    btn.style.color = '';
+  }
+}
+
+function initFocusWindow() {
+  const wrapper = document.getElementById('focusWrapper');
+  const h = wrapper.offsetHeight;
+  const lineH = 68;
+  const lineTop = Math.floor(h/2 - lineH/2);
+  document.getElementById('focusLine').style.top = lineTop+'px';
+  document.getElementById('maskTop').style.height = lineTop+'px';
+  document.getElementById('maskBot').style.height = (h - lineTop - lineH)+'px';
+}
+
+function moveFocusLine(e) {
+  if (!focusWindowOn) return;
+  const wrapper = document.getElementById('focusWrapper');
+  const rect = wrapper.getBoundingClientRect();
+  const y = e.clientY - rect.top;
+  const lineH = 68;
+  const h = wrapper.offsetHeight;
+  const top = Math.max(0, Math.min(h-lineH, y-lineH/2));
+  document.getElementById('focusLine').style.top = top+'px';
+  document.getElementById('maskTop').style.height = top+'px';
+  document.getElementById('maskBot').style.height = (h-top-lineH)+'px';
+}
+
+function hlColor(color) {
+  hlColorCurrent = color;
+  const sel = window.getSelection();
+  if (sel && !sel.isCollapsed && sel.toString().length > 0) {
+    const range = sel.getRangeAt(0);
+    const mark = document.createElement('mark');
+    mark.style.background = color;
+    mark.style.borderRadius = '3px';
+    mark.style.padding = '0 2px';
+    try { range.surroundContents(mark); sel.removeAllRanges(); } catch(e) {}
+  }
+}
+
+function clearHighlights() {
+  const el = document.getElementById('readingArea');
+  el.querySelectorAll('mark').forEach(m=>{
+    m.replaceWith(document.createTextNode(m.textContent));
+  });
+}
+
+function readAreaAloud() {
+  const text = document.getElementById('readingArea').innerText;
+  speak(text);
+}
+
+function generateStrategy() {
+  const interest = document.getElementById('interestInput').value || 'general topics';
+  const mode = document.getElementById('readingMode').value;
+  const strategies = {
+    focus: `Focus Window Strategy for <strong>${interest}</strong>:<br>• Use the sliding focus strip to isolate one line at a time.<br>• Set a 10-minute timer with 3-minute breaks.<br>• Highlight key concepts in yellow as you go.<br>• Build notes after each paragraph.`,
+    chunk: `Chunk Reading Strategy for <strong>${interest}</strong>:<br>• Divide text into 3–4 sentence chunks.<br>• Read one chunk, then pause and summarise in 1 sentence.<br>• Use TTS for chunks that feel overwhelming.<br>• Reward yourself with 30 seconds of rest between chunks.`,
+    free: `Free Reading Strategy for <strong>${interest}</strong>:<br>• No pressure – read at your own pace.<br>• Mark interesting words with purple highlights.<br>• Use TTS if you get tired.<br>• Stop whenever focus drops; resume later.`
+  };
+  const el = document.getElementById('strategyOutput');
+  el.classList.remove('hidden');
+  el.innerHTML = `<strong>📋 Recommended Strategy:</strong><br><br>${strategies[mode]}`;
+}
+
+function simulateFocus() {
+  const score = Math.floor(Math.random()*30)+60;
+  currentFocusScore = score;
+  document.getElementById('focusGauge').style.setProperty('--pct',score);
+  document.getElementById('focusVal').textContent = score;
+  const msgs = ['Excellent Focus! 🌟','Good Focus Level 👍','Moderate Focus 😊','Consider a break 💤'];
+  document.getElementById('focusMsg').textContent = score>=85?msgs[0]:score>=70?msgs[1]:score>=55?msgs[2]:msgs[3];
+  return score;
+}
+
+function showIntervention() {
+  document.getElementById('interventionRec').innerHTML = `
+    <div class="alert alert-success" style="margin-bottom:10px;"><span>✅</span><div>Session complete! ${completedSessions} session(s) done today.</div></div>
+    <strong>Next Steps:</strong><br>
+    • Take a 5-minute movement break<br>
+    • Drink water and look away from screen<br>
+    • Review your notes before next session<br>
+    • Try a different topic next time for variety
+  `;
+}
+
+function addNote() {
+  const input = document.getElementById('noteInput');
+  const text = input.value.trim();
+  if (!text) return;
+  notes.push({ id:Date.now(), text });
+  input.value = '';
+  renderNotes();
+}
+
+function deleteNote(id) {
+  notes = notes.filter(n=>n.id!==id);
+  renderNotes();
+}
+
+function renderNotes() {
+  document.getElementById('notesList').innerHTML = notes.length
+    ? notes.map(n=>`<div class="note-card">${n.text}<button class="note-delete" onclick="deleteNote(${n.id})">×</button></div>`).join('')
+    : '<p style="font-size:13px;color:var(--text-muted);">No notes yet.</p>';
+}
+
+function exportNotes() {
+  if (!notes.length) { alert('No notes to export!'); return; }
+  const txt = notes.map((n,i)=>`${i+1}. ${n.text}`).join('\n');
+  const blob = new Blob([txt],{type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'celiksense-adhd-notes.txt';
+  a.click();
+}
+
+function applyMode() {
+  generateStrategy();
+}
+
+// Init
+timerSecs = sessionMins * 60;
+updateTimerDisplay();
+renderNotes();
+</script>
+<script src="personalisation-system.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (!window.CS_PERSONALISE) return;
+  CS_PERSONALISE.init();
+  CS_PERSONALISE.trackAgentUse('adhd-agent');
+  // Set accessibilityMode to adhd if not already set
+  var p = CS_PERSONALISE.getProfile();
+  if (p.accessibilityMode === 'general') {
+    p.accessibilityMode = 'adhd';
+    CS_PERSONALISE.saveProfile(p);
+  }
+  var lang = localStorage.getItem('cs_lang') || 'en';
+  // Insert ADHD micro-reading tip banner
+  var banner = document.createElement('div');
+  banner.className = 'ps-card';
+  banner.setAttribute('role','note');
+  banner.setAttribute('aria-label','Personalised ADHD Tip');
+  banner.innerHTML = '<div class="ps-card-title">⚡ ' + (lang==='ms'?'Petua Diperibadikan':'Personalised Tip') + '</div>' +
+    '<div class="ps-insight">' + (lang==='ms'?'Berdasarkan corak bacaan anda: Sesi mikro-bacaan 10 minit adalah yang terbaik untuk tumpuan anda. Tetapkan pemasa dan berehat 5 minit setiap sesi.':'Based on your reading pattern: 10-minute micro-reading sessions work best for your focus. Set a timer and take 5-minute breaks between sessions.') + '</div>';
+  var main = document.querySelector('main') || document.querySelector('.container') || document.body;
+  main.insertBefore(banner, main.firstChild);
+});
+</script>
+</body>
+</html>

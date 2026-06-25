@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings – CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── Settings page layout ── */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+@media(max-width:768px){ .settings-layout { grid-template-columns: 1fr; } }
+
+/* Sidebar nav */
+.settings-nav {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 8px;
+  position: sticky;
+  top: calc(var(--nav-h) + 20px);
+}
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+.settings-nav-item:hover { background: var(--bg-hover); color: var(--text); }
+.settings-nav-item.active { background: rgba(99,102,241,0.12); color: var(--primary-light); }
+.settings-nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+/* Panels */
+.settings-panel { display: none; }
+.settings-panel.active { display: block; }
+
+.settings-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+}
+.settings-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.settings-section-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0 0 20px;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.settings-row:last-child { border-bottom: none; padding-bottom: 0; }
+.settings-row-label { font-size: 14px; font-weight: 500; }
+.settings-row-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.settings-row-ctrl { flex-shrink: 0; }
+
+/* API key input row */
+.api-key-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.api-key-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-input, rgba(255,255,255,0.05));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 14px;
+  padding: 10px 14px;
+  font-family: monospace;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.api-key-input:focus { border-color: var(--primary-light); }
+.api-key-input::placeholder { color: var(--text-dim); }
+
+/* Status badge */
+.api-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-top: 10px;
+}
+.api-status.ok     { background: rgba(34,197,94,0.12);  color: #22c55e; }
+.api-status.error  { background: rgba(239,68,68,0.12);  color: #ef4444; }
+.api-status.warn   { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.api-status.none   { background: rgba(156,163,175,0.12);color: #9ca3af; }
+.api-status.testing{ background: rgba(99,102,241,0.12); color: var(--primary-light); }
+
+/* Toggle switch */
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle-switch input:checked + .toggle-track { background: var(--primary-light); }
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 18px; height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.toggle-switch input:checked + .toggle-track::after { transform: translateX(20px); }
+
+/* Select */
+.settings-select {
+  background: var(--bg-input, rgba(255,255,255,0.05));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 14px;
+  padding: 8px 12px;
+  cursor: pointer;
+  outline: none;
+}
+.settings-select:focus { border-color: var(--primary-light); }
+
+/* Range */
+.settings-range { width: 120px; accent-color: var(--primary-light); }
+
+/* Colour overlay picker */
+.overlay-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.overlay-chip {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.overlay-chip:hover { transform: scale(1.1); }
+.overlay-chip.active { border-color: var(--primary-light); }
+.overlay-chip[data-color="none"]   { background: #374151; }
+.overlay-chip[data-color="yellow"] { background: #fef08a; }
+.overlay-chip[data-color="blue"]   { background: #93c5fd; }
+.overlay-chip[data-color="green"]  { background: #86efac; }
+.overlay-chip[data-color="grey"]   { background: #d1d5db; }
+.overlay-chip[data-color="pink"]   { background: #f9a8d4; }
+
+/* Danger zone */
+.danger-btn {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #ef4444;
+  border-radius: var(--radius);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.danger-btn:hover { background: rgba(239,68,68,0.18); }
+
+/* Page header */
+.settings-header {
+  margin-bottom: 28px;
+}
+.settings-header h1 {
+  font-size: clamp(20px,3vw,28px);
+  font-weight: 800;
+  margin: 0 0 4px;
+}
+.settings-header p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+}
+</style>
+</head>
+<body>
+
+<!-- Skip link -->
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">
+      <div class="brand-icon">CS</div>
+      <div>
+        <span class="brand-name">CelikSense AI</span>
+        <span class="brand-tagline" data-i18n="tagline">Agentic Multi-Sensory Learning</span>
+      </div>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="dashboard.html" data-i18n="nav_dashboard">Dashboard</a>
+      <div class="nav-dropdown">
+        <button data-i18n="nav_agents" aria-haspopup="true" aria-expanded="false">Agents ▾</button>
+        <div class="dropdown-menu">
+          <a href="ai-librarian.html">📚 AI Librarian</a>
+          <a href="reading-companion.html">📖 Reading Companion</a>
+          <a href="adhd-agent.html">🧠 ADHD Agent</a>
+          <a href="dyslexia-agent.html">👁️ Dyslexia Agent</a>
+          <a href="blind-audio.html">🔊 Blind Audio Agent</a>
+          <a href="sign-language.html">🤟 Sign Language Agent</a>
+          <a href="early-warning.html">⚠️ Early Warning Agent</a>
+          <a href="intervention.html">💡 Intervention Agent</a>
+          <a href="ocr-agent.html">📷 OCR Reading Agent</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn" aria-label="Switch language">BM</button>
+      <a href="profile.html" class="btn btn-ghost btn-sm">👤 Profile</a>
+      <a href="settings.html" class="btn btn-primary btn-sm">⚙️ Settings</a>
+      <button class="nav-hamburger" onclick="toggleNav()" aria-label="Open menu">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div style="padding-top:var(--nav-h);" id="main-content">
+<div class="container" style="padding-top:32px;padding-bottom:60px;">
+
+  <div class="settings-header">
+    <h1>⚙️ <span data-i18n="set_title">Settings</span></h1>
+    <p data-i18n="set_subtitle">Customise CelikSense AI for your learning needs.</p>
+  </div>
+
+  <div class="settings-layout">
+
+    <!-- Sidebar nav -->
+    <nav class="settings-nav" aria-label="Settings sections">
+      <button class="settings-nav-item active" onclick="showPanel('ai')" id="tab-ai">
+        <span class="nav-icon">🤖</span>
+        <span data-i18n="set_tab_ai">AI Settings</span>
+      </button>
+      <button class="settings-nav-item" onclick="showPanel('accessibility')" id="tab-accessibility">
+        <span class="nav-icon">♿</span>
+        <span data-i18n="set_tab_a11y">Accessibility</span>
+      </button>
+      <button class="settings-nav-item" onclick="showPanel('profile')" id="tab-profile">
+        <span class="nav-icon">👤</span>
+        <span data-i18n="set_tab_profile">Profile</span>
+      </button>
+      <button class="settings-nav-item" onclick="showPanel('language')" id="tab-language">
+        <span class="nav-icon">🌐</span>
+        <span data-i18n="set_tab_lang">Language</span>
+      </button>
+      <button class="settings-nav-item" onclick="showPanel('data')" id="tab-data">
+        <span class="nav-icon">📊</span>
+        <span data-i18n="set_tab_data">Data & Privacy</span>
+      </button>
+    </nav>
+
+    <!-- Main panels -->
+    <div>
+
+      <!-- ── AI Settings ── -->
+      <div class="settings-panel active" id="panel-ai">
+
+        <div class="settings-section">
+          <div class="settings-section-title">🤖 <span data-i18n="set_gemini_title">Gemini AI</span></div>
+          <div class="settings-section-desc" data-i18n="set_gemini_desc">
+            Enter your Gemini API key to enable AI summaries, quizzes, and intervention plans.
+          </div>
+
+          <div id="apiStatusBadge" class="api-status none" aria-live="polite">
+            <span id="apiStatusDot">⚪</span>
+            <span id="apiStatusText" data-i18n="set_api_none">No key set</span>
+          </div>
+
+          <div class="api-key-row" style="margin-top:16px;">
+            <input
+              type="password"
+              id="geminiKeyInput"
+              class="api-key-input"
+              placeholder="Paste your Gemini API key here"
+              aria-label="Gemini API key"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button class="btn btn-ghost btn-sm" id="toggleKeyVisBtn" onclick="toggleKeyVis()" aria-label="Show/hide key">👁</button>
+            <button class="btn btn-primary btn-sm" onclick="saveKey()" data-i18n="set_save_key">Save Key</button>
+            <button class="btn btn-ghost btn-sm" onclick="testConnection()" id="testBtn" data-i18n="set_test">Test</button>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="clearKey()" data-i18n="set_clear_key">Clear Key</button>
+            <a class="btn btn-ghost btn-sm" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" data-i18n="set_get_key">Get free key ↗</a>
+          </div>
+
+          <div style="margin-top:16px;padding:12px 14px;background:rgba(99,102,241,0.07);border-radius:var(--radius);border:1px solid rgba(99,102,241,0.15);font-size:13px;color:var(--text-muted);">
+            🔒 <span data-i18n="set_key_privacy">Your API key is saved only in your browser (localStorage). It is never sent to any server.</span>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">⚡ <span data-i18n="set_ai_prefs">AI Preferences</span></div>
+          <div class="settings-section-desc" data-i18n="set_ai_prefs_desc">Control how AI features behave.</div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="set_ai_summaries">AI Summaries</div>
+              <div class="settings-row-sub" data-i18n="set_ai_summaries_sub">Auto-summarise long texts in Reading Companion</div>
+            </div>
+            <label class="toggle-switch settings-row-ctrl">
+              <input type="checkbox" id="toggleAiSummaries" onchange="savePref('aiSummaries', this.checked)">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="set_ai_quiz">AI Quizzes</div>
+              <div class="settings-row-sub" data-i18n="set_ai_quiz_sub">Generate comprehension questions after reading</div>
+            </div>
+            <label class="toggle-switch settings-row-ctrl">
+              <input type="checkbox" id="toggleAiQuiz" onchange="savePref('aiQuiz', this.checked)">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="set_ai_intervention">AI Intervention Plans</div>
+              <div class="settings-row-sub" data-i18n="set_ai_intervention_sub">Generate personalised learning strategies</div>
+            </div>
+            <label class="toggle-switch settings-row-ctrl">
+              <input type="checkbox" id="toggleAiIntervention" onchange="savePref('aiIntervention', this.checked)">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
+
+      </div><!-- /panel-ai -->
+
+      <!-- ── Accessibility ── -->
+      <div class="settings-panel" id="panel-accessibility">
+
+        <div class="settings-section">
+          <div class="settings-section-title">🔤 <span data-i18n="set_font_title">Text & Font</span></div>
+          <div class="settings-section-desc" data-i18n="set_font_desc">Adjust how text appears across all pages.</div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="a11y_font_size">Text size</div>
+              <div class="settings-row-sub" id="fontSizeLabel">100%</div>
+            </div>
+            <input type="range" class="settings-range settings-row-ctrl" id="fontSizeRange"
+              min="80" max="150" step="5" value="100"
+              oninput="applyFontSize(this.value)"
+              aria-label="Text size">
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="a11y_font_style">Font style</div>
+              <div class="settings-row-sub" data-i18n="set_font_sub">OpenDyslexic helps some readers</div>
+            </div>
+            <select class="settings-select settings-row-ctrl" id="fontStyleSelect" onchange="applyFontStyle(this.value)">
+              <option value="system" data-i18n="a11y_font_system">System</option>
+              <option value="dyslexic" data-i18n="a11y_font_dyslexic">OpenDyslexic</option>
+              <option value="arial" data-i18n="a11y_font_arial">Arial</option>
+            </select>
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Letter spacing</div>
+              <div class="settings-row-sub" id="letterSpacingLabel">Normal</div>
+            </div>
+            <input type="range" class="settings-range settings-row-ctrl" id="letterSpacingRange"
+              min="0" max="4" step="0.5" value="0"
+              oninput="applyLetterSpacing(this.value)"
+              aria-label="Letter spacing">
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">🎨 <span data-i18n="a11y_contrast">Contrast mode</span></div>
+          <div class="settings-section-desc" data-i18n="set_contrast_desc">Choose a display mode that is easiest for your eyes.</div>
+
+          <div class="settings-row">
+            <div class="settings-row-label" data-i18n="a11y_contrast">Contrast</div>
+            <select class="settings-select settings-row-ctrl" id="contrastSelect" onchange="applyContrast(this.value)">
+              <option value="normal"   data-i18n="a11y_contrast_normal">Normal</option>
+              <option value="high"     data-i18n="a11y_contrast_high">High contrast</option>
+              <option value="inverted" data-i18n="a11y_contrast_inverted">Inverted</option>
+            </select>
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="a11y_overlay">Colour overlay</div>
+              <div class="settings-row-sub" data-i18n="set_overlay_sub">Helps with visual stress and dyslexia</div>
+            </div>
+            <div class="overlay-chips settings-row-ctrl" role="group" aria-label="Colour overlay">
+              <button class="overlay-chip active" data-color="none"   onclick="applyOverlay('none')"   aria-label="No overlay"    title="None"></button>
+              <button class="overlay-chip" data-color="yellow" onclick="applyOverlay('yellow')" aria-label="Yellow overlay" title="Yellow"></button>
+              <button class="overlay-chip" data-color="blue"   onclick="applyOverlay('blue')"   aria-label="Blue overlay"   title="Blue"></button>
+              <button class="overlay-chip" data-color="green"  onclick="applyOverlay('green')"  aria-label="Green overlay"  title="Green"></button>
+              <button class="overlay-chip" data-color="grey"   onclick="applyOverlay('grey')"   aria-label="Grey overlay"   title="Grey"></button>
+              <button class="overlay-chip" data-color="pink"   onclick="applyOverlay('pink')"   aria-label="Pink overlay"   title="Pink"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">🔊 <span data-i18n="a11y_tts">Text-to-speech</span></div>
+          <div class="settings-section-desc" data-i18n="set_tts_desc">Customise how text is read aloud.</div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="a11y_tts_speed">Speech speed</div>
+              <div class="settings-row-sub" id="ttsSpeedLabel">1.0×</div>
+            </div>
+            <input type="range" class="settings-range settings-row-ctrl" id="ttsSpeedRange"
+              min="0.5" max="2.5" step="0.1" value="1.0"
+              oninput="applyTtsSpeed(this.value)"
+              aria-label="Speech speed">
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="a11y_voice_cmd">Voice commands</div>
+              <div class="settings-row-sub" data-i18n="set_voice_sub">Say commands to control the app hands-free</div>
+            </div>
+            <label class="toggle-switch settings-row-ctrl">
+              <input type="checkbox" id="toggleVoiceCmd" onchange="savePref('voiceCommands', this.checked)">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="a11y_ruler">Reading ruler</div>
+              <div class="settings-row-sub" data-i18n="set_ruler_sub">A highlight band that follows your cursor</div>
+            </div>
+            <label class="toggle-switch settings-row-ctrl">
+              <input type="checkbox" id="toggleRuler" onchange="applyRuler(this.checked)">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="a11y_window">Reading window</div>
+              <div class="settings-row-sub" data-i18n="set_window_sub">Blur content outside a focus band (ADHD mode)</div>
+            </div>
+            <label class="toggle-switch settings-row-ctrl">
+              <input type="checkbox" id="toggleWindow" onchange="applyReadingWindow(this.checked)">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
+
+        <div style="text-align:right;">
+          <button class="btn btn-ghost btn-sm" onclick="resetAccessibility()" data-i18n="a11y_reset">Reset to defaults</button>
+        </div>
+
+      </div><!-- /panel-accessibility -->
+
+      <!-- ── Profile ── -->
+      <div class="settings-panel" id="panel-profile">
+
+        <div class="settings-section">
+          <div class="settings-section-title">👤 <span data-i18n="set_profile_title">Learner Profile</span></div>
+          <div class="settings-section-desc" data-i18n="set_profile_desc">Your profile helps agents personalise their support.</div>
+
+          <div class="settings-row">
+            <div class="settings-row-label" data-i18n="set_name">Display name</div>
+            <input type="text" id="profileName" class="api-key-input" style="max-width:220px;"
+              placeholder="Your name" aria-label="Display name"
+              oninput="saveProfile()">
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row-label" data-i18n="set_disability">Accessibility need</div>
+            <select class="settings-select settings-row-ctrl" id="profileDisability" onchange="saveProfile()">
+              <option value="general">General</option>
+              <option value="adhd">ADHD</option>
+              <option value="dyslexia">Dyslexia</option>
+              <option value="blind">Blind / Low Vision</option>
+              <option value="deaf">Deaf / Hard of Hearing</option>
+            </select>
+          </div>
+
+          <div class="settings-row">
+            <div class="settings-row-label" data-i18n="set_grade">Year / Grade</div>
+            <select class="settings-select settings-row-ctrl" id="profileGrade" onchange="saveProfile()">
+              <option value="">Not specified</option>
+              <option value="1">Year 1</option>
+              <option value="2">Year 2</option>
+              <option value="3">Year 3</option>
+              <option value="4">Year 4</option>
+              <option value="5">Year 5</option>
+              <option value="6">Year 6</option>
+              <option value="f1">Form 1</option>
+              <option value="f2">Form 2</option>
+              <option value="f3">Form 3</option>
+              <option value="f4">Form 4</option>
+              <option value="f5">Form 5</option>
+              <option value="uni">University</option>
+            </select>
+          </div>
+
+        </div>
+
+      </div><!-- /panel-profile -->
+
+      <!-- ── Language ── -->
+      <div class="settings-panel" id="panel-language">
+
+        <div class="settings-section">
+          <div class="settings-section-title">🌐 <span data-i18n="set_lang_title">Display Language</span></div>
+          <div class="settings-section-desc" data-i18n="set_lang_desc">Choose the language for all text in the app.</div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">English</div>
+              <div class="settings-row-sub">Interface in English</div>
+            </div>
+            <label class="toggle-switch settings-row-ctrl">
+              <input type="radio" name="langRadio" value="en" id="langEn" onchange="setLanguage('en')" style="opacity:0;position:absolute;">
+              <span class="toggle-track" id="langEnTrack" style="background:var(--primary-light)"></span>
+            </label>
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Bahasa Melayu</div>
+              <div class="settings-row-sub">Antara muka dalam Bahasa Melayu</div>
+            </div>
+            <label class="toggle-switch settings-row-ctrl">
+              <input type="radio" name="langRadio" value="ms" id="langMs" onchange="setLanguage('ms')" style="opacity:0;position:absolute;">
+              <span class="toggle-track" id="langMsTrack"></span>
+            </label>
+          </div>
+
+          <div style="margin-top:16px;">
+            <button class="btn btn-primary" onclick="setLanguage('en')" id="btnLangEn" style="margin-right:8px;">🇬🇧 English</button>
+            <button class="btn btn-ghost"   onclick="setLanguage('ms')" id="btnLangMs">🇲🇾 Bahasa Melayu</button>
+          </div>
+        </div>
+
+      </div><!-- /panel-language -->
+
+      <!-- ── Data & Privacy ── -->
+      <div class="settings-panel" id="panel-data">
+
+        <div class="settings-section">
+          <div class="settings-section-title">📊 <span data-i18n="set_analytics_title">Learning Analytics</span></div>
+          <div class="settings-section-desc" data-i18n="set_analytics_desc">Data is stored only in your browser — never uploaded to any server.</div>
+
+          <div id="analyticsStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px;">
+            <div class="widget" style="text-align:center;">
+              <div class="widget-label">Sessions</div>
+              <div class="widget-value" id="statSessions" style="font-size:22px;">—</div>
+            </div>
+            <div class="widget" style="text-align:center;">
+              <div class="widget-label">Avg Focus</div>
+              <div class="widget-value" id="statFocus" style="font-size:22px;">—</div>
+            </div>
+            <div class="widget" style="text-align:center;">
+              <div class="widget-label">Risk Score</div>
+              <div class="widget-value" id="statRisk" style="font-size:22px;">—</div>
+            </div>
+          </div>
+
+          <button class="danger-btn" onclick="clearAnalytics()" data-i18n="set_clear_analytics">Clear all learning data</button>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-title">🗑️ <span data-i18n="set_danger_title">Danger Zone</span></div>
+          <div class="settings-section-desc" data-i18n="set_danger_desc">These actions cannot be undone.</div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="set_clear_profile">Reset learner profile</div>
+              <div class="settings-row-sub" data-i18n="set_clear_profile_sub">Removes name, grade, and disability type</div>
+            </div>
+            <button class="danger-btn settings-row-ctrl" onclick="clearProfile()" data-i18n="set_reset">Reset</button>
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label" data-i18n="set_clear_all">Reset everything</div>
+              <div class="settings-row-sub" data-i18n="set_clear_all_sub">Clears all data including API key and accessibility settings</div>
+            </div>
+            <button class="danger-btn settings-row-ctrl" onclick="clearEverything()" data-i18n="set_reset">Reset All</button>
+          </div>
+        </div>
+
+      </div><!-- /panel-data -->
+
+    </div><!-- /main panels -->
+  </div><!-- /settings-layout -->
+
+</div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+/* ════════════════════════════════════════════════════
+   Settings page script
+   Reads from and writes to CS.user, CS.a11y, CS.groq,
+   CS.analytics, CS.lang — all defined in shared.js.
+════════════════════════════════════════════════════ */
+
+/* ── Panel navigation ─────────────────────────────── */
+function showPanel(name) {
+  document.querySelectorAll('.settings-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.settings-nav-item').forEach(function(b) { b.classList.remove('active'); });
+  var panel = document.getElementById('panel-' + name);
+  var tab   = document.getElementById('tab-' + name);
+  if (panel) panel.classList.add('active');
+  if (tab)   tab.classList.add('active');
+}
+
+/* ── Gemini API key ────────────────────────────────── */
+function loadApiStatus() {
+  var badge = document.getElementById('apiStatusBadge');
+  var dot   = document.getElementById('apiStatusDot');
+  var text  = document.getElementById('apiStatusText');
+  var input = document.getElementById('geminiKeyInput');
+
+  var key = '';
+  try { key = localStorage.getItem('gemini_api_key') || ''; } catch(e) {}
+
+  if (!key) {
+    badge.className = 'api-status none';
+    dot.textContent = '⚪';
+    text.textContent = CS.lang.t('set_api_none') || 'No key set';
+    return;
+  }
+
+  input.value = '••••••••••••' + key.slice(-4);
+  badge.className = 'api-status warn';
+  dot.textContent = '🟡';
+  text.textContent = CS.lang.t('set_api_saved') || 'Key saved — click Test to verify';
+}
+
+function saveKey() {
+  var input = document.getElementById('geminiKeyInput');
+  var val = input.value.trim();
+  if (!val || val.startsWith('••')) { CS.toast('Enter a new key first', 'warn'); return; }
+  try { localStorage.setItem('gemini_api_key', val); } catch(e) {}
+  if (CS.gemini) CS.gemini.setKey(val);
+  loadApiStatus();
+  CS.toast(CS.lang.t('set_key_saved') || 'API key saved!', 'success');
+}
+
+function clearKey() {
+  try { localStorage.removeItem('gemini_api_key'); } catch(e) {}
+  document.getElementById('geminiKeyInput').value = '';
+  if (CS.gemini) CS.gemini.clearKey();
+  loadApiStatus();
+  CS.toast('API key cleared', 'info');
+}
+
+function toggleKeyVis() {
+  var input = document.getElementById('geminiKeyInput');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function testConnection() {
+  var badge = document.getElementById('apiStatusBadge');
+  var dot   = document.getElementById('apiStatusDot');
+  var text  = document.getElementById('apiStatusText');
+  var btn   = document.getElementById('testBtn');
+
+  badge.className = 'api-status testing';
+  dot.textContent = '🔵';
+  text.textContent = 'Testing connection...';
+  btn.disabled = true;
+
+  CS.gemini.testConnection()
+    .then(function(result) {
+      if (result.ok) {
+        badge.className = 'api-status ok';
+        dot.textContent = '🟢';
+        text.textContent = CS.lang.t('set_api_ok') || 'Connected — Gemini AI is working';
+        CS.toast('Gemini AI connected!', 'success');
+      } else {
+        badge.className = 'api-status error';
+        dot.textContent = '🔴';
+        text.textContent = result.message.includes('quota') ? 'Quota exceeded — try tomorrow' : 'Connection failed — check your key';
+        CS.toast('Test failed: ' + result.message, 'error');
+      }
+    })
+    .catch(function(err) {
+      badge.className = 'api-status error';
+      dot.textContent = '🔴';
+      var msg = err && err.message ? err.message : 'Connection failed';
+      text.textContent = 'Connection failed — check your key';
+      CS.toast('Test failed: ' + msg, 'error');
+    })
+    .finally(function() { btn.disabled = false; });
+}
+
+/* ── AI preferences ───────────────────────────────── */
+function savePref(key, value) {
+  var prefs = {};
+  try { prefs = JSON.parse(localStorage.getItem('cs_prefs') || '{}'); } catch(e) {}
+  prefs[key] = value;
+  try { localStorage.setItem('cs_prefs', JSON.stringify(prefs)); } catch(e) {}
+  CS.toast('Saved', 'success');
+}
+
+function loadPrefs() {
+  var prefs = {};
+  try { prefs = JSON.parse(localStorage.getItem('cs_prefs') || '{}'); } catch(e) {}
+  var def = function(id, key, fallback) {
+    var el = document.getElementById(id);
+    if (el) el.checked = prefs[key] !== undefined ? prefs[key] : fallback;
+  };
+  def('toggleAiSummaries', 'aiSummaries', true);
+  def('toggleAiQuiz', 'aiQuiz', true);
+  def('toggleAiIntervention', 'aiIntervention', true);
+  def('toggleVoiceCmd', 'voiceCommands', false);
+}
+
+/* ── Accessibility ────────────────────────────────── */
+function applyFontSize(val) {
+  document.getElementById('fontSizeLabel').textContent = val + '%';
+  document.documentElement.style.fontSize = val + '%';
+  var a11y = CS.user.getA11y();
+  a11y.fontSize = val;
+  CS.user.setA11y(a11y);
+}
+
+function applyFontStyle(val) {
+  var a11y = CS.user.getA11y();
+  a11y.fontStyle = val;
+  CS.user.setA11y(a11y);
+  CS.a11y.apply();
+}
+
+function applyLetterSpacing(val) {
+  document.getElementById('letterSpacingLabel').textContent = val === '0' ? 'Normal' : val + 'px';
+  document.documentElement.style.setProperty('--cs-letter-spacing', val + 'px');
+  var a11y = CS.user.getA11y();
+  a11y.letterSpacing = val;
+  CS.user.setA11y(a11y);
+}
+
+function applyContrast(val) {
+  document.body.classList.remove('contrast-high', 'contrast-inverted');
+  if (val === 'high')     document.body.classList.add('contrast-high');
+  if (val === 'inverted') document.body.classList.add('contrast-inverted');
+  var a11y = CS.user.getA11y();
+  a11y.contrast = val;
+  CS.user.setA11y(a11y);
+  CS.toast('Contrast updated', 'success');
+}
+
+function applyOverlay(color) {
+  document.querySelectorAll('.overlay-chip').forEach(function(c) { c.classList.remove('active'); });
+  var chip = document.querySelector('.overlay-chip[data-color="' + color + '"]');
+  if (chip) chip.classList.add('active');
+
+  var overlay = document.getElementById('cs-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'cs-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:8999;opacity:0.18;transition:background 0.3s;';
+    document.body.appendChild(overlay);
+  }
+  var colors = { none:'transparent', yellow:'#fef08a', blue:'#93c5fd', green:'#86efac', grey:'#d1d5db', pink:'#f9a8d4' };
+  overlay.style.background = colors[color] || 'transparent';
+
+  var a11y = CS.user.getA11y();
+  a11y.overlay = color;
+  CS.user.setA11y(a11y);
+  CS.toast('Overlay: ' + color, 'success');
+}
+
+function applyTtsSpeed(val) {
+  var v = parseFloat(val).toFixed(1);
+  document.getElementById('ttsSpeedLabel').textContent = v + '×';
+  var a11y = CS.user.getA11y();
+  a11y.ttsSpeed = parseFloat(v);
+  CS.user.setA11y(a11y);
+}
+
+function applyRuler(on) {
+  var a11y = CS.user.getA11y();
+  a11y.ruler = on;
+  CS.user.setA11y(a11y);
+  CS.a11y.apply();
+}
+
+function applyReadingWindow(on) {
+  var a11y = CS.user.getA11y();
+  a11y.readingWindow = on;
+  CS.user.setA11y(a11y);
+  CS.a11y.apply();
+}
+
+function resetAccessibility() {
+  if (!confirm('Reset all accessibility settings to defaults?')) return;
+  CS.user.setA11y({});
+  CS.a11y.apply();
+  loadAccessibilityPanel();
+  CS.toast('Accessibility settings reset', 'success');
+}
+
+function loadAccessibilityPanel() {
+  var a11y = CS.user.getA11y();
+
+  var fs = document.getElementById('fontSizeRange');
+  if (fs) { fs.value = a11y.fontSize || 100; document.getElementById('fontSizeLabel').textContent = (a11y.fontSize || 100) + '%'; }
+
+  var fst = document.getElementById('fontStyleSelect');
+  if (fst) fst.value = a11y.fontStyle || 'system';
+
+  var ls = document.getElementById('letterSpacingRange');
+  if (ls) { ls.value = a11y.letterSpacing || 0; document.getElementById('letterSpacingLabel').textContent = (a11y.letterSpacing || 0) === 0 ? 'Normal' : a11y.letterSpacing + 'px'; }
+
+  var cs = document.getElementById('contrastSelect');
+  if (cs) cs.value = a11y.contrast || 'normal';
+
+  var ov = a11y.overlay || 'none';
+  document.querySelectorAll('.overlay-chip').forEach(function(c) { c.classList.toggle('active', c.dataset.color === ov); });
+
+  var sp = document.getElementById('ttsSpeedRange');
+  if (sp) { sp.value = a11y.ttsSpeed || 1.0; document.getElementById('ttsSpeedLabel').textContent = (a11y.ttsSpeed || 1.0).toFixed(1) + '×'; }
+
+  var ru = document.getElementById('toggleRuler');
+  if (ru) ru.checked = !!a11y.ruler;
+
+  var rw = document.getElementById('toggleWindow');
+  if (rw) rw.checked = !!a11y.readingWindow;
+}
+
+/* ── Profile ──────────────────────────────────────── */
+function saveProfile() {
+  var name       = (document.getElementById('profileName')?.value || '').trim();
+  var disability = document.getElementById('profileDisability')?.value || 'general';
+  var grade      = document.getElementById('profileGrade')?.value || '';
+  var profile = CS.user.get();
+  profile.displayName  = name || 'Learner';
+  profile.disability   = disability;
+  profile.grade        = grade;
+  CS.user.set(profile);
+  CS.toast('Profile saved', 'success');
+}
+
+function loadProfilePanel() {
+  var profile = CS.user.get();
+  var nameEl = document.getElementById('profileName');
+  if (nameEl) nameEl.value = profile.displayName !== 'Learner' ? profile.displayName : '';
+  var disEl = document.getElementById('profileDisability');
+  if (disEl) disEl.value = profile.disability || 'general';
+  var gradeEl = document.getElementById('profileGrade');
+  if (gradeEl) gradeEl.value = profile.grade || '';
+}
+
+/* ── Language ─────────────────────────────────────── */
+function setLanguage(lang) {
+  CS.lang.set(lang);
+  var btn = document.getElementById('langBtn');
+  if (btn) btn.textContent = lang === 'en' ? 'BM' : 'EN';
+  window.currentLang = lang;
+
+  var enBtn = document.getElementById('btnLangEn');
+  var msBtn = document.getElementById('btnLangMs');
+  if (enBtn) { enBtn.className = lang === 'en' ? 'btn btn-primary' : 'btn btn-ghost'; }
+  if (msBtn) { msBtn.className = lang === 'ms' ? 'btn btn-primary' : 'btn btn-ghost'; }
+
+  CS.toast(lang === 'en' ? 'Language: English' : 'Bahasa: Melayu', 'success');
+}
+
+/* ── Analytics stats ──────────────────────────────── */
+function loadAnalyticsStats() {
+  try {
+    var summary = CS.analytics.getSummary(30);
+    var risk    = CS.analytics.computeRisk();
+    var sEl = document.getElementById('statSessions');
+    var fEl = document.getElementById('statFocus');
+    var rEl = document.getElementById('statRisk');
+    if (sEl) sEl.textContent = summary.sessionCount || '0';
+    if (fEl) fEl.textContent = summary.avgFocusScore ? Math.round(summary.avgFocusScore) : '—';
+    if (rEl) {
+      rEl.textContent = risk.score || '—';
+      rEl.style.color = risk.level === 'low' ? '#22c55e' : risk.level === 'moderate' ? '#f59e0b' : '#ef4444';
+    }
+  } catch(e) {}
+}
+
+/* ── Clear / reset ────────────────────────────────── */
+function clearAnalytics() {
+  if (!confirm('Clear all learning data? This cannot be undone.')) return;
+  try { localStorage.removeItem('cs_analytics'); } catch(e) {}
+  loadAnalyticsStats();
+  CS.toast('Learning data cleared', 'success');
+}
+
+function clearProfile() {
+  if (!confirm('Reset learner profile?')) return;
+  CS.user.set({ displayName: 'Learner', disability: 'general', grade: '' });
+  loadProfilePanel();
+  CS.toast('Profile reset', 'success');
+}
+
+function clearEverything() {
+  if (!confirm('Reset ALL data? This will clear your API key, profile, accessibility settings, and learning data.')) return;
+  var keys = ['gemini_api_key','cs_user','cs_analytics','cs_a11y','cs_lang','cs_prefs'];
+  keys.forEach(function(k) { try { localStorage.removeItem(k); } catch(e) {} });
+  CS.toast('All data cleared. Reloading...', 'info');
+  setTimeout(function() { location.reload(); }, 1200);
+}
+
+/* ── Init ─────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function() {
+  loadApiStatus();
+  loadPrefs();
+  loadAccessibilityPanel();
+  loadProfilePanel();
+  loadAnalyticsStats();
+
+  /* Sync language buttons */
+  var lang = CS.lang.get();
+  var enBtn = document.getElementById('btnLangEn');
+  var msBtn = document.getElementById('btnLangMs');
+  if (enBtn) enBtn.className = lang === 'en' ? 'btn btn-primary' : 'btn btn-ghost';
+  if (msBtn) msBtn.className = lang === 'ms' ? 'btn btn-primary' : 'btn btn-ghost';
+
+  /* Show panel from URL hash */
+  var hash = location.hash.replace('#','');
+  if (hash && document.getElementById('panel-' + hash)) showPanel(hash);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+Use prompts/01_build_homepage.md to build or improve the homepage.

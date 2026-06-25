@@ -1,0 +1,1 @@
+Use prompts/06_build_dashboard.md to build the dashboard with agent cards.

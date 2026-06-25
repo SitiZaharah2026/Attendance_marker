@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "ritwickdey.liveserver",
+        "esbenp.prettier-vscode",
+        "ecmel.vscode-html-css",
+        "formulahendry.auto-rename-tag",
+        "xabikos.javascriptsnippets",
+        "streetsidesoftware.code-spell-checker",
+        "pkief.material-icon-theme",
+        "formulahendry.auto-close-tag"
+    ]
+}

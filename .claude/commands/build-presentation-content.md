@@ -1,0 +1,1 @@
+Use prompts/07_build_presentation_content.md to prepare final project presentation content.

@@ -1,0 +1,22 @@
+{
+    "liveServer.settings.root": "/starter-code",
+    "liveServer.settings.port": 5500,
+    "liveServer.settings.CustomBrowser": "chrome",
+    "liveServer.settings.donotShowInfoMsg": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "editor.wordWrap": "on",
+    "files.associations": {
+        "*.html": "html",
+        "*.css": "css",
+        "*.js": "javascript"
+    },
+    "html.format.wrapLineLength": 0,
+    "emmet.includeLanguages": {
+        "html": "html"
+    },
+    "css.validate": true,
+    "javascript.updateImportsOnFileMove.enabled": "always",
+    "editor.linkedEditing": true
+}

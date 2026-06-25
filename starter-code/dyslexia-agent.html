@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dyslexia Adaptive Agent – CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.dys-layout { display:grid; grid-template-columns:320px 1fr; gap:24px; }
+.reading-ruler { position:absolute; left:0; right:0; height:32px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); border-radius:4px; pointer-events:none; cursor:none; z-index:5; display:none; }
+.reading-wrap { position:relative; }
+.mindmap-canvas { position:relative; min-height:260px; background:var(--bg); border-radius:var(--radius); padding:24px; display:flex; align-items:center; justify-content:center; }
+.mm-center { background:var(--primary); color:white; padding:12px 24px; border-radius:30px; font-weight:700; font-size:14px; z-index:2; position:relative; box-shadow:0 4px 16px rgba(99,102,241,0.4); }
+.mm-branch {
+  position:absolute; background:var(--bg-card); border:1px solid var(--border);
+  padding:8px 14px; border-radius:20px; color:var(--text); font-size:12px; font-weight:600;
+  white-space:nowrap;
+}
+.skim-highlight { background:#fbbf2460; border-radius:3px; padding:0 2px; }
+@media(max-width:768px){ .dys-layout{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">
+      <div class="brand-icon">CS</div>
+      <div><span class="brand-name">CelikSense AI</span><span class="brand-tagline" data-i18n="tagline">Agentic Multi-Sensory Learning</span></div>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="dashboard.html" data-i18n="nav_dashboard">Dashboard</a>
+      <div class="nav-dropdown">
+        <button data-i18n="nav_agents" aria-haspopup="true" aria-expanded="false">Agents ▾</button>
+        <div class="dropdown-menu">
+          <a href="ai-librarian.html">📚 AI Librarian</a>
+          <a href="reading-companion.html">📖 Reading Companion</a>
+          <a href="adhd-agent.html">🧠 ADHD Agent</a>
+          <a href="dyslexia-agent.html">👁️ Dyslexia Agent</a>
+          <a href="blind-audio.html">🔊 Blind Audio Agent</a>
+          <a href="sign-language.html">🤟 Sign Language Agent</a>
+          <a href="early-warning.html">⚠️ Early Warning Agent</a>
+          <a href="intervention.html">💡 Intervention Agent</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn" aria-label="Switch to Bahasa Melayu">BM</button>
+      <a href="profile.html" class="btn btn-ghost btn-sm">👤 Profile</a>
+      <a href="dashboard.html" class="btn btn-outline btn-sm">← Dashboard</a>
+      <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
+      <button class="nav-hamburger" onclick="toggleNav()">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+  <div class="page-header-card">
+    <div class="page-badge">🔤</div>
+    <h1 class="page-title">Dyslexia Adaptive Reading Agent</h1>
+    <p class="page-subtitle">Dyslexia-friendly fonts, colour overlays, reading ruler, mind map, and intervention support.</p>
+  </div>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:60px;">
+  <div class="dys-layout">
+
+    <!-- Left Control Panel -->
+    <div>
+      <!-- Font -->
+      <div class="control-panel" style="margin-bottom:16px;">
+        <div class="panel-title">🔤 Font Mode</div>
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="fontNormal" onclick="setFont('normal')">Normal</button>
+          <button class="toggle-btn" id="fontDys" onclick="setFont('dyslexic')">OpenDyslexic</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:8px;">OpenDyslexic font increases letter recognition for dyslexia readers.</div>
+      </div>
+
+      <!-- Font Size -->
+      <div class="control-panel" style="margin-bottom:16px;">
+        <div class="panel-title">📏 Text Size</div>
+        <div class="range-label">
+          <span style="font-size:12px;color:var(--text-muted);">Size</span>
+          <span class="range-value" id="sizeVal">16px</span>
+        </div>
+        <input type="range" min="14" max="30" value="16" id="sizeRange" oninput="setFontSize(this.value)">
+        <div class="toggle-group" style="margin-top:10px;">
+          <button class="toggle-btn" onclick="setFontSize(14);document.getElementById('sizeRange').value=14;">A-</button>
+          <button class="toggle-btn active" onclick="setFontSize(16);document.getElementById('sizeRange').value=16;">Aa</button>
+          <button class="toggle-btn" onclick="setFontSize(20);document.getElementById('sizeRange').value=20;">A+</button>
+          <button class="toggle-btn" onclick="setFontSize(26);document.getElementById('sizeRange').value=26;">A++</button>
+        </div>
+      </div>
+
+      <!-- Line Spacing -->
+      <div class="control-panel" style="margin-bottom:16px;">
+        <div class="panel-title">↕ Line Spacing</div>
+        <div class="range-label">
+          <span style="font-size:12px;color:var(--text-muted);">Spacing</span>
+          <span class="range-value" id="spacingVal">1.8</span>
+        </div>
+        <input type="range" min="1.2" max="3.0" step="0.1" value="1.8" id="spacingRange" oninput="setSpacing(this.value)">
+      </div>
+
+      <!-- Colour Overlay -->
+      <div class="control-panel" style="margin-bottom:16px;">
+        <div class="panel-title">🎨 Colour Overlay</div>
+        <div class="color-swatches">
+          <div class="color-swatch active" style="background:#fffdf5;" onclick="setOverlay('none',this)" title="None (White)"></div>
+          <div class="color-swatch" style="background:#fffde0;" onclick="setOverlay('overlay-yellow',this)" title="Yellow"></div>
+          <div class="color-swatch" style="background:#e0f0ff;" onclick="setOverlay('overlay-blue',this)" title="Blue"></div>
+          <div class="color-swatch" style="background:#e0f8e0;" onclick="setOverlay('overlay-green',this)" title="Green"></div>
+          <div class="color-swatch" style="background:#ffe0f0;" onclick="setOverlay('overlay-pink',this)" title="Pink"></div>
+          <div class="color-swatch" style="background:#f0f0f0;" onclick="setOverlay('overlay-grey',this)" title="Grey"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:8px;">Colour overlays reduce visual stress and improve reading comfort.</div>
+      </div>
+
+      <!-- Reading Ruler -->
+      <div class="control-panel" style="margin-bottom:16px;">
+        <div class="panel-title">📏 Reading Ruler</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="rulerToggle" onchange="toggleRuler()" style="width:18px;height:18px;cursor:pointer;">
+            <span style="font-size:13px;font-weight:600;">Enable Reading Ruler</span>
+          </label>
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:8px;">The ruler highlights one line as your mouse moves over the text.</div>
+      </div>
+
+      <!-- TTS Controls -->
+      <div class="control-panel" style="margin-bottom:16px;">
+        <div class="panel-title">🔊 Text-to-Speech</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="btn btn-primary" onclick="readText()">▶ Read Text Aloud</button>
+          <button class="btn btn-ghost" onclick="stopSpeech()">⏹ Stop Audio</button>
+        </div>
+        <div style="margin-top:10px;">
+          <div class="range-label">
+            <span style="font-size:12px;color:var(--text-muted);">Speed</span>
+            <span class="range-value" id="speedVal">0.9x</span>
+          </div>
+          <input type="range" min="0.5" max="1.5" step="0.1" value="0.9" id="speedRange" oninput="setSpeed(this.value)">
+        </div>
+      </div>
+
+      <!-- Difficulty + Intervention -->
+      <div class="control-panel">
+        <div class="panel-title">📊 Reading Difficulty</div>
+        <select class="form-control" id="diffLevel" onchange="showIntervention()">
+          <option value="low">Low Difficulty</option>
+          <option value="medium" selected>Medium Difficulty</option>
+          <option value="high">High Difficulty</option>
+        </select>
+        <div id="interventionBox" style="margin-top:12px;font-size:13px;line-height:1.6;"></div>
+        <a href="intervention.html" class="btn btn-outline btn-sm w-full" style="margin-top:10px;">View Full Intervention Plan</a>
+      </div>
+    </div>
+
+    <!-- Right Reading Panel -->
+    <div>
+      <!-- Text Input -->
+      <div class="control-panel" style="margin-bottom:20px;">
+        <div class="panel-title">📝 Reading Text</div>
+        <textarea class="form-control" id="dysInput" rows="5" placeholder="Paste or type your reading text here…">Coral reefs are one of the most beautiful and diverse ecosystems on Earth. They are sometimes called the "rainforests of the sea" because of the incredible variety of life they support. Coral reefs are built by tiny animals called coral polyps. These polyps live in a symbiotic relationship with algae called zooxanthellae. The algae provide the coral with food through photosynthesis. In return, the coral gives the algae a safe home. This relationship is very delicate. When sea temperatures rise, the coral becomes stressed and expels the algae. Without the algae, the coral turns white – a process known as coral bleaching. If the bleaching is severe or prolonged, the coral can die.</textarea>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="loadDysText()">📖 Load Text</button>
+          <button class="btn btn-secondary" onclick="runSkimGuide()">⚡ Skim Guide</button>
+          <button class="btn btn-ghost" onclick="clearDysText()">Clear</button>
+        </div>
+      </div>
+
+      <!-- Reading Display -->
+      <div class="control-panel" style="margin-bottom:20px;">
+        <div class="panel-title">📖 Reading Display</div>
+        <div class="reading-wrap" id="readingWrap">
+          <div id="readingRuler" class="reading-ruler"></div>
+          <div class="reading-area" id="dysReadArea" onmousemove="moveRuler(event)" style="min-height:220px;">
+            Click <strong>Load Text</strong> to begin.
+          </div>
+        </div>
+      </div>
+
+      <!-- Skim Guide Output -->
+      <div class="control-panel hidden" id="skimPanel" style="margin-bottom:20px;">
+        <div class="panel-title">⚡ Pre-Reading Skim Guide</div>
+        <div id="skimOutput" style="font-size:14px;line-height:1.8;"></div>
+      </div>
+
+      <!-- Mind Map -->
+      <div class="control-panel">
+        <div class="panel-title">🗺 Visual Mind Map</div>
+        <button class="btn btn-primary btn-sm" style="margin-bottom:14px;" onclick="generateMindMap()">🤖 Generate Mind Map</button>
+        <div class="mindmap-canvas" id="mindmapCanvas">
+          <div style="text-align:center;color:var(--text-muted);font-size:14px;">Load a text and click Generate Mind Map</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2026 CelikSense AI · <a href="index.html" style="color:var(--primary-light)">Home</a> · <a href="dashboard.html" style="color:var(--primary-light)">Dashboard</a></span>
+      <span>🔤 Dyslexia Adaptive Reading Agent</span>
+    </div>
+  </div>
+</footer>
+
+<script src="shared.js"></script>
+<script>
+let dysText = '';
+let rulerOn = false;
+let currentOverlayClass = '';
+let currentFont = 'normal';
+
+function setFont(mode) {
+  currentFont = mode;
+  const el = document.getElementById('dysReadArea');
+  if (mode === 'dyslexic') {
+    el.style.fontFamily = "'Comic Sans MS','Trebuchet MS',cursive";
+    el.style.letterSpacing = '0.1em';
+    el.style.wordSpacing = '0.2em';
+    document.getElementById('fontDys').classList.add('active');
+    document.getElementById('fontNormal').classList.remove('active');
+  } else {
+    el.style.fontFamily = '';
+    el.style.letterSpacing = '';
+    el.style.wordSpacing = '';
+    document.getElementById('fontNormal').classList.add('active');
+    document.getElementById('fontDys').classList.remove('active');
+  }
+}
+
+function setFontSize(val) {
+  document.getElementById('dysReadArea').style.fontSize = val+'px';
+  document.getElementById('sizeVal').textContent = val+'px';
+  document.getElementById('sizeRange').value = val;
+  const sizePanel = document.getElementById('sizeRange').closest('.control-panel');
+  if (sizePanel) sizePanel.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+}
+
+function setSpacing(val) {
+  document.getElementById('dysReadArea').style.lineHeight = val;
+  document.getElementById('spacingVal').textContent = parseFloat(val).toFixed(1);
+}
+
+function setOverlay(overlay, swatch) {
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));
+  swatch.classList.add('active');
+  const el = document.getElementById('dysReadArea');
+  el.classList.remove('overlay-yellow','overlay-blue','overlay-green','overlay-pink','overlay-grey');
+  if (overlay !== 'none') el.classList.add(overlay);
+  currentOverlayClass = overlay;
+}
+
+function toggleRuler() {
+  rulerOn = document.getElementById('rulerToggle').checked;
+  document.getElementById('readingRuler').style.display = rulerOn ? 'block' : 'none';
+}
+
+function moveRuler(e) {
+  if (!rulerOn) return;
+  const wrap = document.getElementById('readingWrap');
+  const ruler = document.getElementById('readingRuler');
+  const rect = wrap.getBoundingClientRect();
+  const y = e.clientY - rect.top;
+  ruler.style.top = (y - 16) + 'px';
+}
+
+function loadDysText() {
+  dysText = document.getElementById('dysInput').value.trim();
+  if (!dysText) return;
+  document.getElementById('dysReadArea').innerHTML = dysText.replace(/\n/g,'<br>');
+  applyCurrentSettings();
+}
+
+function applyCurrentSettings() {
+  const el = document.getElementById('dysReadArea');
+  el.classList.remove('overlay-yellow','overlay-blue','overlay-green','overlay-pink','overlay-grey');
+  if (currentOverlayClass && currentOverlayClass !== 'none') el.classList.add(currentOverlayClass);
+  if (currentFont === 'dyslexic') setFont('dyslexic');
+}
+
+function clearDysText() {
+  dysText = '';
+  document.getElementById('dysInput').value = '';
+  document.getElementById('dysReadArea').innerHTML = 'Click <strong>Load Text</strong> to begin.';
+  document.getElementById('mindmapCanvas').innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:14px;">Load a text and click Generate Mind Map</div>';
+  document.getElementById('skimPanel').classList.add('hidden');
+}
+
+function readText() {
+  const text = document.getElementById('dysReadArea').innerText || dysText;
+  if (!text || text.includes('Load Text')) return;
+  speak(text);
+}
+
+function setSpeed(val) {
+  localStorage.setItem('cs_tts_rate', val);
+  document.getElementById('speedVal').textContent = parseFloat(val).toFixed(1)+'x';
+}
+
+function runSkimGuide() {
+  if (!dysText) { alert('Load a text first.'); return; }
+  const sentences = dysText.split(/[.!?]+/).filter(s=>s.trim().length>10);
+  const keyWords = ['coral','reef','ecosystem','bleaching','photosynthesis','symbiotic','algae','polyps'];
+  let output = `<strong>📌 Key Opening Sentence:</strong><br><span class="skim-highlight">${sentences[0].trim()}.</span><br><br>`;
+  output += `<strong>🔑 Key Words to Know:</strong><br>`;
+  const found = keyWords.filter(w=>dysText.toLowerCase().includes(w));
+  output += found.map(w=>`<span style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.2);border-radius:6px;padding:3px 10px;margin:3px;display:inline-block;font-size:13px;">${w}</span>`).join('');
+  output += `<br><br><strong>📌 Key Closing Sentence:</strong><br><span class="skim-highlight">${sentences[sentences.length-1].trim()}.</span>`;
+  document.getElementById('skimOutput').innerHTML = output;
+  document.getElementById('skimPanel').classList.remove('hidden');
+}
+
+function generateMindMap() {
+  if (!dysText && document.getElementById('dysReadArea').innerText.includes('Load Text')) {
+    alert('Load a text first.'); return;
+  }
+  const text = dysText || document.getElementById('dysReadArea').innerText;
+  const words = text.match(/\b[A-Z][a-z]{4,}\b/g) || [];
+  const unique = [...new Set(words)].slice(0,6);
+  const topic = unique[0] || 'Topic';
+  const branches = unique.slice(1,6);
+  const positions = [
+    {top:'20%',left:'60%'},{top:'50%',left:'72%'},{top:'78%',left:'58%'},
+    {top:'78%',left:'22%'},{top:'50%',left:'8%'},{top:'20%',left:'22%'}
+  ];
+  const colors = ['#6366f1','#22c55e','#f59e0b','#ec4899','#06b6d4','#8b5cf6'];
+  let branchesHTML = branches.map((b,i)=>`
+    <div class="mm-branch" style="top:${positions[i].top};left:${positions[i].left};border-color:${colors[i]};color:${colors[i]}">
+      ${b}
+    </div>
+  `).join('');
+
+  // SVG lines — offset branch endpoints to approximate their center
+  // viewBox 600×260, branches ~100px wide × 32px tall at 100% scale
+  // offset: +30 SVG units x (≈50px), +8 SVG units y (≈16px)
+  document.getElementById('mindmapCanvas').innerHTML = `
+    <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;" viewBox="0 0 600 260" preserveAspectRatio="none">
+      ${branches.map((_,i)=>{
+        const pos = positions[i];
+        const cx=300, cy=130;
+        const bx = parseFloat(pos.left)*6 + 30;
+        const by = parseFloat(pos.top)*2.6 + 8;
+        return `<line x1="${cx}" y1="${cy}" x2="${bx}" y2="${by}" stroke="${colors[i]}" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>`;
+      }).join('')}
+    </svg>
+    <div class="mm-center">${topic}</div>
+    ${branchesHTML}
+  `;
+}
+
+function showIntervention() {
+  const level = document.getElementById('diffLevel').value;
+  const recs = {
+    low: '✅ <strong>Light Support:</strong> Use standard font with yellow overlay. Short sessions of 15–20 minutes. TTS optional.',
+    medium: '🟡 <strong>Moderate Support:</strong> Switch to OpenDyslexic font. Apply green overlay. Use reading ruler. TTS recommended. Sessions of 10–15 minutes.',
+    high: '🔴 <strong>Intensive Support:</strong> Full OpenDyslexic mode with blue overlay. Mandatory TTS. 5-minute micro-sessions with 3-minute breaks. Reading ruler always on. Consider <a href="intervention.html" style="color:var(--primary-light)">full intervention plan</a>.'
+  };
+  document.getElementById('interventionBox').innerHTML = `<div class="alert alert-info" style="margin:0;">${recs[level]}</div>`;
+}
+
+showIntervention();
+</script>
+<script src="personalisation-system.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (!window.CS_PERSONALISE) return;
+  CS_PERSONALISE.init();
+  CS_PERSONALISE.trackAgentUse('dyslexia-agent');
+  var p = CS_PERSONALISE.getProfile();
+  if (p.accessibilityMode === 'general') {
+    p.accessibilityMode = 'dyslexia';
+    CS_PERSONALISE.saveProfile(p);
+  }
+  var lang = localStorage.getItem('cs_lang') || 'en';
+  var banner = document.createElement('div');
+  banner.className = 'ps-card';
+  banner.setAttribute('role','note');
+  banner.innerHTML = '<div class="ps-card-title">📖 ' + (lang==='ms'?'Sokongan Diperibadikan':'Personalised Support') + '</div>' +
+    '<div class="ps-insight">' + (lang==='ms'?'Berdasarkan profil anda: Fon OpenDyslexic, saiz teks yang lebih besar, lapisan warna, dan sokongan audio adalah yang paling berkesan untuk anda.':'Based on your profile: OpenDyslexic font, larger text size, color overlay, and audio support are most effective for you.') + '</div>';
+  var main = document.querySelector('main') || document.querySelector('.container') || document.body;
+  main.insertBefore(banner, main.firstChild);
+});
+</script>
+</body>
+</html>

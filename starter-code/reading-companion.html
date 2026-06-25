@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Companion – CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.rc-layout { display:grid; grid-template-columns:1fr 300px; gap:24px; }
+.question-card { background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:10px; }
+.question-text { font-size:14px; font-weight:600; margin-bottom:10px; }
+.answer-input { width:100%; padding:9px 12px; background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; resize:none; }
+.quiz-option { display:flex; align-items:center; gap:10px; padding:10px 14px; margin:6px 0; border:1px solid var(--border); border-radius:var(--radius); cursor:pointer; font-size:14px; transition:background 0.15s,border-color 0.15s; }
+.quiz-option:hover { background:rgba(99,102,241,0.08); border-color:var(--primary-light); }
+.quiz-option input[type=radio] { accent-color:var(--primary-light); width:16px; height:16px; flex-shrink:0; }
+.quiz-option.correct { background:rgba(34,197,94,0.12); border-color:#22c55e; color:#22c55e; font-weight:600; }
+.quiz-option.wrong   { background:rgba(239,68,68,0.10); border-color:#ef4444; color:#ef4444; }
+.quiz-explanation { font-size:12px; color:var(--text-muted); margin-top:8px; padding:8px 12px; background:rgba(99,102,241,0.06); border-radius:6px; border-left:3px solid var(--primary-light); }
+.quiz-score { text-align:center; padding:16px; font-size:18px; font-weight:700; border-radius:var(--radius); margin-top:12px; }
+.vocab-word { display:inline-block; background:rgba(99,102,241,0.12); border:1px solid rgba(99,102,241,0.2); border-radius:6px; padding:4px 10px; margin:3px; font-size:13px; cursor:pointer; transition:var(--transition); }
+.vocab-word:hover { background:var(--primary); color:white; }
+.vocab-def { font-size:13px; color:var(--text-muted); line-height:1.5; padding:12px; background:var(--bg); border-radius:8px; margin-top:10px; }
+@media(max-width:768px){ .rc-layout{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">
+      <div class="brand-icon">CS</div>
+      <div><span class="brand-name">CelikSense AI</span><span class="brand-tagline" data-i18n="tagline">Agentic Multi-Sensory Learning</span></div>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="dashboard.html" data-i18n="nav_dashboard">Dashboard</a>
+      <div class="nav-dropdown">
+        <button data-i18n="nav_agents" aria-haspopup="true" aria-expanded="false">Agents ▾</button>
+        <div class="dropdown-menu">
+          <a href="ai-librarian.html">📚 AI Librarian</a>
+          <a href="reading-companion.html">📖 Reading Companion</a>
+          <a href="adhd-agent.html">🧠 ADHD Agent</a>
+          <a href="dyslexia-agent.html">👁️ Dyslexia Agent</a>
+          <a href="blind-audio.html">🔊 Blind Audio Agent</a>
+          <a href="sign-language.html">🤟 Sign Language Agent</a>
+          <a href="early-warning.html">⚠️ Early Warning Agent</a>
+          <a href="intervention.html">💡 Intervention Agent</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn" aria-label="Switch to Bahasa Melayu">BM</button>
+      <a href="profile.html" class="btn btn-ghost btn-sm">👤 Profile</a>
+      <a href="dashboard.html" class="btn btn-outline btn-sm">← Dashboard</a>
+      <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
+      <button class="nav-hamburger" onclick="toggleNav()">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+  <div class="page-header-card">
+    <div class="page-badge">📖</div>
+    <h1 class="page-title" data-i18n="a2_name">Reading Companion</h1>
+    <p class="page-subtitle" data-i18n="a2_desc">Personal reading guide with comprehension support, vocabulary help, and audio navigation.</p>
+  </div>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:60px;">
+
+  <!-- Audio Guide Banner -->
+  <div class="alert alert-info" style="margin-bottom:24px;">
+    <span>🔊</span>
+    <div>
+      <strong>Blind Learner Audio Guide:</strong> Press the audio buttons below to navigate this page using your screen reader or Text-to-Speech. All content is audio-accessible.
+    </div>
+  </div>
+
+  <!-- TTS Bar -->
+  <div class="tts-bar" style="margin-bottom:24px;">
+    <button class="tts-btn" onclick="startAudioGuide()" id="guideBtn">🎧 Audio Guide for Blind Learner</button>
+    <button class="tts-btn" onclick="readTextAloud()" id="readBtn">🔊 Read Text Aloud</button>
+    <button id="btnSignLang" class="btn btn-secondary" onclick="sendToSignAgent()" style="background:linear-gradient(135deg,#ec4899,#f43f5e);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;" data-i18n="rc_btn_sign">🤟 Convert to Sign Language</button>
+    <button id="rcBrailleBtn" class="btn" onclick="rcConvertToBraille()" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;" aria-label="Convert reading text to Braille" data-i18n="rc_btn_braille">⠃ Convert to Braille</button>
+    <button class="btn" onclick="sendToTeacher()" style="background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;" aria-label="Open AI Teacher Agent" data-i18n="teacher_open_btn">👩‍🏫 Ask AI Teacher</button>
+    <button class="tts-btn" onclick="stopSpeech()">⏹ Stop Audio</button>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+      <label style="font-size:12px;color:var(--text-muted);">Speed:</label>
+      <select class="form-control" style="width:90px;padding:6px 10px;" onchange="setTTSRate(this.value)">
+        <option value="0.7">Slow</option>
+        <option value="0.9" selected>Normal</option>
+        <option value="1.2">Fast</option>
+        <option value="1.5">Very Fast</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="psAdaptiveBar" class="ps-card" style="display:none;margin:12px 0;" aria-label="Adaptive Suggestions" role="complementary">
+    <div style="font-size:13px;font-weight:800;color:#6366f1;margin-bottom:8px;" data-i18n="ps_adaptive_title">🧠 Personalised Suggestions</div>
+    <div id="psAdaptiveSuggestions" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+  </div>
+
+  <div class="rc-layout">
+    <!-- Left: Text & Reading -->
+    <div>
+      <!-- Text Input -->
+      <div class="control-panel" style="margin-bottom:20px;">
+        <div class="panel-title">📝 Input Text to Read</div>
+        <textarea class="form-control" id="readingInput" rows="6" placeholder="Paste or type reading text here…">The rainforest is one of Earth's most vital ecosystems. It is home to more than half of the world's plant and animal species. The trees of the rainforest produce oxygen and absorb carbon dioxide, helping to regulate our climate. Sadly, deforestation threatens this precious habitat every day. We must act now to protect what remains.</textarea>
+        <div style="display:flex;gap:10px;margin-top:12px;">
+          <button class="btn btn-primary" onclick="loadText()">📖 Load Text</button>
+          <button class="btn btn-ghost" onclick="clearText()">Clear</button>
+        </div>
+      </div>
+
+      <!-- Reading Display -->
+      <div class="control-panel" style="margin-bottom:20px;">
+        <div class="panel-title">📖 Reading Area</div>
+        <div class="reading-area" id="readingDisplay" style="min-height:180px;">
+          Click <strong>Load Text</strong> to begin reading.
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn btn-primary btn-sm" onclick="readDisplayText()">🔊 Read Aloud</button>
+          <button class="btn btn-ghost btn-sm" onclick="highlightText()">🖊 Highlight Key Words</button>
+          <button class="btn btn-ghost btn-sm" onclick="stopSpeech()">⏹ Stop</button>
+        </div>
+      </div>
+
+      <!-- Comprehension Questions -->
+      <div class="control-panel" style="margin-bottom:20px;" id="comprehensionSection">
+        <div class="panel-title">🧩 Comprehension Questions</div>
+        <div id="questionsList">
+          <p style="font-size:13px;color:var(--text-muted);">Load a text and click Generate Questions.</p>
+        </div>
+        <button class="btn btn-secondary w-full" style="margin-top:14px;" onclick="generateQuestions()">🤖 Generate Questions</button>
+      </div>
+    </div>
+
+    <!-- Right: Tools Sidebar -->
+    <div>
+      <!-- Vocabulary -->
+      <div class="control-panel" style="margin-bottom:16px;">
+        <div class="panel-title">📚 Vocabulary Helper</div>
+        <div id="vocabWords" style="margin-bottom:12px;">
+          <p style="font-size:13px;color:var(--text-muted);">Load a text to see key vocabulary words.</p>
+        </div>
+        <div id="vocabDef" class="hidden"></div>
+      </div>
+
+      <!-- Reading Stats -->
+      <div class="control-panel" style="margin-bottom:16px;">
+        <div class="panel-title">📊 Reading Stats</div>
+        <div id="readingStats">
+          <p style="font-size:13px;color:var(--text-muted);">Load a text to see stats.</p>
+        </div>
+      </div>
+
+      <!-- Accessibility Options -->
+      <div class="control-panel" style="margin-bottom:16px;">
+        <div class="panel-title">♿ Accessibility</div>
+        <div class="form-group">
+          <label class="form-label">Text Size</label>
+          <div class="toggle-group">
+            <button class="toggle-btn active" onclick="setTextSize('normal',this)">Aa</button>
+            <button class="toggle-btn" onclick="setTextSize('large',this)">A+</button>
+            <button class="toggle-btn" onclick="setTextSize('xl',this)">A++</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Colour Overlay</label>
+          <div class="color-swatches">
+            <div class="color-swatch active" style="background:#fffdf5;" onclick="setOverlay('none',this)" title="None"></div>
+            <div class="color-swatch" style="background:#fffde0;" onclick="setOverlay('overlay-yellow',this)" title="Yellow"></div>
+            <div class="color-swatch" style="background:#e0f0ff;" onclick="setOverlay('overlay-blue',this)" title="Blue"></div>
+            <div class="color-swatch" style="background:#e0f8e0;" onclick="setOverlay('overlay-green',this)" title="Green"></div>
+            <div class="color-swatch" style="background:#ffe0f0;" onclick="setOverlay('overlay-pink',this)" title="Pink"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Navigation Aids</label>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <a href="adhd-agent.html" class="btn btn-ghost btn-sm">🧠 Use ADHD Mode</a>
+            <a href="dyslexia-agent.html" class="btn btn-ghost btn-sm">🔤 Use Dyslexia Mode</a>
+            <a href="blind-audio.html" class="btn btn-ghost btn-sm">🔊 Full Audio Mode</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Log -->
+      <div class="control-panel">
+        <div class="panel-title">🖥 Status</div>
+        <div id="statusLog" style="font-size:13px;color:var(--text-muted);line-height:1.6;">
+          Ready. Load a text to begin.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2026 CelikSense AI · <a href="index.html" style="color:var(--primary-light)">Home</a> · <a href="dashboard.html" style="color:var(--primary-light)">Dashboard</a></span>
+      <span>📖 Reading Companion Agent</span>
+    </div>
+  </div>
+</footer>
+
+<script src="shared.js"></script>
+<script src="braille-system.js"></script>
+<script>
+let loadedText = '';
+let currentOverlay = 'none';
+let currentSize = 'normal';
+
+const vocabDB = {
+  ecosystem: 'A community of living organisms interacting with their environment.',
+  deforestation: 'The clearing or removal of a forest or trees from land.',
+  habitat: 'The natural environment in which a species lives.',
+  oxygen: 'A colourless, odourless gas essential for life on Earth.',
+  regulate: 'To control or maintain a process at a certain level.',
+};
+
+function setStatus(msg) {
+  document.getElementById('statusLog').textContent = msg;
+}
+
+function loadText() {
+  loadedText = document.getElementById('readingInput').value.trim();
+  if (!loadedText) { setStatus('Please enter some text first.'); return; }
+  var _rdDisplay = document.getElementById('readingDisplay');
+  _rdDisplay.textContent = '';
+  loadedText.split('\n').forEach(function(line) {
+    var p = document.createElement('p');
+    p.textContent = line;
+    _rdDisplay.appendChild(p);
+  });
+  setStatus('Text loaded. Ready to read.');
+  extractVocab();
+  updateStats();
+}
+
+function clearText() {
+  document.getElementById('readingInput').value = '';
+  document.getElementById('readingDisplay').innerHTML = 'Click Load Text to begin reading.';
+  loadedText = '';
+  setStatus('Cleared.');
+}
+
+function readTextAloud() {
+  const text = document.getElementById('readingInput').value || 'Please enter or paste text to read aloud.';
+  speak(text);
+  setStatus('Reading text aloud…');
+}
+
+function readDisplayText() {
+  if (!loadedText) { setStatus('Load a text first.'); return; }
+  speak(loadedText);
+  setStatus('Reading aloud…');
+}
+
+function setTTSRate(val) {
+  localStorage.setItem('cs_tts_rate', val);
+}
+
+function startAudioGuide() {
+  const guide = currentLang === 'bm'
+    ? 'Selamat datang ke Teman Membaca CelikSense AI. Halaman ini menyokong navigasi audio untuk pelajar buta. Tampal teks anda ke dalam kotak teks, kemudian tekan butang Muat Teks. Kemudian tekan Baca Kuat untuk mendengar teks tersebut. Anda juga boleh menjana soalan pemahaman dan mencari makna kosa kata.'
+    : 'Welcome to the CelikSense AI Reading Companion. This page supports audio navigation for blind learners. Paste your text into the text box, then press Load Text. Next, press Read Aloud to hear the text. You can also generate comprehension questions and look up vocabulary meanings.';
+  speak(guide);
+  setStatus('Audio guide started.');
+}
+
+function setTextSize(size, btn) {
+  document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const el = document.getElementById('readingDisplay');
+  el.classList.remove('font-large','font-xl');
+  if (size==='large') el.classList.add('font-large');
+  if (size==='xl') el.classList.add('font-xl');
+  currentSize = size;
+}
+
+function setOverlay(overlay, swatch) {
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));
+  swatch.classList.add('active');
+  const el = document.getElementById('readingDisplay');
+  el.className = 'reading-area';
+  if (overlay !== 'none') el.classList.add(overlay);
+  if (currentSize==='large') el.classList.add('font-large');
+  if (currentSize==='xl') el.classList.add('font-xl');
+  currentOverlay = overlay;
+}
+
+function highlightText() {
+  if (!loadedText) return;
+  const keywords = ['ecosystem','deforestation','species','oxygen','habitat','climate','protect','vital'];
+  let highlighted = loadedText;
+  keywords.forEach(w => {
+    highlighted = highlighted.replace(new RegExp(`\\b${w}\\b`,'gi'), `<mark style="background:#fbbf2440;border-radius:3px;padding:0 2px;">$&</mark>`);
+  });
+  document.getElementById('readingDisplay').innerHTML = highlighted;
+  setStatus('Key words highlighted.');
+}
+
+function extractVocab() {
+  const words = Object.keys(vocabDB).filter(w => loadedText.toLowerCase().includes(w));
+  const el = document.getElementById('vocabWords');
+  if (!words.length) { el.innerHTML='<p style="font-size:13px;color:var(--text-muted);">No vocabulary entries found.</p>'; return; }
+  el.innerHTML = '<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Click a word to see its definition:</p>' +
+    words.map(w=>`<span class="vocab-word" onclick="showDef('${w}')">${w}</span>`).join('');
+}
+
+function showDef(word) {
+  const el = document.getElementById('vocabDef');
+  el.classList.remove('hidden');
+  el.innerHTML = `<div class="vocab-def"><strong>${word}</strong><br>${vocabDB[word]}</div>`;
+  speak(`${word}. ${vocabDB[word]}`);
+}
+
+function updateStats() {
+  const words = loadedText.split(/\s+/).filter(Boolean);
+  const sentences = loadedText.split(/[.!?]+/).filter(Boolean).length;
+  const readTime = Math.ceil(words.length / 200);
+  document.getElementById('readingStats').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="stat-card"><div class="stat-value" style="font-size:22px;">${words.length}</div><div class="stat-label">Words</div></div>
+      <div class="stat-card"><div class="stat-value" style="font-size:22px;">${sentences}</div><div class="stat-label">Sentences</div></div>
+      <div class="stat-card"><div class="stat-value" style="font-size:22px;">${readTime}</div><div class="stat-label">Min Read</div></div>
+      <div class="stat-card"><div class="stat-value" style="font-size:22px;">A2</div><div class="stat-label">Level</div></div>
+    </div>
+  `;
+}
+
+var _currentQuestions = [];
+
+function generateQuestions() {
+  if (!loadedText) { setStatus('Load a text first to generate questions.'); return; }
+
+  var box = document.getElementById('questionsList');
+  box.innerHTML = '<p style="font-size:13px;color:var(--text-muted);">🤖 Generating questions with Gemini AI…</p>';
+
+  if (!CS.gemini.isReady()) {
+    box.innerHTML = '<p style="color:#ef4444;font-size:13px;">⚠️ No Gemini API key. Go to ⚙️ Settings → AI tab and save your key first.</p>';
+    return;
+  }
+
+  CS.gemini.generateQuiz(loadedText, currentLang, 4).then(function(result) {
+    if (result._fallback || !result.questions || !result.questions.length) {
+      box.innerHTML = '<p style="color:#ef4444;font-size:13px;">Could not generate questions. Check your Gemini key in Settings.</p>';
+      return;
+    }
+
+    _currentQuestions = result.questions;
+    box.innerHTML = _currentQuestions.map(function(q, i) {
+      return '<div class="question-card" id="qcard' + i + '">' +
+        '<div class="question-text">Q' + (i+1) + ': ' + q.question + '</div>' +
+        q.options.map(function(opt, j) {
+          return '<label class="quiz-option" id="qopt' + i + '_' + j + '">' +
+            '<input type="radio" name="q' + i + '" value="' + j + '"> ' + opt +
+            '</label>';
+        }).join('') +
+        '<div class="quiz-explanation" id="qexp' + i + '" style="display:none;"></div>' +
+      '</div>';
+    }).join('') +
+    '<button class="btn btn-primary w-full" style="margin-top:16px;" onclick="submitQuiz()">✅ Hantar Jawapan</button>';
+
+    setStatus('Soalan dijana oleh Gemini AI. Pilih jawapan anda dan tekan Hantar.');
+  }).catch(function(e) {
+    box.innerHTML = '<p style="color:#ef4444;font-size:13px;">Ralat: ' + e.message + '</p>';
+  });
+}
+
+function submitQuiz() {
+  var questions = _currentQuestions;
+  var score = 0;
+  questions.forEach(function(q, i) {
+    var selected = document.querySelector('input[name="q' + i + '"]:checked');
+    var expEl = document.getElementById('qexp' + i);
+    if (!selected) return;
+    var chosen = parseInt(selected.value);
+    var correct = q.correct;
+
+    // colour all options
+    q.options.forEach(function(_, j) {
+      var optEl = document.getElementById('qopt' + i + '_' + j);
+      if (!optEl) return;
+      optEl.style.pointerEvents = 'none';
+      if (j === correct) optEl.classList.add('correct');
+      else if (j === chosen && chosen !== correct) optEl.classList.add('wrong');
+    });
+
+    if (chosen === correct) score++;
+
+    // show explanation
+    if (expEl) {
+      expEl.style.display = 'block';
+      expEl.textContent = (chosen === correct ? '✅ Betul! ' : '❌ Salah. Jawapan betul: ' + q.options[correct] + '. ') + (q.explanation || '');
+    }
+  });
+
+  // show score
+  var existing = document.getElementById('quizScore');
+  if (existing) existing.remove();
+  var scoreEl = document.createElement('div');
+  scoreEl.id = 'quizScore';
+  var pct = Math.round(score / questions.length * 100);
+  var colour = pct >= 80 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444';
+  scoreEl.className = 'quiz-score';
+  scoreEl.style.background = 'rgba(' + (pct>=80?'34,197,94':pct>=50?'245,158,11':'239,68,68') + ',0.1)';
+  scoreEl.style.color = colour;
+  scoreEl.style.border = '1px solid ' + colour;
+  scoreEl.innerHTML = 'Skor anda: ' + score + ' / ' + questions.length + ' (' + pct + '%)';
+  document.getElementById('questionsList').appendChild(scoreEl);
+
+  // remove submit button
+  var btn = document.querySelector('#questionsList .btn-primary');
+  if (btn) btn.remove();
+
+  CS.analytics.logQuiz({ score: pct, agent: 'reading-companion', total: questions.length, correct: score });
+  setStatus('Kuiz selesai! Skor: ' + score + '/' + questions.length);
+}
+
+function rcConvertToBraille() {
+  var text = '';
+  var areaEl = document.getElementById('readingArea') || document.querySelector('.reading-area') || document.getElementById('readingDisplay');
+  if (areaEl) text = areaEl.innerText || areaEl.value || areaEl.textContent || '';
+  if (!text.trim()) { alert('Please load text first.'); return; }
+  if (!window.CS_BRAILLE) { alert('Braille system not loaded.'); return; }
+  var outDiv = document.getElementById('rcBrailleOutput');
+  if (!outDiv) {
+    outDiv = document.createElement('div');
+    outDiv.id = 'rcBrailleOutput';
+    var btns = document.getElementById('rcBrailleBtn');
+    if (btns && btns.parentNode) btns.parentNode.insertAdjacentElement('afterend', outDiv);
+    else document.body.appendChild(outDiv);
+  }
+  CS_BRAILLE.injectStyles();
+  CS_BRAILLE.injectPanel('rcBrailleOutput', text.trim());
+}
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.CS_BRAILLE) { CS_BRAILLE.injectStyles(); CS_BRAILLE.init(); }
+});
+
+function sendToTeacher() {
+  var text = document.getElementById('readingDisplay') ?
+    document.getElementById('readingDisplay').innerText :
+    (document.getElementById('readingInput') ? document.getElementById('readingInput').value : '');
+  if (text.trim() && text.trim() !== 'Click Load Text to begin reading.') {
+    localStorage.setItem('teacher_input_text', text.trim());
+  }
+  window.location.href = 'ai-teacher-agent.html';
+}
+
+function sendToSignAgent() {
+  var text = document.getElementById('readingDisplay') ?
+    document.getElementById('readingDisplay').innerText :
+    (document.getElementById('readingInput') ? document.getElementById('readingInput').value : '');
+  if (!text.trim() || text.trim() === 'Click Load Text to begin reading.') {
+    alert('Please load or paste text first.');
+    return;
+  }
+  localStorage.setItem('signLangText', text.trim());
+  window.location.href = 'sign-language.html';
+}
+</script>
+<script src="personalisation-system.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (!window.CS_PERSONALISE) return;
+  CS_PERSONALISE.init();
+  CS_PERSONALISE.trackAgentUse('reading-companion');
+  var p = CS_PERSONALISE.getProfile();
+  var lang = localStorage.getItem('cs_lang') || 'en';
+  var suggestions = [];
+  if (p.avgSessionMinutes < 12 && p.avgSessionMinutes > 0) suggestions.push(lang==='ms'?'Sesi pendek (10 min) disyorkan':'Short session recommended (10 min)');
+  if (p.audioUsageCount > 1) suggestions.push(lang==='ms'?'Hidupkan mod audio':'Enable audio mode');
+  if (p.accessibilityMode==='dyslexia') suggestions.push(lang==='ms'?'Ringkaskan teks ini':'Simplify this text');
+  if (p.accessibilityMode==='adhd') suggestions.push(lang==='ms'?'Gunakan tetingkap bacaan':'Use reading window');
+  suggestions.push(lang==='ms'?'Jana kuiz ringkas':'Generate quick quiz');
+  suggestions.push(lang==='ms'?'Kata kunci visual':'Visual keywords');
+  var bar = document.getElementById('psAdaptiveBar');
+  var list = document.getElementById('psAdaptiveSuggestions');
+  if (bar && list && suggestions.length) {
+    list.innerHTML = suggestions.map(function(s) {
+      return '<button style="background:#ddd6fe;color:#4f46e5;border:none;padding:7px 14px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;" onclick="alert(\'' + s + '\')">'+s+'</button>';
+    }).join('');
+    bar.style.display='block';
+  }
+});
+window.rcEndSession = function() {
+  if (window.CS_PERSONALISE) {
+    CS_PERSONALISE.trackMode('text');
+    CS_PERSONALISE.trackReadingCompletion(true);
+    CS_PERSONALISE.endSession();
+  }
+};
+</script>
+</body>
+</html>

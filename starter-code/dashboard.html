@@ -1,0 +1,577 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard – CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── Dashboard background ── */
+body { background: linear-gradient(160deg,#c4b8ff 0%,#ddd6ff 40%,#7dd3ea 100%); min-height:100vh; }
+
+/* ── Welcome Header ── */
+.dash-header {
+  background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.06) 50%, rgba(6,182,212,0.06) 100%);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 24px;
+  padding: 32px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+}
+.dash-header::before {
+  content:'';
+  position:absolute;
+  top:-40px;right:-40px;
+  width:200px;height:200px;
+  background:radial-gradient(circle,rgba(99,102,241,0.15),transparent 70%);
+  pointer-events:none;
+}
+.dash-welcome { font-size: 26px; font-weight: 900; letter-spacing:-0.02em; }
+.dash-time { font-size: 14px; color: #0f172a; margin-top: 5px; }
+
+/* ── Widgets ── */
+.widget-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 32px; }
+.widget {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 20px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.widget:hover { transform:translateY(-3px); border-color:rgba(99,102,241,0.3); box-shadow:0 8px 24px rgba(99,102,241,0.12); }
+.widget::before {
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:3px;
+  background:var(--wc,linear-gradient(90deg,#6366f1,#8b5cf6));
+  border-radius:2px 2px 0 0;
+}
+.widget-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: #0f172a; }
+.widget-value { font-size: 30px; font-weight: 900; }
+.widget-sub { font-size: 12px; color: #0f172a; }
+
+/* ── Agent cards ── */
+.agent-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0,0,0,0.08) !important;
+  border-radius: 20px !important;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+  position: relative;
+  overflow: hidden;
+}
+.agent-card:hover {
+  transform: translateY(-6px) scale(1.01) !important;
+  box-shadow: 0 12px 32px rgba(99,102,241,0.15) !important;
+  border-color: rgba(99,102,241,0.25) !important;
+}
+.agent-icon {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 14px !important;
+  font-size: 24px !important;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* ── Activity & Stats cards ── */
+.card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0,0,0,0.08) !important;
+  border-radius: 20px !important;
+}
+.stat-card {
+  background: linear-gradient(145deg,rgba(99,102,241,0.07),rgba(139,92,246,0.04)) !important;
+  border: 1px solid rgba(99,102,241,0.15) !important;
+  border-radius: 16px !important;
+  text-align: center;
+  padding: 16px 12px !important;
+  transition: all 0.2s ease;
+}
+.stat-card:hover { transform:translateY(-2px); border-color:rgba(99,102,241,0.3) !important; box-shadow:0 4px 16px rgba(99,102,241,0.1) !important; }
+.stat-value { font-size: 26px !important; font-weight: 900 !important; background:linear-gradient(135deg,#6366f1,#7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.stat-label { font-size: 11px !important; color: #64748b !important; margin-top:4px; text-transform:uppercase; letter-spacing:0.06em; }
+
+.activity-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 0; border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.06); }
+.activity-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; color:#0f172a; }
+.activity-time { font-size: 12px; color: #64748b; }
+
+/* ── Section title ── */
+.section-title { font-size:clamp(18px,2.5vw,24px) !important; font-weight:900 !important; color:#0f172a !important; }
+.section-desc { color:#0f172a !important; }
+
+/* ── Responsive ── */
+@media(max-width:768px){ .widget-grid{grid-template-columns:repeat(2,1fr);} }
+@media(max-width:480px){ .widget-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">
+      <div class="brand-icon">CS</div>
+      <div>
+        <span class="brand-name">CelikSense AI</span>
+        <span class="brand-tagline" data-i18n="tagline">Agentic Multi-Sensory Learning</span>
+      </div>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="dashboard.html" data-i18n="nav_dashboard">Dashboard</a>
+      <div class="nav-dropdown">
+        <button data-i18n="nav_agents" aria-haspopup="true" aria-expanded="false">Agents ▾</button>
+        <div class="dropdown-menu">
+          <a href="ai-librarian.html">📚 AI Librarian</a>
+          <a href="reading-companion.html">📖 Reading Companion</a>
+          <a href="adhd-agent.html">🧠 ADHD Agent</a>
+          <a href="dyslexia-agent.html">👁️ Dyslexia Agent</a>
+          <a href="blind-audio.html">🔊 Blind Audio Agent</a>
+          <a href="sign-language.html">🤟 Sign Language Agent</a>
+          <a href="early-warning.html">⚠️ Early Warning Agent</a>
+          <a href="intervention.html">💡 Intervention Agent</a>
+          <a href="ocr-agent.html">📷 OCR Reading Agent</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn" aria-label="Switch to Bahasa Melayu">BM</button>
+      <a href="profile.html" class="btn btn-ghost btn-sm">👤 Profile</a>
+      <a href="profile.html" class="btn btn-primary btn-sm" data-i18n="nav_signup">Sign Up</a>
+      <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
+      <button class="nav-hamburger" onclick="toggleNav()">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div style="padding-top:var(--nav-h);">
+<div class="container" style="padding-top:32px;padding-bottom:60px;">
+
+  <!-- Welcome Header -->
+  <div class="dash-header">
+    <div>
+      <div class="dash-welcome">
+        <span data-i18n="dash_welcome">Welcome back,</span>
+        <span class="gradient-text"> <span data-i18n="dash_name">Learner</span> 👋</span>
+      </div>
+      <div class="dash-time" data-i18n="dash_subtitle">Your personalised learning dashboard</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="reading-companion.html" class="btn btn-primary" data-i18n="dash_start_reading">▶ Start Reading</a>
+      <a href="early-warning.html" class="btn btn-ghost" data-i18n="dash_view_report">📊 View Report</a>
+    </div>
+  </div>
+
+  <!-- Widgets -->
+  <div class="widget-grid">
+    <div class="widget" style="--wc:linear-gradient(90deg,#6366f1,#06b6d4);">
+      <div class="widget-label" data-i18n="dash_progress">📖 Reading Progress</div>
+      <div class="widget-value" style="background:linear-gradient(135deg,#a5b4fc,#67e8f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">72%</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:72%;background:linear-gradient(90deg,#6366f1,#06b6d4);"></div></div>
+      <div class="widget-sub" id="chaptersSubEl"><span id="chaptersText">3 of 5 chapters complete</span></div>
+    </div>
+    <div class="widget" style="--wc:linear-gradient(90deg,#22c55e,#10b981);">
+      <div class="widget-label" data-i18n="dash_focus">🎯 Focus Score</div>
+      <div class="widget-value" style="background:linear-gradient(135deg,#86efac,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">84</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:84%;background:linear-gradient(90deg,#22c55e,#10b981);"></div></div>
+      <div class="widget-sub">Above average ↑</div>
+    </div>
+    <div class="widget" style="--wc:linear-gradient(90deg,#f59e0b,#f97316);">
+      <div class="widget-label" data-i18n="dash_mode">♿ Accessibility Mode</div>
+      <div class="widget-value" style="background:linear-gradient(135deg,#fde68a,#fb923c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:22px;">ADHD</div>
+      <div class="badge badge-warning" id="focusModeBadge" style="display:inline-flex;margin-top:4px;">Focus Mode On</div>
+      <div class="widget-sub" id="modeSubEl">Reading window active</div>
+    </div>
+    <div class="widget" style="--wc:linear-gradient(90deg,#ec4899,#8b5cf6);">
+      <div class="widget-label" data-i18n="dash_intervention">💡 Recommended</div>
+      <div class="widget-value" style="background:linear-gradient(135deg,#f9a8d4,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:18px;font-weight:800;line-height:1.3;">Micro-Session<br>Reading</div>
+      <a href="intervention.html" class="btn btn-outline btn-sm" style="margin-top:4px;"><span data-i18n="dash_view_plan">View Plan</span></a>
+    </div>
+  </div>
+
+  <!-- Today's Recommendation Banner -->
+  <div id="psTodayBanner" class="ps-today-banner" role="status" aria-live="polite" style="display:none;max-width:900px;margin:0 auto 20px;">
+    <span style="font-size:24px;">🤖</span>
+    <span id="psTodayText"></span>
+  </div>
+
+  <!-- Agents Grid -->
+  <div class="section-header">
+    <h2 class="section-title" data-i18n="dash_agents_title">AI Agents</h2>
+    <p class="section-desc" data-i18n="dash_select_desc">Select an agent to start your personalised session</p>
+  </div>
+  <div class="grid grid-auto" style="margin-bottom:40px;">
+
+    <div class="agent-card" style="--agent-top:linear-gradient(90deg,#6366f1,#8b5cf6);" aria-label="AI Librarian agent – Find and recommend books tailored to your learning profile and accessibility needs" tabindex="0">
+      <div class="agent-icon" style="background:rgba(99,102,241,0.12)" aria-hidden="true">📚</div>
+      <div class="agent-name" data-i18n="agent_lib">AI Librarian</div>
+      <div class="agent-desc" data-i18n="agent_lib_desc">Find and recommend books tailored to your learning profile and accessibility needs.</div>
+      <div class="agent-footer">
+        <span class="agent-status" data-i18n="agent_active">Active</span>
+        <a href="ai-librarian.html" class="btn btn-primary btn-sm" data-i18n="agent_open" aria-label="Open AI Librarian">Open</a>
+      </div>
+    </div>
+
+    <div class="agent-card" style="--agent-top:linear-gradient(90deg,#06b6d4,#6366f1);" aria-label="Reading Companion agent – Read with AI assistance including comprehension questions, vocabulary, and audio support" tabindex="0">
+      <div class="agent-icon" style="background:rgba(6,182,212,0.12)" aria-hidden="true">📖</div>
+      <div class="agent-name" data-i18n="agent_read">Reading Companion</div>
+      <div class="agent-desc" data-i18n="agent_read_desc">Read with AI assistance – comprehension questions, vocabulary, and audio support.</div>
+      <div class="agent-footer">
+        <span class="agent-status" data-i18n="agent_active">Active</span>
+        <a href="reading-companion.html" class="btn btn-primary btn-sm" data-i18n="agent_open" aria-label="Open Reading Companion">Open</a>
+      </div>
+    </div>
+
+    <div class="agent-card" style="--agent-top:linear-gradient(90deg,#f59e0b,#ef4444);" aria-label="ADHD Agent – Micro-reading sessions with focus timers, reading window, and note builder" tabindex="0">
+      <div class="agent-icon" style="background:rgba(245,158,11,0.12)" aria-hidden="true">🧠</div>
+      <div class="agent-name" data-i18n="agent_adhd">ADHD Agent</div>
+      <div class="agent-desc" data-i18n="agent_adhd_desc">Micro-reading sessions with focus timers, reading window, and note builder.</div>
+      <div class="agent-footer">
+        <span class="agent-status" data-i18n="agent_active">Active</span>
+        <a href="adhd-agent.html" class="btn btn-primary btn-sm" data-i18n="agent_open" aria-label="Open ADHD Agent">Open</a>
+      </div>
+    </div>
+
+    <div class="agent-card" style="--agent-top:linear-gradient(90deg,#22c55e,#06b6d4);" aria-label="Dyslexia Agent – Colour overlays, dyslexia-friendly fonts, reading ruler, and mind map support" tabindex="0">
+      <div class="agent-icon" style="background:rgba(34,197,94,0.12)" aria-hidden="true">🔤</div>
+      <div class="agent-name" data-i18n="agent_dys">Dyslexia Agent</div>
+      <div class="agent-desc" data-i18n="agent_dys_desc">Colour overlays, dyslexia-friendly fonts, reading ruler, and mind map support.</div>
+      <div class="agent-footer">
+        <span class="agent-status" data-i18n="agent_active">Active</span>
+        <a href="dyslexia-agent.html" class="btn btn-primary btn-sm" data-i18n="agent_open" aria-label="Open Dyslexia Agent">Open</a>
+      </div>
+    </div>
+
+    <div class="agent-card" style="--agent-top:linear-gradient(90deg,#8b5cf6,#ec4899);" aria-label="Blind Audio Agent – Full audio navigation with text-to-speech, keyboard shortcuts, and voice instructions" tabindex="0">
+      <div class="agent-icon" style="background:rgba(139,92,246,0.12)" aria-hidden="true">🔊</div>
+      <div class="agent-name" data-i18n="agent_blind">Blind Audio Agent</div>
+      <div class="agent-desc" data-i18n="agent_blind_desc">Full audio navigation with TTS, keyboard shortcuts, and voice instructions.</div>
+      <div class="agent-footer">
+        <span class="agent-status" data-i18n="agent_active">Active</span>
+        <a href="blind-audio.html" class="btn btn-primary btn-sm" data-i18n="agent_open" aria-label="Open Blind Audio and Braille Agent">Open</a>
+      </div>
+    </div>
+
+    <a href="sign-language.html" class="agent-card" style="border-top:3px solid #ec4899;" aria-label="Open AI Personal Sign Language Avatar Agent">
+      <div class="agent-icon" style="background:linear-gradient(135deg,#ec4899,#8b5cf6);">👤</div>
+      <div class="agent-info">
+        <div class="agent-name" data-i18n="avatar_agent_title">AI Personal Sign Language Avatar</div>
+        <div class="agent-desc" data-i18n="avatar_agent_desc">Your own AI avatar translates books and learning materials into Malaysian Sign Language (BIM).</div>
+      </div>
+      <span class="agent-badge" style="background:linear-gradient(135deg,#ec4899,#8b5cf6);" data-i18n="avatar_badge">My Avatar</span>
+    </a>
+
+    <div class="agent-card" style="--agent-top:linear-gradient(90deg,#ef4444,#f59e0b);" aria-label="Early Warning Agent – Learner risk assessment, performance monitoring, and educator alerts" tabindex="0">
+      <div class="agent-icon" style="background:rgba(239,68,68,0.12)" aria-hidden="true">⚠️</div>
+      <div class="agent-name" data-i18n="agent_warn">Early Warning Agent</div>
+      <div class="agent-desc" data-i18n="agent_warn_desc">Learner risk assessment, performance monitoring, and educator alerts.</div>
+      <div class="agent-footer">
+        <span class="agent-status" data-i18n="agent_active">Active</span>
+        <a href="early-warning.html" class="btn btn-primary btn-sm" data-i18n="agent_open" aria-label="Open Early Warning Agent">Open</a>
+      </div>
+    </div>
+
+    <div class="agent-card" style="--agent-top:linear-gradient(90deg,#10b981,#6366f1);" aria-label="Intervention Agent – Personalised strategies, action plans, and curated resources for every need" tabindex="0">
+      <div class="agent-icon" style="background:rgba(16,185,129,0.12)" aria-hidden="true">💡</div>
+      <div class="agent-name" data-i18n="agent_inter">Intervention Agent</div>
+      <div class="agent-desc" data-i18n="agent_inter_desc">Personalised strategies, action plans, and curated resources for every need.</div>
+      <div class="agent-footer">
+        <span class="agent-status" data-i18n="agent_active">Active</span>
+        <a href="intervention.html" class="btn btn-primary btn-sm" data-i18n="agent_open" aria-label="Open Intervention Agent">Open</a>
+      </div>
+    </div>
+
+    <div class="agent-card" style="--agent-top:linear-gradient(90deg,#f97316,#fbbf24);" aria-label="OCR Reading Agent – Upload book images to extract text with Tesseract.js, then read aloud with full text-to-speech support" tabindex="0">
+      <div class="agent-icon" style="background:rgba(249,115,22,0.12)" aria-hidden="true">📷</div>
+      <div class="agent-name" data-i18n="agent_ocr">OCR Reading Agent</div>
+      <div class="agent-desc" data-i18n="agent_ocr_desc">Upload book images to extract text with Tesseract.js, then read aloud with full TTS support.</div>
+      <div class="agent-footer">
+        <span class="agent-status" style="color:#fb923c;" data-i18n="agent_new">New</span>
+        <a href="ocr-agent.html" class="btn btn-primary btn-sm" style="background:linear-gradient(135deg,#f97316,#fbbf24);border-color:transparent;" aria-label="Open OCR Reading Agent">Open</a>
+      </div>
+    </div>
+
+    <div class="widget" style="border-left:4px solid #6366f1;background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(16,185,129,0.05));" aria-label="Braille Output Feature">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:24px;" aria-hidden="true">⠃</span>
+        <div class="widget-label" style="color:#0f172a;font-weight:800;" data-i18n="braille_agent_title">Braille Output Agent</div>
+      </div>
+      <div class="widget-sub" style="color:#475569;font-size:13px;line-height:1.6;" data-i18n="braille_agent_desc">Provides Braille-ready text for refreshable Braille display users.</div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="blind-audio.html" class="btn btn-outline btn-sm" data-i18n="braille_open">⠃ Open Braille Mode</a>
+        <a href="reading-companion.html" class="btn btn-ghost btn-sm" data-i18n="braille_reading">Reading Companion</a>
+        <a href="ocr-agent.html" class="btn btn-ghost btn-sm" data-i18n="braille_ocr">OCR to Braille</a>
+      </div>
+    </div>
+
+    <a href="personalisation-agent.html" class="agent-card" style="border-top:3px solid #6366f1;" aria-label="Open AI Learning Personalisation Agent">
+      <div class="agent-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">🧠</div>
+      <div class="agent-info">
+        <div class="agent-name" data-i18n="ps_agent_title">AI Personalisation Agent</div>
+        <div class="agent-desc" data-i18n="ps_agent_desc">Learns your reading style and recommends the best experience for you.</div>
+      </div>
+      <span class="agent-badge" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);" data-i18n="ps_badge">Adaptive AI</span>
+    </a>
+
+    <a href="ai-teacher-agent.html" class="agent-card" style="border-top:3px solid #f59e0b;" aria-label="Open AI Teacher Agent">
+      <div class="agent-icon" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">👩‍🏫</div>
+      <div class="agent-info">
+        <div class="agent-name" data-i18n="teacher_agent_title">AI Teacher Agent</div>
+        <div class="agent-desc" data-i18n="teacher_agent_desc">Explains books, generates quizzes, answers questions, creates mind maps, and motivates learners.</div>
+      </div>
+      <span class="agent-badge" style="background:linear-gradient(135deg,#f59e0b,#ef4444);" data-i18n="teacher_agent_badge">Virtual Teacher</span>
+    </a>
+
+  </div>
+
+  <!-- Recent Activity -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+    <div class="card">
+      <div class="panel-title">Recent Activity</div>
+      <div class="activity-item">
+        <div class="activity-icon" style="background:rgba(99,102,241,0.12)">📖</div>
+        <div>
+          <div class="activity-title">Reading Companion – Chapter 3</div>
+          <div class="activity-time">2 hours ago · 15 min session</div>
+        </div>
+        <span class="badge badge-success" style="margin-left:auto;">Done</span>
+      </div>
+      <div class="activity-item">
+        <div class="activity-icon" style="background:rgba(245,158,11,0.12)">🧠</div>
+        <div>
+          <div class="activity-title">ADHD Agent – Focus Session</div>
+          <div class="activity-time">Yesterday · 10 min session</div>
+        </div>
+        <span class="badge badge-warning" style="margin-left:auto;">Break Due</span>
+      </div>
+      <div class="activity-item">
+        <div class="activity-icon" style="background:rgba(34,197,94,0.12)">🔤</div>
+        <div>
+          <div class="activity-title">Dyslexia Agent – Green Overlay</div>
+          <div class="activity-time">2 days ago · 20 min session</div>
+        </div>
+        <span class="badge badge-success" style="margin-left:auto;">Done</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="panel-title">Quick Stats</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="stat-card"><div class="stat-value">12</div><div class="stat-label">Sessions This Week</div></div>
+        <div class="stat-card"><div class="stat-value">3.2h</div><div class="stat-label">Total Reading Time</div></div>
+        <div class="stat-card"><div class="stat-value">5</div><div class="stat-label">Books Explored</div></div>
+        <div class="stat-card"><div class="stat-value">92%</div><div class="stat-label">Comprehension Avg</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="index.html" class="nav-brand" style="display:inline-flex;margin-bottom:12px;">
+          <div class="brand-icon">CS</div>
+          <div><span class="brand-name">CelikSense AI</span></div>
+        </a>
+        <p class="footer-brand-desc">Knowledge Without Barrier, Intelligence Without Limits.</p>
+      </div>
+      <div>
+        <div class="footer-heading">Agents</div>
+        <div class="footer-links">
+          <a href="ai-librarian.html">📚 AI Librarian</a>
+          <a href="reading-companion.html">📖 Reading Companion</a>
+          <a href="adhd-agent.html">🧠 ADHD Agent</a>
+          <a href="dyslexia-agent.html">🔤 Dyslexia Agent</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-heading">More Agents</div>
+        <div class="footer-links">
+          <a href="blind-audio.html">🔊 Blind Audio</a>
+          <a href="sign-language.html">🤟 Sign Language</a>
+          <a href="early-warning.html">⚠️ Early Warning</a>
+          <a href="intervention.html">💡 Intervention</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-heading">Platform</div>
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="dashboard.html">Dashboard</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 CelikSense AI</span>
+      <span>Built with Agentic AI 🤖</span>
+    </div>
+  </div>
+</footer>
+
+<div id="voiceAnnounce" role="status" aria-live="assertive" aria-atomic="true" style="position:absolute;left:-9999px;"></div>
+
+<script src="personalisation-system.js"></script>
+<script src="shared.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  /* ── Voice navigation context ── */
+  if (window.CS_VOICE && CS_VOICE.setPageContext) {
+    CS_VOICE.setPageContext("Dashboard", "Dashboard loaded. Say the name of any agent to open it: AI Librarian, Reading Companion, OCR, ADHD, Dyslexia, Sign Language, Early Warning, Intervention. Say Help for all commands.");
+  }
+
+  /* ── User name ── */
+  var profile = CS.user.get();
+  var nameEl = document.querySelector('[data-i18n="dash_name"]');
+  if (nameEl && profile.displayName && profile.displayName !== 'Learner') {
+    nameEl.textContent = profile.displayName;
+  }
+
+  /* ── Analytics summary (last 7 days) ── */
+  var s    = CS.analytics.getSummary(7);
+  var risk = CS.analytics.computeRisk();
+  var dis  = profile.disability || 'general';
+
+  /* Chapters sub — translate "of" and "chapters complete" */
+  var chapEl = document.getElementById('chaptersText');
+  if (chapEl) {
+    var txt = chapEl.textContent.match(/(\d+)[^\d]+(\d+)/);
+    if (txt) chapEl.textContent = txt[1] + ' ' + CS.lang.t('dash_chapters_of') + ' ' + txt[2] + ' ' + CS.lang.t('dash_chapters_done');
+  }
+
+  /* Focus Score widget */
+  var focusVal = s.avgFocusScore != null ? s.avgFocusScore : null;
+  var focusEl  = document.querySelector('[data-i18n="dash_focus"]');
+  if (focusEl && focusVal != null) {
+    var widget = focusEl.closest('.widget');
+    if (widget) {
+      var val = widget.querySelector('.widget-value');
+      var bar = widget.querySelector('.progress-fill');
+      var sub = widget.querySelector('.widget-sub');
+      if (val) { val.textContent = focusVal; val.style.color = focusVal >= 75 ? 'var(--success)' : focusVal >= 55 ? 'var(--warning)' : 'var(--danger)'; }
+      if (bar) { bar.style.width = focusVal + '%'; bar.style.background = focusVal >= 75 ? 'var(--success)' : focusVal >= 55 ? 'var(--warning)' : 'var(--danger)'; }
+      if (sub) sub.textContent = focusVal >= 80 ? CS.lang.t('dash_above_avg') : focusVal >= 60 ? CS.lang.t('dash_average') : CS.lang.t('dash_below_avg');
+    }
+  }
+
+  /* Accessibility Mode widget */
+  var a11y   = CS.user.getA11y();
+  var modeEl = document.querySelector('[data-i18n="dash_mode"]');
+  if (modeEl) {
+    var modeWidget = modeEl.closest('.widget');
+    if (modeWidget) {
+      var modeVal = modeWidget.querySelector('.widget-value');
+      var modeSub = modeWidget.querySelector('.widget-sub');
+      var labels  = { adhd:'ADHD', dyslexia:'Dyslexia', blind:'Blind Audio', deaf:'Sign Language', general:'Standard' };
+      if (modeVal) modeVal.textContent = labels[dis] || 'Standard';
+      if (modeSub) modeSub.textContent = a11y.readingWindow ? CS.lang.t('dash_reading_window') : (a11y.overlay && a11y.overlay !== 'none') ? CS.lang.t('dash_overlay_lbl') + ' ' + a11y.overlay : CS.lang.t('dash_no_mode');
+      var badge = document.getElementById('focusModeBadge');
+      if (badge) badge.textContent = CS.lang.t('dash_focus_mode');
+    }
+  }
+
+  /* Recommended widget — based on risk + disability */
+  var recEl = document.querySelector('[data-i18n="dash_intervention"]');
+  if (recEl) {
+    var recWidget = recEl.closest('.widget');
+    if (recWidget) {
+      var recVal = recWidget.querySelector('.widget-value');
+      if (recVal) {
+        if (risk.level === 'high' || risk.level === 'critical') recVal.innerHTML = 'Intervention<br>Plan';
+        else if (dis === 'adhd')     recVal.innerHTML = 'Micro-Session<br>Reading';
+        else if (dis === 'dyslexia') recVal.innerHTML = 'Overlay<br>Settings';
+        else                         recVal.innerHTML = 'Reading<br>Companion';
+      }
+    }
+  }
+
+  /* Quick Stats */
+  var statCards = document.querySelectorAll('.stat-card');
+  if (statCards.length >= 4) {
+    var sessions  = s.sessionCount || 0;
+    var totalMins = s.avgDurationMin != null ? Math.round(s.avgDurationMin * sessions) : 0;
+    var totalHrs  = totalMins >= 60 ? (totalMins / 60).toFixed(1) + 'h' : totalMins + 'm';
+    var quizAvg   = s.avgQuizScore != null ? s.avgQuizScore + '%' : 'N/A';
+    var v0 = statCards[0].querySelector('.stat-value'); if (v0) v0.textContent = sessions;
+    var v1 = statCards[1].querySelector('.stat-value'); if (v1) v1.textContent = totalMins > 0 ? totalHrs : '0m';
+    var v3 = statCards[3].querySelector('.stat-value'); if (v3) v3.textContent = quizAvg;
+  }
+
+  /* Recent Activity from real analytics log */
+  var actCard = document.querySelector('.card');
+  if (actCard && actCard.querySelector('.panel-title')) {
+    var allEvents = CS.analytics.getAll()
+      .filter(function(e) { return e.type === 'session_end'; })
+      .slice(-4).reverse();
+
+    if (allEvents.length > 0) {
+      var icons  = { adhd:'🧠', ocr:'📷', reading:'📖', dyslexia:'👁️', blind:'🔊', librarian:'📚', early_warning:'⚠️', intervention:'💡' };
+      var colors = { adhd:'rgba(245,158,11,0.12)', ocr:'rgba(249,115,22,0.12)', reading:'rgba(99,102,241,0.12)', dyslexia:'rgba(34,197,94,0.12)', blind:'rgba(139,92,246,0.12)', librarian:'rgba(99,102,241,0.12)' };
+      var html = '<div class="panel-title">' + CS.lang.t('dash_recent_act') + '</div>';
+      allEvents.forEach(function(e) {
+        var agent   = e.agent || 'reading';
+        var icon    = icons[agent] || '📖';
+        var color   = colors[agent] || 'rgba(99,102,241,0.12)';
+        var dur     = e.durationSec ? Math.round(e.durationSec / 60) + ' min' : '';
+        var diffH   = Math.round((Date.now() - new Date(e.ts).getTime()) / 3600000);
+        var timeStr = diffH < 1 ? CS.lang.t('dash_just_now') : diffH < 24 ? diffH + CS.lang.t('dash_h_ago') : Math.floor(diffH / 24) + CS.lang.t('dash_d_ago');
+        var label   = agent.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); }) + ' Agent';
+        html += '<div class="activity-item"><div class="activity-icon" style="background:' + color + '">' + icon + '</div>' +
+          '<div><div class="activity-title">' + label + '</div><div class="activity-time">' + timeStr + (dur ? ' · ' + dur : '') + '</div></div>' +
+          '<span class="badge badge-success" style="margin-left:auto;">' + CS.lang.t('dash_done_badge') + '</span></div>';
+      });
+      actCard.innerHTML = html;
+    }
+  }
+
+  /* High risk banner */
+  if (risk.level === 'high' || risk.level === 'critical') {
+    var header = document.querySelector('.dash-header');
+    if (header) {
+      var alert = document.createElement('div');
+      alert.style.cssText = 'width:100%;margin-top:12px;padding:10px 14px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:8px;font-size:13px;color:#ef4444;display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
+      alert.innerHTML = '⚠️ <strong>' + CS.lang.t('dash_health_alert') + '</strong> Risk score ' + risk.score + '/100. <a href="early-warning.html" style="color:#ef4444;text-decoration:underline;margin-left:4px;">' + CS.lang.t('dash_view_warning') + '</a>';
+      header.appendChild(alert);
+    }
+  }
+});
+</script>
+<script src="voice-system.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (window.CS_PERSONALISE) {
+    CS_PERSONALISE.init();
+    CS_PERSONALISE.trackAgentUse('dashboard');
+    var lang = (window.CS && CS.lang && CS.lang.current) ? CS.lang.current : (localStorage.getItem('cs_lang') || 'en');
+    var rec = CS_PERSONALISE.getTodayRecommendation(lang);
+    if (rec) {
+      var banner = document.getElementById('psTodayBanner');
+      var txt = document.getElementById('psTodayText');
+      if (banner && txt) { txt.textContent = rec; banner.style.display = 'flex'; }
+    }
+  }
+});
+</script>
+
+</body>
+</html>
+
+
+

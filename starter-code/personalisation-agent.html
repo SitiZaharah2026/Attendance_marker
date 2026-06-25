@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Learning Personalisation Agent – CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── Page background ── */
+body { background: linear-gradient(160deg,#c4b8ff 0%,#ddd6ff 40%,#7dd3ea 100%); min-height:100vh; }
+
+/* ── Page hero card ── */
+.pa-hero {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
+  border-radius: 24px;
+  padding: 36px 40px;
+  color: #fff;
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.pa-hero::before {
+  content:'';
+  position:absolute;
+  top:-60px; right:-60px;
+  width:260px; height:260px;
+  background:radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
+  pointer-events:none;
+}
+.pa-hero::after {
+  content:'';
+  position:absolute;
+  bottom:-40px; left:-30px;
+  width:180px; height:180px;
+  background:radial-gradient(circle, rgba(6,182,212,0.2), transparent 70%);
+  pointer-events:none;
+}
+.pa-hero-title { font-size: clamp(22px,3vw,32px); font-weight:900; letter-spacing:-0.02em; }
+.pa-hero-subtitle { font-size: 15px; opacity:0.88; margin-top:6px; }
+.pa-badge {
+  display: inline-flex; align-items:center; gap:6px;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top:10px;
+  backdrop-filter: blur(4px);
+}
+
+/* ── Section wrapper ── */
+.pa-section {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 20px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+.pa-section-title {
+  font-size: 17px;
+  font-weight: 900;
+  color: #0f172a;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Stats grid ── */
+.pa-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 14px;
+}
+.pa-stat {
+  background: linear-gradient(145deg,rgba(99,102,241,0.07),rgba(139,92,246,0.04));
+  border: 1.5px solid rgba(99,102,241,0.15);
+  border-radius: 16px;
+  padding: 16px 12px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+.pa-stat:hover { transform:translateY(-2px); border-color:rgba(99,102,241,0.3); box-shadow:0 4px 16px rgba(99,102,241,0.1); }
+.pa-stat-num { font-size:26px; font-weight:900; background:linear-gradient(135deg,#6366f1,#7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.pa-stat-label { font-size:11px; color:#64748b; margin-top:4px; text-transform:uppercase; letter-spacing:0.06em; }
+
+/* ── Bar chart ── */
+.pa-bar-row { display:flex; align-items:center; gap:10px; margin:8px 0; }
+.pa-bar-label { width:70px; font-size:13px; font-weight:600; color:#475569; flex-shrink:0; }
+.pa-bar-track { flex:1; background:#f1f5f9; border-radius:20px; height:12px; overflow:hidden; }
+.pa-bar-fill { height:100%; border-radius:20px; background:linear-gradient(90deg,#6366f1,#8b5cf6); transition:width 0.8s ease; min-width:4px; }
+.pa-bar-count { width:32px; font-size:13px; font-weight:700; color:#6366f1; text-align:right; }
+
+/* ── Responsive ── */
+@media(max-width:600px){
+  .pa-hero { padding:24px 20px; }
+  .pa-section { padding:18px 16px; }
+  .pa-stats-grid { grid-template-columns: repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">
+      <div class="brand-icon">CS</div>
+      <div>
+        <span class="brand-name">CelikSense AI</span>
+        <span class="brand-tagline" data-i18n="tagline">Agentic Multi-Sensory Learning</span>
+      </div>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="dashboard.html" data-i18n="nav_dashboard">Dashboard</a>
+      <div class="nav-dropdown">
+        <button data-i18n="nav_agents" aria-haspopup="true" aria-expanded="false">Agents ▾</button>
+        <div class="dropdown-menu">
+          <a href="ai-librarian.html">📚 AI Librarian</a>
+          <a href="reading-companion.html">📖 Reading Companion</a>
+          <a href="adhd-agent.html">🧠 ADHD Agent</a>
+          <a href="dyslexia-agent.html">👁️ Dyslexia Agent</a>
+          <a href="blind-audio.html">🔊 Blind Audio Agent</a>
+          <a href="sign-language.html">🤟 Sign Language Agent</a>
+          <a href="early-warning.html">⚠️ Early Warning Agent</a>
+          <a href="intervention.html">💡 Intervention Agent</a>
+          <a href="ocr-agent.html">📷 OCR Reading Agent</a>
+          <a href="personalisation-agent.html">🎯 Personalisation Agent</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">BM</button>
+      <a href="profile.html" class="btn btn-ghost btn-sm">👤 <span data-i18n="nav_profile">Profile</span></a>
+      <a href="profile.html" class="btn btn-primary btn-sm" data-i18n="nav_signup">Sign Up</a>
+      <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
+      <button class="nav-hamburger" onclick="toggleNav()">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div style="padding-top:var(--nav-h);">
+<div class="container" style="padding-top:32px;padding-bottom:60px;">
+
+  <!-- ── Page Hero ── -->
+  <header class="pa-hero" role="banner" aria-label="AI Learning Personalisation Agent">
+    <div>
+      <div class="pa-hero-title" data-i18n="pa_title">AI Learning Personalisation Agent</div>
+      <div class="pa-hero-subtitle" data-i18n="pa_subtitle">Your adaptive AI that learns how you learn</div>
+      <div class="pa-badge">Adaptive AI ✨</div>
+    </div>
+    <div style="font-size:72px;opacity:0.85;z-index:1;position:relative;" aria-hidden="true">🎯</div>
+  </header>
+
+  <!-- ── Privacy Notice ── -->
+  <div class="ps-privacy" role="note" aria-label="Privacy notice" style="margin-bottom:24px;">
+    🔒 <strong data-i18n="pa_privacy_title">Privacy Notice:</strong>
+    <span data-i18n="pa_privacy_desc"> All learning data is stored locally on your device only. No personal data is sent to any server. You may reset your data at any time.</span>
+  </div>
+
+  <!-- ── Learning Profile ── -->
+  <section class="pa-section" role="region" aria-label="Learning Profile" id="sectionProfile">
+    <div class="pa-section-title">📊 <span data-i18n="pa_profile_title">Learning Profile</span></div>
+    <div class="pa-stats-grid" id="profileStatsGrid">
+      <div class="pa-stat" tabindex="0" aria-label="Total Sessions">
+        <div class="pa-stat-num" id="statSessions">0</div>
+        <div class="pa-stat-label" data-i18n="pa_stat_sessions">Total Sessions</div>
+      </div>
+      <div class="pa-stat" tabindex="0" aria-label="Total Reading Time">
+        <div class="pa-stat-num" id="statMins">0</div>
+        <div class="pa-stat-label" data-i18n="pa_stat_mins">Reading Time (min)</div>
+      </div>
+      <div class="pa-stat" tabindex="0" aria-label="Reading Streak">
+        <div class="pa-stat-num" id="statStreak">0</div>
+        <div class="pa-stat-label" data-i18n="pa_stat_streak">Streak (days)</div>
+      </div>
+      <div class="pa-stat" tabindex="0" aria-label="Completion Rate">
+        <div class="pa-stat-num" id="statCompletion">0%</div>
+        <div class="pa-stat-label" data-i18n="pa_stat_completion">Completion Rate</div>
+      </div>
+      <div class="pa-stat" tabindex="0" aria-label="Preferred Mode">
+        <div class="pa-stat-num" style="font-size:16px;padding-top:6px;" id="statMode">
+          <span class="ps-mode-badge" id="modeBadge">text</span>
+        </div>
+        <div class="pa-stat-label" data-i18n="pa_stat_mode">Preferred Mode</div>
+      </div>
+      <div class="pa-stat" tabindex="0" aria-label="Best Learning Time">
+        <div class="pa-stat-num" style="font-size:18px;padding-top:4px;" id="statTime">—</div>
+        <div class="pa-stat-label" data-i18n="pa_stat_time">Best Time</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Today's Recommendation ── -->
+  <section role="region" aria-label="Today's Recommendation" id="sectionToday">
+    <div aria-live="polite" aria-atomic="true">
+      <div class="ps-today-banner" id="todayBanner" tabindex="0">
+        <span style="font-size:28px;" aria-hidden="true">🌟</span>
+        <span id="todayText" data-i18n="pa_today_default">Loading your recommendation...</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── AI Insights ── -->
+  <section class="pa-section" role="region" aria-label="AI Insights" id="sectionInsights">
+    <div class="pa-section-title">🧠 <span data-i18n="pa_insights_title">AI Insights</span></div>
+    <div id="insightsList">
+      <div class="ps-insight" data-i18n="pa_insights_loading">Analysing your learning patterns...</div>
+    </div>
+  </section>
+
+  <!-- ── Personalised Recommendations ── -->
+  <section class="pa-section" role="region" aria-label="Personalised Recommendations" id="sectionRecs">
+    <div class="pa-section-title">💡 <span data-i18n="pa_recs_title">Personalised Recommendations</span></div>
+    <div id="recsList">
+      <div class="ps-insight" data-i18n="pa_recs_loading">Building your recommendations...</div>
+    </div>
+  </section>
+
+  <!-- ── Reading Behaviour Analysis ── -->
+  <section class="pa-section" role="region" aria-label="Reading Behaviour Analysis" id="sectionBehaviour">
+    <div class="pa-section-title">📈 <span data-i18n="pa_behaviour_title">Reading Behaviour Analysis</span></div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:16px;" data-i18n="pa_behaviour_desc">How often you use each reading mode:</p>
+    <div id="behaviourChart" aria-label="Reading mode usage bar chart">
+      <div class="pa-bar-row">
+        <div class="pa-bar-label">🔊 <span data-i18n="pa_mode_audio">Audio</span></div>
+        <div class="pa-bar-track"><div class="pa-bar-fill" id="barAudio" style="width:0%;background:linear-gradient(90deg,#8b5cf6,#06b6d4);"></div></div>
+        <div class="pa-bar-count" id="cntAudio">0</div>
+      </div>
+      <div class="pa-bar-row">
+        <div class="pa-bar-label">📷 <span data-i18n="pa_mode_ocr">OCR</span></div>
+        <div class="pa-bar-track"><div class="pa-bar-fill" id="barOcr" style="width:0%;background:linear-gradient(90deg,#f97316,#fbbf24);"></div></div>
+        <div class="pa-bar-count" id="cntOcr">0</div>
+      </div>
+      <div class="pa-bar-row">
+        <div class="pa-bar-label">📝 <span data-i18n="pa_mode_typed">Typed</span></div>
+        <div class="pa-bar-track"><div class="pa-bar-fill" id="barTyped" style="width:0%;background:linear-gradient(90deg,#6366f1,#8b5cf6);"></div></div>
+        <div class="pa-bar-count" id="cntTyped">0</div>
+      </div>
+      <div class="pa-bar-row">
+        <div class="pa-bar-label">🤟 <span data-i18n="pa_mode_sign">Sign</span></div>
+        <div class="pa-bar-track"><div class="pa-bar-fill" id="barSign" style="width:0%;background:linear-gradient(90deg,#ec4899,#f59e0b);"></div></div>
+        <div class="pa-bar-count" id="cntSign">0</div>
+      </div>
+      <div class="pa-bar-row">
+        <div class="pa-bar-label">⠃ <span data-i18n="pa_mode_braille">Braille</span></div>
+        <div class="pa-bar-track"><div class="pa-bar-fill" id="barBraille" style="width:0%;background:linear-gradient(90deg,#10b981,#6366f1);"></div></div>
+        <div class="pa-bar-count" id="cntBraille">0</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Teacher & Parent Insights ── -->
+  <section class="pa-section" role="region" aria-label="Teacher and Parent Insights" id="sectionTeacher">
+    <div class="pa-section-title">👩‍🏫 <span data-i18n="pa_teacher_title">Teacher &amp; Parent Insights</span></div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:14px;" data-i18n="pa_teacher_desc">Aggregated learning behaviour summary for educators and parents:</p>
+    <div id="teacherInsightsList">
+      <div class="ps-teacher-insight" data-i18n="pa_teacher_loading">Loading educator insights...</div>
+    </div>
+  </section>
+
+  <!-- ── Accessibility Profile ── -->
+  <section class="pa-section" role="region" aria-label="Accessibility Profile" id="sectionA11y">
+    <div class="pa-section-title">♿ <span data-i18n="pa_a11y_title">Accessibility Profile</span></div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:13px;color:#64748b;margin-bottom:6px;" data-i18n="pa_a11y_current">Current accessibility mode:</div>
+        <span class="badge badge-primary" id="a11yModeBadge" style="font-size:15px;padding:6px 18px;" tabindex="0">general</span>
+      </div>
+      <div>
+        <a href="settings.html" class="btn btn-outline btn-sm" tabindex="0" aria-label="Open Settings to change accessibility mode">
+          ⚙️ <span data-i18n="pa_a11y_change">Change in Settings</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Reset Learning Data ── -->
+  <section class="pa-section" role="region" aria-label="Reset Learning Data" id="sectionReset" style="border-color:rgba(239,68,68,0.2);">
+    <div class="pa-section-title" style="color:#ef4444;">🗑️ <span data-i18n="pa_reset_title">Reset Learning Data</span></div>
+    <p style="font-size:14px;color:#64748b;margin-bottom:14px;" data-i18n="pa_reset_desc">This will permanently clear all your personalisation data, including session history, preferences, and streaks. This action cannot be undone.</p>
+    <button
+      class="btn btn-sm"
+      id="resetBtn"
+      tabindex="0"
+      aria-label="Reset all learning data"
+      style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;padding:10px 24px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;transition:opacity 0.2s;"
+      onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'"
+    >
+      <span data-i18n="pa_reset_btn">Reset All Learning Data</span>
+    </button>
+    <div id="resetConfirm" style="display:none;margin-top:14px;padding:14px;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:10px;">
+      <p style="font-size:13px;color:#b91c1c;margin-bottom:10px;font-weight:700;" data-i18n="pa_reset_confirm_msg">Are you sure? All your personalisation data will be erased.</p>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-sm" id="confirmResetBtn" tabindex="0" aria-label="Confirm reset"
+          style="background:#ef4444;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-weight:700;cursor:pointer;">
+          <span data-i18n="pa_reset_confirm_yes">Yes, Reset</span>
+        </button>
+        <button class="btn btn-ghost btn-sm" id="cancelResetBtn" tabindex="0" aria-label="Cancel reset">
+          <span data-i18n="pa_reset_cancel">Cancel</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<!-- ── Footer ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="index.html" class="nav-brand" style="display:inline-flex;margin-bottom:12px;">
+          <div class="brand-icon">CS</div>
+          <div><span class="brand-name">CelikSense AI</span></div>
+        </a>
+        <p class="footer-brand-desc">Knowledge Without Barrier, Intelligence Without Limits.</p>
+      </div>
+      <div>
+        <div class="footer-heading">Agents</div>
+        <div class="footer-links">
+          <a href="ai-librarian.html">📚 AI Librarian</a>
+          <a href="reading-companion.html">📖 Reading Companion</a>
+          <a href="adhd-agent.html">🧠 ADHD Agent</a>
+          <a href="dyslexia-agent.html">🔤 Dyslexia Agent</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-heading">More Agents</div>
+        <div class="footer-links">
+          <a href="blind-audio.html">🔊 Blind Audio</a>
+          <a href="sign-language.html">🤟 Sign Language</a>
+          <a href="early-warning.html">⚠️ Early Warning</a>
+          <a href="intervention.html">💡 Intervention</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-heading">Platform</div>
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="dashboard.html">Dashboard</a>
+          <a href="personalisation-agent.html">🎯 Personalisation</a>
+          <a href="profile.html">👤 Profile</a>
+          <a href="settings.html">⚙️ Settings</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 CelikSense AI</span>
+      <span>Built with Agentic AI 🤖</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ARIA live region for voice announcements -->
+<div id="voiceAnnounce" role="status" aria-live="assertive" aria-atomic="true" style="position:absolute;left:-9999px;"></div>
+
+<script src="shared.js"></script>
+<script src="personalisation-system.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ── i18n strings ── */
+  var STRINGS = {
+    en: {
+      pa_title: 'AI Learning Personalisation Agent',
+      pa_subtitle: 'Your adaptive AI that learns how you learn',
+      pa_privacy_title: 'Privacy Notice:',
+      pa_privacy_desc: ' All learning data is stored locally on your device only. No personal data is sent to any server. You may reset your data at any time.',
+      pa_profile_title: 'Learning Profile',
+      pa_stat_sessions: 'Total Sessions',
+      pa_stat_mins: 'Reading Time (min)',
+      pa_stat_streak: 'Streak (days)',
+      pa_stat_completion: 'Completion Rate',
+      pa_stat_mode: 'Preferred Mode',
+      pa_stat_time: 'Best Time',
+      pa_today_default: 'Loading your recommendation...',
+      pa_insights_title: 'AI Insights',
+      pa_insights_loading: 'Analysing your learning patterns...',
+      pa_insights_none: 'Complete a few sessions to unlock AI insights.',
+      pa_recs_title: 'Personalised Recommendations',
+      pa_recs_loading: 'Building your recommendations...',
+      pa_behaviour_title: 'Reading Behaviour Analysis',
+      pa_behaviour_desc: 'How often you use each reading mode:',
+      pa_mode_audio: 'Audio',
+      pa_mode_ocr: 'OCR',
+      pa_mode_typed: 'Typed',
+      pa_mode_sign: 'Sign',
+      pa_mode_braille: 'Braille',
+      pa_teacher_title: 'Teacher & Parent Insights',
+      pa_teacher_desc: 'Aggregated learning behaviour summary for educators and parents:',
+      pa_teacher_loading: 'Loading educator insights...',
+      pa_a11y_title: 'Accessibility Profile',
+      pa_a11y_current: 'Current accessibility mode:',
+      pa_a11y_change: 'Change in Settings',
+      pa_reset_title: 'Reset Learning Data',
+      pa_reset_desc: 'This will permanently clear all your personalisation data, including session history, preferences, and streaks. This action cannot be undone.',
+      pa_reset_btn: 'Reset All Learning Data',
+      pa_reset_confirm_msg: 'Are you sure? All your personalisation data will be erased.',
+      pa_reset_confirm_yes: 'Yes, Reset',
+      pa_reset_cancel: 'Cancel',
+      pa_time_morning: 'Morning',
+      pa_time_afternoon: 'Afternoon',
+      pa_time_evening: 'Evening',
+      pa_time_night: 'Night'
+    },
+    ms: {
+      pa_title: 'Ejen Peribadikan Pembelajaran AI',
+      pa_subtitle: 'AI adaptif anda yang belajar cara anda belajar',
+      pa_privacy_title: 'Notis Privasi:',
+      pa_privacy_desc: ' Semua data pembelajaran disimpan secara tempatan di peranti anda sahaja. Tiada data peribadi dihantar ke mana-mana pelayan. Anda boleh memadam data pada bila-bila masa.',
+      pa_profile_title: 'Profil Pembelajaran',
+      pa_stat_sessions: 'Jumlah Sesi',
+      pa_stat_mins: 'Masa Membaca (min)',
+      pa_stat_streak: 'Streak (hari)',
+      pa_stat_completion: 'Kadar Selesai',
+      pa_stat_mode: 'Mod Pilihan',
+      pa_stat_time: 'Masa Terbaik',
+      pa_today_default: 'Memuatkan cadangan anda...',
+      pa_insights_title: 'Cerapan AI',
+      pa_insights_loading: 'Menganalisis corak pembelajaran anda...',
+      pa_insights_none: 'Lengkapkan beberapa sesi untuk membuka kunci cerapan AI.',
+      pa_recs_title: 'Cadangan Diperibadikan',
+      pa_recs_loading: 'Membina cadangan anda...',
+      pa_behaviour_title: 'Analisis Tingkah Laku Membaca',
+      pa_behaviour_desc: 'Kekerapan anda menggunakan setiap mod membaca:',
+      pa_mode_audio: 'Audio',
+      pa_mode_ocr: 'OCR',
+      pa_mode_typed: 'Taip',
+      pa_mode_sign: 'Isyarat',
+      pa_mode_braille: 'Braille',
+      pa_teacher_title: 'Cerapan Guru & Ibu Bapa',
+      pa_teacher_desc: 'Ringkasan tingkah laku pembelajaran untuk pendidik dan ibu bapa:',
+      pa_teacher_loading: 'Memuatkan cerapan pendidik...',
+      pa_a11y_title: 'Profil Kebolehcapaian',
+      pa_a11y_current: 'Mod kebolehcapaian semasa:',
+      pa_a11y_change: 'Tukar dalam Tetapan',
+      pa_reset_title: 'Padam Data Pembelajaran',
+      pa_reset_desc: 'Ini akan memadamkan semua data peribadikan anda secara kekal, termasuk sejarah sesi, keutamaan, dan streak. Tindakan ini tidak boleh dibatalkan.',
+      pa_reset_btn: 'Padam Semua Data Pembelajaran',
+      pa_reset_confirm_msg: 'Adakah anda pasti? Semua data peribadikan anda akan dipadamkan.',
+      pa_reset_confirm_yes: 'Ya, Padam',
+      pa_reset_cancel: 'Batal',
+      pa_time_morning: 'Pagi',
+      pa_time_afternoon: 'Tengah Hari',
+      pa_time_evening: 'Petang',
+      pa_time_night: 'Malam'
+    }
+  };
+
+  function getLang() {
+    try {
+      return localStorage.getItem('cs_lang') || 'en';
+    } catch (e) {
+      return 'en';
+    }
+  }
+
+  function t(key) {
+    var lang = getLang();
+    var dict = STRINGS[lang] || STRINGS.en;
+    return dict[key] || STRINGS.en[key] || key;
+  }
+
+  function applyI18n() {
+    var lang = getLang();
+    var dict = STRINGS[lang] || STRINGS.en;
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n');
+      if (dict[key] !== undefined) el.textContent = dict[key];
+    });
+    var html = document.documentElement;
+    html.setAttribute('lang', lang === 'ms' ? 'ms' : 'en');
+  }
+
+  function timeLabel(tod) {
+    var map = { morning: t('pa_time_morning'), afternoon: t('pa_time_afternoon'), evening: t('pa_time_evening'), night: t('pa_time_night') };
+    return map[tod] || tod;
+  }
+
+  function populateProfile(profile) {
+    var el;
+    el = document.getElementById('statSessions');
+    if (el) el.textContent = profile.sessionCount || 0;
+
+    el = document.getElementById('statMins');
+    if (el) el.textContent = Math.round(profile.totalReadingMinutes || 0);
+
+    el = document.getElementById('statStreak');
+    if (el) el.textContent = profile.streak || 0;
+
+    el = document.getElementById('statCompletion');
+    if (el) el.textContent = (profile.readingCompletionRate || 0) + '%';
+
+    el = document.getElementById('modeBadge');
+    if (el) el.textContent = profile.preferredMode || 'text';
+
+    el = document.getElementById('statTime');
+    if (el) el.textContent = timeLabel(profile.preferredTimeOfDay || 'morning');
+  }
+
+  function populateToday(lang) {
+    var el = document.getElementById('todayText');
+    if (el && window.CS_PERSONALISE) {
+      el.textContent = CS_PERSONALISE.getTodayRecommendation(lang);
+    }
+  }
+
+  function populateInsights(lang) {
+    var container = document.getElementById('insightsList');
+    if (!container || !window.CS_PERSONALISE) return;
+    var insights = CS_PERSONALISE.generateInsights(lang);
+    if (!insights || insights.length === 0) {
+      container.innerHTML = '<div class="ps-insight">' + t('pa_insights_none') + '</div>';
+      return;
+    }
+    var html = '';
+    insights.forEach(function (ins) {
+      html += '<div class="ps-insight" tabindex="0">' + escHtml(ins) + '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  function populateRecs(lang) {
+    var container = document.getElementById('recsList');
+    if (!container || !window.CS_PERSONALISE) return;
+    var recs = CS_PERSONALISE.generateRecommendations(lang);
+    if (!recs || recs.length === 0) {
+      container.innerHTML = '<p style="color:#64748b;font-size:14px;">No recommendations yet. Start a session to get personalised suggestions.</p>';
+      return;
+    }
+    var html = '';
+    recs.forEach(function (rec) {
+      html += '<div class="ps-rec" tabindex="0" role="article" aria-label="' + escHtml(rec.title) + '">' +
+        '<div class="ps-rec-icon" aria-hidden="true">' + rec.icon + '</div>' +
+        '<div>' +
+          '<div class="ps-rec-title">' + escHtml(rec.title) + '</div>' +
+          '<div class="ps-rec-desc">' + escHtml(rec.desc) + '</div>' +
+          (rec.link ? '<a href="' + (isSafeLink(rec.link) ? escHtml(rec.link) : '#') + '" class="ps-rec-link">' + (lang === 'ms' ? 'Buka' : 'Open') + '</a>' : '') +
+        '</div>' +
+      '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  function populateBehaviourChart(profile) {
+    var maxVal = Math.max(
+      profile.audioUsageCount || 0,
+      profile.ocrUsageCount || 0,
+      profile.typedTextCount || 0,
+      profile.signUsageCount || 0,
+      profile.brailleUsageCount || 0,
+      1
+    );
+
+    function setBar(barId, cntId, val) {
+      var bar = document.getElementById(barId);
+      var cnt = document.getElementById(cntId);
+      var pct = Math.round((val / maxVal) * 100);
+      if (bar) bar.style.width = pct + '%';
+      if (cnt) cnt.textContent = val;
+    }
+
+    setBar('barAudio',  'cntAudio',  profile.audioUsageCount  || 0);
+    setBar('barOcr',    'cntOcr',    profile.ocrUsageCount    || 0);
+    setBar('barTyped',  'cntTyped',  profile.typedTextCount   || 0);
+    setBar('barSign',   'cntSign',   profile.signUsageCount   || 0);
+    setBar('barBraille','cntBraille',profile.brailleUsageCount|| 0);
+  }
+
+  function populateTeacherInsights(lang) {
+    var container = document.getElementById('teacherInsightsList');
+    if (!container || !window.CS_PERSONALISE) return;
+    var insights = CS_PERSONALISE.getTeacherInsights(lang);
+    var html = '';
+    insights.forEach(function (ins) {
+      html += '<div class="ps-teacher-insight" tabindex="0">' + escHtml(ins) + '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  function populateA11y(profile) {
+    var el = document.getElementById('a11yModeBadge');
+    if (el) el.textContent = profile.accessibilityMode || 'general';
+  }
+
+  function isSafeLink(url) {
+    if (!url) return false;
+    // Allow relative .html links and http/https URLs only
+    return url.endsWith('.html') || url.startsWith('https://') || url.startsWith('http://');
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function refreshAll() {
+    var lang = getLang();
+    applyI18n();
+    if (!window.CS_PERSONALISE) return;
+    var profile = CS_PERSONALISE.getProfile();
+    populateProfile(profile);
+    populateToday(lang);
+    populateInsights(lang);
+    populateRecs(lang);
+    populateBehaviourChart(profile);
+    populateTeacherInsights(lang);
+    populateA11y(profile);
+  }
+
+  /* ── Hook into shared.js language toggle ── */
+  var origToggle = window.toggleLanguage;
+  window.toggleLanguage = function () {
+    if (origToggle) origToggle();
+    refreshAll();
+  };
+
+  /* ── Reset button logic ── */
+  document.addEventListener('DOMContentLoaded', function () {
+
+    /* Init personalisation system */
+    if (window.CS_PERSONALISE) {
+      CS_PERSONALISE.init();
+      CS_PERSONALISE.trackAgentUse('personalisation');
+    }
+
+    refreshAll();
+
+    /* Reset button */
+    var resetBtn = document.getElementById('resetBtn');
+    var resetConfirm = document.getElementById('resetConfirm');
+    var confirmBtn = document.getElementById('confirmResetBtn');
+    var cancelBtn = document.getElementById('cancelResetBtn');
+
+    if (resetBtn && resetConfirm) {
+      resetBtn.addEventListener('click', function () {
+        resetConfirm.style.display = 'block';
+        resetBtn.style.display = 'none';
+      });
+    }
+
+    if (cancelBtn && resetConfirm) {
+      cancelBtn.addEventListener('click', function () {
+        resetConfirm.style.display = 'none';
+        if (resetBtn) resetBtn.style.display = '';
+      });
+    }
+
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function () {
+        if (window.CS_PERSONALISE) {
+          CS_PERSONALISE.resetProfile();
+        } else {
+          try { localStorage.removeItem('cs_learning_profile'); } catch(e) {}
+          window.location.reload();
+        }
+      });
+    }
+
+    /* Voice context */
+    if (window.CS_VOICE && CS_VOICE.setPageContext) {
+      CS_VOICE.setPageContext('Personalisation Agent', 'Personalisation Agent loaded. Shows your learning profile, AI insights, and personalised recommendations.');
+    }
+  });
+
+}());
+</script>
+<script src="voice-system.js"></script>
+
+</body>
+</html>

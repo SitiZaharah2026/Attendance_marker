@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Librarian – CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.search-bar { display:flex; gap:10px; margin-bottom:24px; }
+.search-bar .form-control { flex:1; }
+.filter-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px; }
+.filter-tab { padding:7px 16px; border-radius:20px; border:1px solid var(--border); background:var(--bg-card); color:var(--text-muted); font-size:13px; font-weight:600; cursor:pointer; transition:var(--transition); }
+.filter-tab.active,.filter-tab:hover { background:var(--primary); color:white; border-color:var(--primary); }
+.book-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; transition:var(--transition); display:flex; flex-direction:column; }
+.book-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); border-color:rgba(99,102,241,0.2); }
+.book-cover { height:140px; display:flex; align-items:center; justify-content:center; font-size:56px; }
+.book-body { padding:16px; flex:1; display:flex; flex-direction:column; }
+.book-title { font-size:15px; font-weight:700; margin-bottom:4px; }
+.book-author { font-size:12px; color:var(--text-muted); margin-bottom:10px; }
+.book-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+.book-footer { display:flex; align-items:center; justify-content:space-between; margin-top:auto; }
+.recommend-card { background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.08)); border:1px solid rgba(99,102,241,0.2); border-radius:var(--radius-lg); padding:20px; margin-bottom:16px; }
+.recommend-reason { font-size:12px; color:var(--primary-light); font-weight:600; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.06em; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">
+      <div class="brand-icon">CS</div>
+      <div><span class="brand-name">CelikSense AI</span><span class="brand-tagline" data-i18n="tagline">Agentic Multi-Sensory Learning</span></div>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="dashboard.html" data-i18n="nav_dashboard">Dashboard</a>
+      <div class="nav-dropdown">
+        <button data-i18n="nav_agents" aria-haspopup="true" aria-expanded="false">Agents ▾</button>
+        <div class="dropdown-menu">
+          <a href="ai-librarian.html">📚 AI Librarian</a>
+          <a href="reading-companion.html">📖 Reading Companion</a>
+          <a href="adhd-agent.html">🧠 ADHD Agent</a>
+          <a href="dyslexia-agent.html">👁️ Dyslexia Agent</a>
+          <a href="blind-audio.html">🔊 Blind Audio Agent</a>
+          <a href="sign-language.html">🤟 Sign Language Agent</a>
+          <a href="early-warning.html">⚠️ Early Warning Agent</a>
+          <a href="intervention.html">💡 Intervention Agent</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn" aria-label="Switch to Bahasa Melayu">BM</button>
+      <a href="profile.html" class="btn btn-ghost btn-sm">👤 Profile</a>
+      <a href="dashboard.html" class="btn btn-outline btn-sm">← Dashboard</a>
+      <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
+      <button class="nav-hamburger" onclick="toggleNav()">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="container">
+  <div class="page-header-card">
+    <div class="page-badge">📚</div>
+    <h1 class="page-title" data-i18n="a1_name">AI Librarian</h1>
+    <p class="page-subtitle" data-i18n="a1_desc">Smart book recommendations based on learner profile and accessibility needs.</p>
+  </div>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:60px;">
+  <div id="psLibrarianBanner" class="ps-today-banner" style="display:none;margin:16px 0;" role="status" aria-live="polite">
+    <span style="font-size:20px;">📚</span>
+    <span id="psLibrarianText"></span>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;">
+
+    <!-- Main Panel -->
+    <div>
+      <!-- Search -->
+      <div class="control-panel" style="margin-bottom:24px;">
+        <div class="panel-title">📖 Book Search & Discovery</div>
+        <div class="search-bar">
+          <input type="text" class="form-control" id="searchInput" placeholder="Search books by title, author, or topic…" oninput="filterBooks()">
+          <button class="btn btn-primary" onclick="filterBooks()">Search</button>
+        </div>
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="setFilter('all',this)">All Books</button>
+          <button class="filter-tab" onclick="setFilter('adhd',this)">🧠 ADHD-Friendly</button>
+          <button class="filter-tab" onclick="setFilter('dyslexia',this)">🔤 Dyslexia-Friendly</button>
+          <button class="filter-tab" onclick="setFilter('audio',this)">🔊 Audiobook</button>
+          <button class="filter-tab" onclick="setFilter('sign',this)">🤟 Sign Language</button>
+          <button class="filter-tab" onclick="setFilter('bm',this)">🇲🇾 Bahasa Melayu</button>
+        </div>
+      </div>
+
+      <!-- Book Grid -->
+      <div class="grid grid-3" id="bookGrid" style="margin-bottom:24px;"></div>
+      <div id="noResults" class="hidden text-center" style="padding:40px;color:var(--text-muted);">
+        <div style="font-size:40px;margin-bottom:12px;">📭</div>
+        <div>No books match your search. Try different keywords.</div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div>
+      <!-- Profile -->
+      <div class="control-panel" style="margin-bottom:16px;">
+        <div class="panel-title">👤 Learner Profile</div>
+        <div class="form-group">
+          <label class="form-label">Learning Need</label>
+          <select class="form-control" id="learnerType" onchange="updateRecommendations()">
+            <option value="all">All Learners</option>
+            <option value="adhd">ADHD</option>
+            <option value="dyslexia">Dyslexia</option>
+            <option value="blind">Blind / Low Vision</option>
+            <option value="deaf">Deaf / Hard of Hearing</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Grade Level</label>
+          <select class="form-control" id="gradeLevel">
+            <option>Primary 1–3</option>
+            <option selected>Primary 4–6</option>
+            <option>Secondary 1–3</option>
+            <option>Secondary 4–5</option>
+            <option>Higher Education</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Language</label>
+          <select class="form-control" id="langPref">
+            <option>English</option>
+            <option>Bahasa Melayu</option>
+            <option>Bilingual</option>
+          </select>
+        </div>
+        <button class="btn btn-primary w-full" onclick="updateRecommendations()">🤖 Get AI Recommendations</button>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="control-panel" id="recommendPanel">
+        <div class="panel-title">✨ AI Recommendations</div>
+        <div id="recommendList">
+          <p style="font-size:13px;color:var(--text-muted);">Set your learner profile and click Get AI Recommendations.</p>
+        </div>
+      </div>
+
+      <!-- Reading List -->
+      <div class="control-panel" style="margin-top:16px;">
+        <div class="panel-title">📋 My Reading List</div>
+        <div id="readingList">
+          <p style="font-size:13px;color:var(--text-muted);">Add books by clicking "Add to List" on a book card.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2026 CelikSense AI · <a href="index.html" style="color:var(--primary-light)">Home</a> · <a href="dashboard.html" style="color:var(--primary-light)">Dashboard</a></span>
+      <span>📚 AI Librarian Agent</span>
+    </div>
+  </div>
+</footer>
+
+<script src="shared.js"></script>
+<script src="personalisation-system.js"></script>
+<script>
+const books = [
+  { id:1, title:'The Magic of Reading', author:'Ahmad Zaki', emoji:'📗', cover:'#22c55e', tags:['dyslexia','audio'], desc:'A dyslexia-friendly introduction to reading with audio support and large print.', lang:'en' },
+  { id:2, title:'Dunia Sains Kita', author:'Nur Azlina', emoji:'🔬', cover:'#6366f1', tags:['bm','adhd'], desc:'Buku sains interaktif dalam Bahasa Melayu dengan aktiviti pendek untuk pelajar ADHD.', lang:'bm' },
+  { id:3, title:'Alphabet Adventures', author:'Lee Mei Ling', emoji:'📘', cover:'#06b6d4', tags:['sign','audio'], desc:'Learn the alphabet with sign language illustrations and audio narration.', lang:'en' },
+  { id:4, title:'Cerita Nusantara', author:'Faridah Hassan', emoji:'📙', cover:'#f59e0b', tags:['bm','dyslexia'], desc:'Koleksi cerita rakyat dengan fon mesra disleksia dan hamparan warna.', lang:'bm' },
+  { id:5, title:'My First Science Book', author:'Raj Kumar', emoji:'🧪', cover:'#8b5cf6', tags:['adhd','audio'], desc:'Short, engaging science chapters designed for ADHD learners with TTS support.', lang:'en' },
+  { id:6, title:'Wira Muda', author:'Zulaikha Ahmad', emoji:'📕', cover:'#ef4444', tags:['bm','sign'], desc:'Novel motivasi dengan panduan bahasa isyarat Malaysia (BIM) di setiap bab.', lang:'bm' },
+  { id:7, title:'Ocean Explorer', author:'Sarah Chen', emoji:'🐋', cover:'#06b6d4', tags:['audio','dyslexia'], desc:'Audio-first exploration of ocean life with dyslexia-friendly text and imagery.', lang:'en' },
+  { id:8, title:'Matematik Seronok', author:'Norzaidi', emoji:'📐', cover:'#22c55e', tags:['bm','adhd'], desc:'Matematik menyeronokkan untuk pelajar ADHD dengan sesi micro-pembelajaran 5 minit.', lang:'bm' },
+  { id:9, title:'Stories for Everyone', author:'Multiple Authors', emoji:'🌟', cover:'#ec4899', tags:['audio','sign','dyslexia','adhd'], desc:'An inclusive anthology with audio, sign language, and dyslexia-friendly formatting.', lang:'en' },
+  { id:10, title:'Alam Sekitar Kita', author:'Hafiz Ismail', emoji:'🌿', cover:'#10b981', tags:['bm','audio'], desc:'Buku audio tentang alam sekitar Malaysia dengan teks besar dan panduan audio penuh.', lang:'bm' },
+  { id:11, title:'Numbers & Me', author:'Priya Nair', emoji:'🔢', cover:'#f59e0b', tags:['adhd','dyslexia'], desc:'Number concepts with ADHD-friendly layouts and dyslexia-optimised fonts.', lang:'en' },
+  { id:12, title:'Seni & Kreativiti', author:'Wan Nurul', emoji:'🎨', cover:'#8b5cf6', tags:['bm','sign'], desc:'Buku seni kreatif dengan video demonstrasi bahasa isyarat dan panduan audio.', lang:'bm' },
+];
+
+let currentFilter = 'all';
+let readingList = [];
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  filterBooks();
+}
+
+function filterBooks() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = books.filter(b => {
+    const matchFilter = currentFilter === 'all' || b.tags.includes(currentFilter);
+    const matchQ = !q || b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q) || b.desc.toLowerCase().includes(q);
+    return matchFilter && matchQ;
+  });
+  renderBooks(filtered);
+}
+
+function renderBooks(list) {
+  const grid = document.getElementById('bookGrid');
+  const noRes = document.getElementById('noResults');
+  if (!list.length) { grid.innerHTML=''; noRes.classList.remove('hidden'); return; }
+  noRes.classList.add('hidden');
+  grid.innerHTML = list.map(b => `
+    <div class="book-card">
+      <div class="book-cover" style="background:${b.cover}22">${b.emoji}</div>
+      <div class="book-body">
+        <div class="book-title">${b.title}</div>
+        <div class="book-author">by ${b.author}</div>
+        <div class="book-tags">${b.tags.map(tag=>tagBadge(tag)).join('')}</div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:12px;">${b.desc}</div>
+        <div class="book-footer">
+          <a href="reading-companion.html" class="btn btn-primary btn-sm">▶ Read</a>
+          <button class="btn btn-ghost btn-sm" onclick="addToList(${b.id})">+ Add</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function tagBadge(tag) {
+  const map = { adhd:'🧠 ADHD','dyslexia':'🔤 Dyslexia','audio':'🔊 Audio','sign':'🤟 Sign','bm':'🇲🇾 BM','en':'🇬🇧 EN' };
+  const cls = { adhd:'badge-warning','dyslexia':'badge-success','audio':'badge-cyan','sign':'badge-violet','bm':'badge-primary','en':'badge-primary' };
+  return `<span class="badge ${cls[tag]||'badge-primary'}">${map[tag]||tag}</span>`;
+}
+
+function addToList(id) {
+  const book = books.find(b=>b.id===id);
+  if (!book || readingList.find(b=>b.id===id)) return;
+  readingList.push(book);
+  renderReadingList();
+}
+
+function removeFromList(id) {
+  readingList = readingList.filter(b=>b.id!==id);
+  renderReadingList();
+}
+
+function renderReadingList() {
+  const el = document.getElementById('readingList');
+  if (!readingList.length) { el.innerHTML='<p style="font-size:13px;color:var(--text-muted);">No books added yet.</p>'; return; }
+  el.innerHTML = readingList.map(b=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:22px;">${b.emoji}</span>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${b.title}</div><div style="font-size:11px;color:var(--text-muted);">${b.author}</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="removeFromList(${b.id})">×</button>
+    </div>
+  `).join('');
+}
+
+function updateRecommendations() {
+  const type = document.getElementById('learnerType').value;
+  const recs = books.filter(b => type==='all' || b.tags.includes(type)).slice(0,3);
+  const el = document.getElementById('recommendList');
+  if (!recs.length) { el.innerHTML='<p style="font-size:13px;color:var(--text-muted);">No recommendations for this profile.</p>'; return; }
+  el.innerHTML = recs.map(b=>`
+    <div class="recommend-card">
+      <div class="recommend-reason">⭐ Recommended for ${type==='all'?'All Learners':type.toUpperCase()}</div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span style="font-size:28px;">${b.emoji}</span>
+        <div>
+          <div style="font-size:14px;font-weight:700;">${b.title}</div>
+          <div style="font-size:12px;color:var(--text-muted);">${b.author}</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <a href="reading-companion.html" class="btn btn-primary btn-sm">▶ Read</a>
+        <button class="btn btn-ghost btn-sm" onclick="addToList(${b.id})">+ Add</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+filterBooks();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (!window.CS_PERSONALISE) return;
+  CS_PERSONALISE.init();
+  CS_PERSONALISE.trackAgentUse('ai-librarian');
+  var p = CS_PERSONALISE.getProfile();
+  var lang = localStorage.getItem('cs_lang') || 'en';
+  var banner = document.getElementById('psLibrarianBanner');
+  var txt = document.getElementById('psLibrarianText');
+  if (banner && txt) {
+    var msg = '';
+    if (p.readingDifficulty === 'simple' || p.accessibilityMode === 'adhd' || p.accessibilityMode === 'dyslexia') {
+      msg = lang==='ms' ? 'Cadangan: Bahan bacaan mudah dengan ayat pendek telah diutamakan untuk anda.' : 'Suggestion: Simple reading materials with short sentences have been prioritised for you.';
+    } else {
+      msg = lang==='ms' ? 'Mencari bahan berdasarkan corak bacaan anda...' : 'Finding materials based on your reading pattern...';
+    }
+    txt.textContent = msg;
+    banner.style.display = 'flex';
+  }
+});
+</script>
+</body>
+</html>

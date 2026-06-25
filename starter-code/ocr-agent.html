@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCR Reading Agent – CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── OCR Agent accent: amber-orange ── */
+:root { --ocr:#f97316; --ocr-dim:rgba(249,115,22,0.12); --ocr-glow:rgba(249,115,22,0.25); }
+
+/* ── Layout ── */
+.ocr-layout { display:grid; grid-template-columns:380px 1fr; gap:24px; align-items:start; }
+@media(max-width:900px){ .ocr-layout{grid-template-columns:1fr;} }
+
+/* ── Upload Zone ── */
+.upload-zone {
+  border:2px dashed rgba(249,115,22,0.35);
+  border-radius:var(--radius-lg);
+  background:var(--ocr-dim);
+  padding:48px 32px;
+  text-align:center;
+  cursor:pointer;
+  transition:var(--transition);
+  position:relative;
+  outline:none;
+}
+.upload-zone:hover,.upload-zone.drag-over {
+  border-color:var(--ocr);
+  background:rgba(249,115,22,0.18);
+  transform:translateY(-2px);
+  box-shadow:0 8px 32px var(--ocr-glow);
+}
+.upload-zone:focus { outline:3px solid var(--ocr); outline-offset:4px; }
+.upload-icon { font-size:56px; display:block; margin-bottom:16px; line-height:1; }
+.upload-title { font-size:18px; font-weight:800; margin-bottom:8px; }
+.upload-hint { font-size:13px; color:var(--text-muted); margin-bottom:20px; line-height:1.6; }
+.upload-formats { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+.upload-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+
+/* ── Thumbnail Strip ── */
+.thumb-strip { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+.thumb-item {
+  position:relative; width:80px; height:80px;
+  border-radius:10px; overflow:hidden;
+  border:2px solid var(--border);
+  cursor:pointer; transition:var(--transition);
+  flex-shrink:0;
+}
+.thumb-item.active { border-color:var(--ocr); box-shadow:0 0 0 3px var(--ocr-glow); }
+.thumb-item img { width:100%; height:100%; object-fit:cover; display:block; }
+.thumb-remove {
+  position:absolute; top:3px; right:3px;
+  background:rgba(0,0,0,0.7); color:white;
+  border:none; border-radius:50%; width:18px; height:18px;
+  font-size:10px; cursor:pointer; display:flex;
+  align-items:center; justify-content:center; line-height:1;
+}
+.thumb-add {
+  width:80px; height:80px; border:2px dashed var(--border);
+  border-radius:10px; display:flex; align-items:center; justify-content:center;
+  color:var(--text-muted); font-size:24px; cursor:pointer; transition:var(--transition);
+  flex-shrink:0; background:transparent;
+}
+.thumb-add:hover { border-color:var(--ocr); color:var(--ocr); background:var(--ocr-dim); }
+
+/* ── Progress ── */
+.ocr-progress {
+  background:var(--bg-surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:20px;
+  display:none;
+}
+.ocr-progress.active { display:block; }
+.progress-status { font-size:13px; font-weight:600; margin-bottom:10px; display:flex; justify-content:space-between; }
+.progress-track { height:8px; background:var(--bg-card); border-radius:4px; overflow:hidden; }
+.progress-fill-ocr { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--ocr),#fbbf24); transition:width 0.3s ease; width:0%; }
+.ocr-log { font-size:11px; color:var(--text-dim); margin-top:8px; font-family:monospace; height:32px; overflow:hidden; }
+
+/* ── Results ── */
+.result-toolbar {
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+  padding:12px 16px;
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius) var(--radius) 0 0;
+  border-bottom:none;
+}
+.result-body {
+  background:var(--bg-surface); border:1px solid var(--border);
+  border-radius:0 0 var(--radius) var(--radius);
+  padding:20px 24px;
+  min-height:300px;
+  font-size:16px; line-height:1.85;
+  color:var(--text);
+  white-space:pre-wrap;
+  word-break:break-word;
+  outline:none;
+  max-height:520px;
+  overflow-y:auto;
+}
+.result-body.overlay-yellow { background:#fffde0; color:#3d3000; }
+.result-body.overlay-blue   { background:#e0f0ff; color:#001a33; }
+.result-body.overlay-green  { background:#e0f8e0; color:#002200; }
+.result-body.overlay-pink   { background:#ffe0f0; color:#330018; }
+.result-body.overlay-grey   { background:#f0f0f0; color:#1a1a1a; }
+.result-placeholder {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:260px; color:var(--text-dim); text-align:center; gap:12px;
+}
+.result-placeholder span:first-child { font-size:48px; }
+
+/* Confidence coloring */
+.conf-low { color:#ef4444; background:rgba(239,68,68,0.12); border-radius:2px; }
+.conf-med { color:#f59e0b; }
+
+/* ── TTS Bar ── */
+.ocr-tts {
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:14px 18px;
+  margin-top:12px;
+}
+.tts-play-btn {
+  width:48px; height:48px; border-radius:50%;
+  background:var(--ocr); border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; color:white; transition:var(--transition);
+  flex-shrink:0; box-shadow:0 4px 16px var(--ocr-glow);
+}
+.tts-play-btn:hover { transform:scale(1.08); box-shadow:0 6px 24px var(--ocr-glow); }
+.tts-play-btn:disabled { opacity:0.4; transform:none; cursor:not-allowed; }
+.tts-info { flex:1; min-width:100px; }
+.tts-label { font-size:12px; color:var(--text-muted); }
+.tts-status { font-size:14px; font-weight:600; }
+.speaking-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:var(--ocr); display:inline-block;
+  animation:pulse 1.2s ease-in-out infinite; margin-right:6px;
+}
+
+/* ── Stats row ── */
+.ocr-stats {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+  margin-bottom:16px;
+}
+@media(max-width:600px){ .ocr-stats{grid-template-columns:repeat(2,1fr);} }
+.stat-mini {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius); padding:10px 14px; text-align:center;
+}
+.stat-mini-val { font-size:20px; font-weight:800; color:var(--ocr); }
+.stat-mini-lbl { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+/* ── Confidence Legend ── */
+.conf-legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--text-muted); margin-top:8px; align-items:center; }
+.conf-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:4px; }
+
+/* ── Keyboard Shortcuts Card ── */
+.shortcut-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.shortcut-row:last-child { border-bottom:none; }
+.key { background:var(--bg); border:1px solid var(--border); border-radius:5px; padding:2px 8px; font-family:monospace; font-size:12px; color:var(--primary-light); font-weight:700; flex-shrink:0; }
+
+/* ── Overlays swatches ── */
+.swatch-row { display:flex; gap:6px; flex-wrap:wrap; }
+.swatch {
+  width:28px; height:28px; border-radius:50%; cursor:pointer;
+  border:2px solid transparent; transition:var(--transition);
+}
+.swatch.active { border-color:var(--ocr); transform:scale(1.15); }
+.swatch:hover { transform:scale(1.1); }
+
+/* Animations */
+@keyframes scan-line {
+  0%   { top:0; opacity:1; }
+  100% { top:100%; opacity:0; }
+}
+.scan-overlay {
+  position:absolute; inset:0; border-radius:var(--radius-lg);
+  pointer-events:none; overflow:hidden; display:none;
+}
+.scan-overlay.active { display:block; }
+.scan-line {
+  position:absolute; left:0; right:0; height:3px;
+  background:linear-gradient(90deg,transparent,var(--ocr),transparent);
+  animation:scan-line 1.8s linear infinite;
+}
+
+/* ══════════════════════════════════════
+   CAMERA CAPTURE
+   ══════════════════════════════════════ */
+
+/* Take Photo button */
+.camera-launch-row {
+  margin-top:12px; display:flex; gap:10px;
+}
+.camera-launch-btn {
+  flex:1; display:flex; align-items:center; justify-content:center;
+  gap:10px; padding:16px 20px;
+  border:2px solid rgba(249,115,22,0.5);
+  border-radius:var(--radius-lg);
+  background:var(--ocr-dim); color:var(--ocr);
+  font-size:15px; font-weight:800; cursor:pointer;
+  transition:var(--transition); outline:none;
+}
+.camera-launch-btn:hover,.camera-launch-btn:focus {
+  background:rgba(249,115,22,0.22); border-color:var(--ocr);
+  transform:translateY(-2px); box-shadow:0 6px 24px var(--ocr-glow);
+}
+.camera-launch-btn:focus { outline:3px solid var(--ocr); outline-offset:4px; }
+.cam-divider {
+  display:flex; align-items:center; gap:10px;
+  margin-top:10px; font-size:11px; font-weight:700;
+  color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em;
+}
+.cam-divider::before,.cam-divider::after {
+  content:''; flex:1; height:1px; background:var(--border);
+}
+
+/* Camera Modal Overlay */
+.camera-modal-overlay {
+  position:fixed; inset:0; z-index:7500;
+  background:rgba(5,8,22,0.96);
+  display:flex; align-items:center; justify-content:center;
+  padding:16px;
+  animation:fadeIn 0.15s ease;
+}
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+
+/* Camera Panel */
+.camera-panel {
+  background:var(--bg-surface);
+  border:2px solid rgba(249,115,22,0.45);
+  border-radius:24px; padding:24px 24px 20px;
+  width:100%; max-width:600px; max-height:92vh;
+  overflow-y:auto; position:relative;
+  box-shadow:0 24px 80px rgba(0,0,0,0.6);
+}
+.camera-panel-header {
+  display:flex; align-items:center; gap:12px; margin-bottom:18px;
+}
+.camera-panel-title { font-size:18px; font-weight:900; flex:1; }
+
+/* Video / Photo container */
+.camera-video-wrap {
+  position:relative; border-radius:14px; overflow:hidden;
+  background:#000; aspect-ratio:4/3; margin-bottom:14px;
+}
+#cameraVideo {
+  width:100%; height:100%; object-fit:cover; display:block;
+}
+#cameraVideo.mirror { transform:scaleX(-1); }
+#capturedPreview {
+  width:100%; height:100%; object-fit:contain;
+  display:none; border-radius:14px;
+}
+
+/* Viewfinder corner brackets */
+.cam-viewfinder {
+  position:absolute; inset:0; pointer-events:none; border-radius:14px;
+}
+.cam-viewfinder::before,.cam-viewfinder::after,
+.cam-vf-br::before,.cam-vf-br::after {
+  content:''; position:absolute;
+  width:36px; height:36px; border-color:var(--ocr); border-style:solid; border-width:0;
+}
+.cam-viewfinder::before { top:14px; left:14px; border-top-width:3px; border-left-width:3px; border-top-left-radius:5px; }
+.cam-viewfinder::after  { top:14px; right:14px; border-top-width:3px; border-right-width:3px; border-top-right-radius:5px; }
+.cam-vf-br::before { bottom:14px; left:14px; border-bottom-width:3px; border-left-width:3px; border-bottom-left-radius:5px; }
+.cam-vf-br::after  { bottom:14px; right:14px; border-bottom-width:3px; border-right-width:3px; border-bottom-right-radius:5px; }
+
+/* Capture flash */
+@keyframes cam-flash { 0%{opacity:0;} 15%{opacity:1;} 100%{opacity:0;} }
+.cam-flash {
+  position:absolute; inset:0; border-radius:14px;
+  background:#fff; pointer-events:none; opacity:0;
+}
+.cam-flash.flashing { animation:cam-flash 0.35s ease-out forwards; }
+
+/* Camera status bar */
+.cam-status {
+  padding:10px 16px; border-radius:10px; margin-bottom:14px;
+  font-size:14px; font-weight:700; display:flex; align-items:center; gap:10px;
+  border:1px solid; transition:all 0.2s;
+}
+.cam-s-loading { background:rgba(99,102,241,0.1);  border-color:rgba(99,102,241,0.3); color:var(--primary-light); }
+.cam-s-live    { background:rgba(34,197,94,0.08);   border-color:rgba(34,197,94,0.35);  color:#86efac; }
+.cam-s-taken   { background:rgba(249,115,22,0.08);  border-color:rgba(249,115,22,0.35); color:var(--ocr); }
+.cam-s-error   { background:rgba(239,68,68,0.08);   border-color:rgba(239,68,68,0.35);  color:#fca5a5; }
+.cam-live-dot  {
+  width:10px; height:10px; border-radius:50%; flex-shrink:0;
+  background:currentColor;
+}
+.cam-s-live .cam-live-dot { animation:pulse 1s ease-in-out infinite; }
+
+/* Camera control buttons row */
+.cam-controls { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+.cam-capture-btn {
+  flex:1; min-width:160px; padding:16px 20px;
+  background:linear-gradient(135deg,var(--ocr),#fbbf24);
+  border:none; border-radius:14px; color:#000;
+  font-size:16px; font-weight:900; cursor:pointer;
+  transition:var(--transition); box-shadow:0 6px 24px var(--ocr-glow);
+}
+.cam-capture-btn:hover  { transform:translateY(-2px); box-shadow:0 10px 32px var(--ocr-glow); }
+.cam-capture-btn:focus  { outline:4px solid var(--ocr); outline-offset:4px; }
+.cam-capture-btn:disabled { opacity:0.45; transform:none; cursor:not-allowed; }
+
+/* Camera tips card */
+.cam-tip {
+  display:flex; gap:12px; align-items:flex-start;
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:12px; padding:12px 16px; font-size:13px; line-height:1.6;
+}
+</style>
+</head>
+<body>
+
+<!-- ══════ NAVBAR ══════ -->
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">
+      <div class="brand-icon">CS</div>
+      <div>
+        <span class="brand-name">CelikSense AI</span>
+        <span class="brand-tagline" data-i18n="tagline">Agentic Multi-Sensory Learning</span>
+      </div>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="dashboard.html" data-i18n="nav_dashboard">Dashboard</a>
+      <div class="nav-dropdown">
+        <button data-i18n="nav_agents" aria-haspopup="true" aria-expanded="false">Agents ▾</button>
+        <div class="dropdown-menu">
+          <a href="ai-librarian.html">📚 AI Librarian</a>
+          <a href="reading-companion.html">📖 Reading Companion</a>
+          <a href="adhd-agent.html">🧠 ADHD Agent</a>
+          <a href="dyslexia-agent.html">👁️ Dyslexia Agent</a>
+          <a href="blind-audio.html">🔊 Blind Audio Agent</a>
+          <a href="sign-language.html">🤟 Sign Language Agent</a>
+          <a href="early-warning.html">⚠️ Early Warning Agent</a>
+          <a href="intervention.html">💡 Intervention Agent</a>
+          <a href="ocr-agent.html">📷 OCR Reading Agent</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn" aria-label="Switch to Bahasa Melayu">BM</button>
+      <a href="profile.html" class="btn btn-ghost btn-sm">👤 Profile</a>
+      <a href="dashboard.html" class="btn btn-outline btn-sm">← Dashboard</a>
+      <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
+      <button class="nav-hamburger" onclick="toggleNav()">☰</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════ PAGE HEADER ══════ -->
+<div class="page-header">
+  <div class="container">
+  <div class="page-header-card">
+    <div class="page-badge">📷</div>
+    <h1 class="page-title">OCR Reading Agent</h1>
+    <p class="page-subtitle" id="headerSubtitle">Upload a book image or photo of printed text — the agent extracts it, reads it aloud, and makes it fully accessible.</p>
+  </div>
+  </div>
+</div>
+
+<!-- ══════ MAIN ══════ -->
+<div class="container" style="padding-bottom:60px;">
+
+  <!-- ARIA live region for screen reader announcements -->
+  <div id="ariaLive" aria-live="polite" aria-atomic="true" class="sr-only" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></div>
+
+  <!-- Voice system ARIA live region -->
+  <div id="voiceAnnounce" role="status" aria-live="assertive" aria-atomic="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></div>
+
+  <div class="ocr-layout">
+
+    <!-- ── LEFT: UPLOAD + CONTROLS ── -->
+    <div>
+
+      <!-- Upload Zone -->
+      <div class="upload-zone" id="uploadZone" tabindex="0"
+           role="button" aria-label="Upload image. Press Enter or Space to open file browser."
+           ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"
+           ondrop="handleDrop(event)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('fileInput').click();}">
+        <div class="scan-overlay" id="scanOverlay"><div class="scan-line"></div></div>
+        <span class="upload-icon" id="uploadIcon">📷</span>
+        <div class="upload-title" id="uploadTitle">Upload Book Image</div>
+        <div class="upload-hint" id="uploadHint">Drag &amp; drop an image here, or click to browse.<br>Supports JPG, PNG, WEBP, BMP, GIF, TIFF</div>
+        <div class="upload-formats">
+          <span class="badge badge-primary">JPG</span>
+          <span class="badge badge-primary">PNG</span>
+          <span class="badge badge-primary">WEBP</span>
+          <span class="badge badge-cyan">BMP</span>
+          <span class="badge badge-cyan">TIFF</span>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFileSelect(event)" aria-hidden="true">
+      </div>
+
+      <!-- Camera Capture Button -->
+      <div class="cam-divider" style="margin-top:14px;"><span>or</span></div>
+      <div class="camera-launch-row">
+        <button class="camera-launch-btn" id="cameraOpenBtn" onclick="openCamera()"
+                tabindex="0" aria-label="Open camera to capture a photo for OCR text extraction"
+                title="Take a photo with your webcam or phone camera">
+          <span aria-hidden="true" style="font-size:22px;">📷</span>
+          <span>Take Photo</span>
+        </button>
+      </div>
+
+      <!-- Thumbnail Strip -->
+      <div class="thumb-strip" id="thumbStrip" style="display:none;"></div>
+
+      <!-- OCR Progress -->
+      <div class="ocr-progress" id="ocrProgress" style="margin-top:16px;">
+        <div class="progress-status">
+          <span id="progressLabel">Initialising…</span>
+          <span id="progressPct">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill-ocr" id="progressBar"></div>
+        </div>
+        <div class="ocr-log" id="ocrLog" aria-live="polite">Ready</div>
+      </div>
+
+      <!-- OCR Settings -->
+      <div class="control-panel" style="margin-top:16px;">
+        <div class="panel-title">⚙️ OCR Settings</div>
+
+        <div class="form-group">
+          <label class="form-label" for="ocrLang" id="lblOcrLang">Language / Bahasa</label>
+          <select class="form-control" id="ocrLang">
+            <option value="eng">English only</option>
+            <option value="msa">Bahasa Melayu only</option>
+            <option value="eng+msa" selected>Auto (English + BM)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="ocrMode" id="lblOcrMode">Recognition Mode</label>
+          <select class="form-control" id="ocrMode">
+            <option value="3" selected>Accurate (recommended)</option>
+            <option value="1">Fast (less accurate)</option>
+            <option value="6">Single word</option>
+          </select>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:5px;" id="modeDesc">Best for multi-line book text and paragraphs.</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" id="lblConfThreshold">Confidence Threshold</label>
+          <div class="range-label">
+            <span style="font-size:12px;color:var(--text-muted);">Highlight uncertain words below:</span>
+            <span class="range-value" id="confThreshVal">70%</span>
+          </div>
+          <input type="range" id="confThresh" min="0" max="100" value="70"
+                 oninput="document.getElementById('confThreshVal').textContent=this.value+'%'">
+        </div>
+      </div>
+
+      <!-- Run Button -->
+      <div style="margin-top:14px;display:flex;gap:10px;">
+        <button class="btn btn-primary" id="runBtn" onclick="runOCR()" disabled
+                style="flex:1;padding:14px;font-size:16px;font-weight:800;background:linear-gradient(135deg,var(--ocr),#fbbf24);border-color:transparent;">
+          🔍 Extract Text
+        </button>
+        <button class="btn btn-ghost" id="appendBtn" onclick="setAppendMode(true)" disabled
+                title="Append next page to existing text" style="padding:14px 16px;">➕</button>
+      </div>
+      <div id="appendNote" style="font-size:11px;color:var(--text-muted);margin-top:6px;display:none;">➕ Append mode — next extraction will be added to existing text</div>
+
+      <!-- Accessibility Settings -->
+      <div class="control-panel" style="margin-top:16px;">
+        <div class="panel-title" id="lblAccessibility">♿ Accessibility</div>
+
+        <div class="form-group">
+          <label class="form-label" id="lblFontSize">Text Size</label>
+          <div class="range-label">
+            <span style="font-size:12px;color:var(--text-muted);">Size</span>
+            <span class="range-value" id="fontSizeVal">16px</span>
+          </div>
+          <input type="range" id="fontSizeRange" min="12" max="32" value="16"
+                 oninput="setResultFontSize(this.value)" aria-label="Result text size">
+          <div class="toggle-group" style="margin-top:8px;">
+            <button class="toggle-btn" onclick="setResultFontSize(14);document.getElementById('fontSizeRange').value=14;">A-</button>
+            <button class="toggle-btn active" onclick="setResultFontSize(16);document.getElementById('fontSizeRange').value=16;">Aa</button>
+            <button class="toggle-btn" onclick="setResultFontSize(20);document.getElementById('fontSizeRange').value=20;">A+</button>
+            <button class="toggle-btn" onclick="setResultFontSize(26);document.getElementById('fontSizeRange').value=26;">A++</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" id="lblOverlay">Colour Overlay</label>
+          <div class="swatch-row">
+            <div class="swatch active" style="background:#1e293b;border:2px solid var(--border);" onclick="setOverlay('none',this)" title="None"></div>
+            <div class="swatch" style="background:#fffde0;" onclick="setOverlay('overlay-yellow',this)" title="Yellow"></div>
+            <div class="swatch" style="background:#e0f0ff;" onclick="setOverlay('overlay-blue',this)" title="Blue"></div>
+            <div class="swatch" style="background:#e0f8e0;" onclick="setOverlay('overlay-green',this)" title="Green"></div>
+            <div class="swatch" style="background:#ffe0f0;" onclick="setOverlay('overlay-pink',this)" title="Pink"></div>
+            <div class="swatch" style="background:#f0f0f0;" onclick="setOverlay('overlay-grey',this)" title="Grey"></div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" id="lblLineSpacing">Line Spacing</label>
+          <div class="range-label">
+            <span style="font-size:12px;color:var(--text-muted);">Spacing</span>
+            <span class="range-value" id="lineSpaceVal">1.85</span>
+          </div>
+          <input type="range" id="lineSpaceRange" min="1.2" max="3.0" step="0.1" value="1.85"
+                 oninput="setLineSpacing(this.value)" aria-label="Line spacing">
+        </div>
+      </div>
+
+      <!-- Keyboard Shortcuts -->
+      <div class="control-panel" style="margin-top:16px;">
+        <div class="panel-title">⌨ Keyboard Shortcuts</div>
+        <div class="shortcut-row"><span class="key">Space</span><span>Upload / open file browser</span></div>
+        <div class="shortcut-row"><span class="key">V</span><span>Open camera to take photo</span></div>
+        <div class="shortcut-row"><span class="key">Enter</span><span>Run OCR on current image</span></div>
+        <div class="shortcut-row"><span class="key">R</span><span>Read extracted text aloud</span></div>
+        <div class="shortcut-row"><span class="key">S</span><span>Stop speech</span></div>
+        <div class="shortcut-row"><span class="key">C</span><span>Copy text to clipboard</span></div>
+        <div class="shortcut-row"><span class="key">X</span><span>Clear all</span></div>
+      </div>
+
+    </div><!-- end left -->
+
+    <!-- ── RIGHT: PREVIEW + RESULTS ── -->
+    <div>
+
+      <!-- Image Preview -->
+      <div class="card" id="previewCard" style="margin-bottom:16px;display:none;">
+        <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span id="previewTitle">Image Preview</span>
+          <span class="badge badge-warning" id="pageCounter" style="display:none;">Page 1 of 1</span>
+        </div>
+        <div style="position:relative;border-radius:var(--radius);overflow:hidden;background:var(--bg);">
+          <img id="previewImg" src="" alt="Uploaded image preview"
+               style="width:100%;max-height:320px;object-fit:contain;display:block;">
+          <div id="imgScanOverlay" class="scan-overlay" style="border-radius:var(--radius);">
+            <div class="scan-line"></div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:8px;" id="imgMeta"></div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="ocr-stats" id="statsRow" style="display:none;">
+        <div class="stat-mini"><div class="stat-mini-val" id="statWords">–</div><div class="stat-mini-lbl" id="lblStatWords">Words</div></div>
+        <div class="stat-mini"><div class="stat-mini-val" id="statChars">–</div><div class="stat-mini-lbl" id="lblStatChars">Characters</div></div>
+        <div class="stat-mini"><div class="stat-mini-val" id="statLines">–</div><div class="stat-mini-lbl" id="lblStatLines">Lines</div></div>
+        <div class="stat-mini"><div class="stat-mini-val" id="statTime">–</div><div class="stat-mini-lbl" id="lblStatTime">Read Time</div></div>
+      </div>
+
+      <!-- Extracted Text -->
+      <div>
+        <div class="result-toolbar" id="resultToolbar">
+          <span style="font-size:12px;font-weight:700;color:var(--text-muted);margin-right:4px;" id="lblExtracted">EXTRACTED TEXT</span>
+          <div style="flex:1;"></div>
+          <button class="btn btn-ghost btn-sm" id="copyBtn" onclick="copyText()" disabled title="Copy (C)">📋 Copy</button>
+          <button class="btn btn-ghost btn-sm" id="downloadBtn" onclick="downloadText()" disabled title="Download .txt">💾 Save</button>
+          <button class="btn btn-ghost btn-sm" id="editBtn" onclick="toggleEdit()" disabled title="Edit text">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" id="clearBtn" onclick="clearAll()" title="Clear (X)">🗑 Clear</button>
+        </div>
+        <div class="result-body" id="resultBody" tabindex="0"
+             role="region" aria-label="Extracted text output" aria-live="polite">
+          <div class="result-placeholder" id="resultPlaceholder">
+            <span>📷</span>
+            <span id="placeholderText">Upload an image and click Extract Text to begin</span>
+          </div>
+        </div>
+        <div class="conf-legend" id="confLegend" style="display:none;">
+          <span>Confidence:</span>
+          <span><span class="conf-dot" style="background:var(--text);"></span>High (&gt;70%)</span>
+          <span><span class="conf-dot" style="background:#f59e0b;"></span>Medium (50–70%)</span>
+          <span><span class="conf-dot" style="background:#ef4444;"></span>Low (&lt;50%)</span>
+          <button class="btn btn-ghost btn-sm" onclick="toggleConfidence()" id="confToggleBtn" style="margin-left:auto;">Hide Highlights</button>
+        </div>
+        <button id="btnSendSign" class="btn" onclick="sendOCRtoSign()" style="display:none;background:linear-gradient(135deg,#ec4899,#f43f5e);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;margin-top:8px;" data-i18n="ocr_btn_sign">🤟 Open in Sign Language Agent</button>
+        <button id="ocrBrailleBtn" onclick="ocrConvertToBraille()" style="display:none;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;margin-top:8px;" aria-label="Convert OCR text to Braille" data-i18n="ocr_btn_braille">⠃ Convert OCR Text to Braille</button>
+        <button id="ocrAvatarBtn" onclick="ocrSignWithAvatar()" style="display:none;background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;margin-top:8px;" aria-label="Sign OCR text with My Avatar" data-i18n="avatar_sign_ocr">👤 Sign with My Avatar</button>
+        <div id="ocrBrailleOutput" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- TTS Panel -->
+      <div class="ocr-tts" id="ttsPanelOCR">
+        <button class="tts-play-btn" id="ttsBtn" onclick="toggleTTS()" disabled aria-label="Play / Pause text-to-speech">▶</button>
+        <div class="tts-info">
+          <div class="tts-label" id="ttsLabel">Text-to-Speech</div>
+          <div class="tts-status" id="ttsStatus">–</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+          <select class="form-control" id="ttsSpeed" style="width:120px;font-size:12px;" onchange="updateTTSSpeed()">
+            <option value="0.6">🐢 Slow</option>
+            <option value="0.9" selected>Normal</option>
+            <option value="1.2">Fast</option>
+            <option value="1.5">⚡ Very Fast</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="stopSpeech();resetTTSUI()">⏹ Stop</button>
+        </div>
+      </div>
+
+      <!-- Tips for Blind Users -->
+      <div class="alert alert-info" style="margin-top:16px;">
+        <span>🔊</span>
+        <div id="blindTip">
+          <strong>Blind &amp; Low-Vision tip:</strong> Press <kbd style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;">Space</kbd> to upload, <kbd style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;">Enter</kbd> to extract, and <kbd style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;">R</kbd> to hear the result.
+          All progress updates are announced to screen readers.
+        </div>
+      </div>
+
+    </div><!-- end right -->
+  </div><!-- end ocr-layout -->
+</div>
+
+<!-- ══════ CAMERA MODAL ══════ -->
+<div id="cameraModal" class="camera-modal-overlay" role="dialog" aria-modal="true"
+     aria-labelledby="cameraModalTitle" style="display:none;">
+  <div class="camera-panel">
+
+    <!-- Header -->
+    <div class="camera-panel-header">
+      <span style="font-size:26px;" aria-hidden="true">📷</span>
+      <h2 class="panel-title camera-panel-title" id="cameraModalTitle">Camera Capture</h2>
+      <button class="btn btn-ghost btn-sm" onclick="closeCamera()" id="camCloseBtn"
+              style="margin-left:auto;" aria-label="Close camera">✕ Close</button>
+    </div>
+
+    <!-- Video / Photo area -->
+    <div class="camera-video-wrap" id="cameraVideoWrap">
+      <video id="cameraVideo" playsinline autoplay muted
+             aria-label="Live camera preview — point at the text you want to extract"></video>
+      <canvas id="captureCanvas" style="display:none;"></canvas>
+      <img id="capturedPreview" alt="Captured photo — ready for OCR text extraction" style="display:none;width:100%;height:100%;object-fit:contain;">
+      <div class="cam-viewfinder" id="camViewfinder" aria-hidden="true">
+        <div class="cam-vf-br" aria-hidden="true"></div>
+      </div>
+      <div class="cam-flash" id="camFlash" aria-hidden="true"></div>
+    </div>
+
+    <!-- Status -->
+    <div class="cam-status cam-s-loading" id="camStatus" role="status" aria-live="polite">
+      <span class="cam-live-dot" id="camLiveDot" aria-hidden="true"></span>
+      <span id="camStatusText">Starting camera…</span>
+    </div>
+
+    <!-- Controls -->
+    <div class="cam-controls" id="camControls">
+      <button class="cam-capture-btn" id="captureBtn" onclick="capturePhoto()"
+              aria-label="Capture photo — press Space or Enter as shortcut">
+        📸 Capture Image
+      </button>
+      <button class="btn btn-outline" id="switchCamBtn" onclick="switchCameraFacing()"
+              style="display:none;" aria-label="Switch between front and rear camera">
+        🔄 Switch Camera
+      </button>
+      <button class="btn btn-outline" id="retakeBtn" onclick="retakePhoto()"
+              style="display:none;border-color:rgba(249,115,22,0.5);color:var(--ocr);"
+              aria-label="Retake photo — discard current capture and try again">
+        🔄 Retake Photo
+      </button>
+      <button class="btn btn-primary" id="usePhotoBtn" onclick="useCapture()"
+              style="display:none;background:linear-gradient(135deg,#22c55e,#16a34a);border-color:transparent;"
+              aria-label="Use this image and run OCR text extraction">
+        ✓ Use This Image
+      </button>
+    </div>
+
+    <!-- Accessibility tip -->
+    <div class="cam-tip" role="note" aria-label="Camera usage tip">
+      <span style="font-size:18px;flex-shrink:0;" aria-hidden="true">🔊</span>
+      <div id="camTipText">
+        <strong>Tip:</strong> Hold the camera steady over the printed text.
+        Press <kbd>Space</kbd> or click <strong>Capture Image</strong> to take a photo.
+        Press <kbd>Escape</kbd> to close. After capture, click <strong>Use This Image</strong>
+        to extract the text automatically.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2026 CelikSense AI · <a href="index.html" style="color:var(--primary-light)">Home</a> · <a href="dashboard.html" style="color:var(--primary-light)">Dashboard</a></span>
+      <span>📷 OCR Reading Agent</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ══════ TESSERACT.JS ══════ -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="shared.js"></script>
+<script src="voice-system.js"></script>
+<script>
+/* ── STATE ── */
+let files       = [];          // uploaded File objects
+let activeIdx   = 0;           // index of currently previewed image
+let extractedText = '';        // plain text result
+let wordData    = [];          // [{text, confidence}]
+let isProcessing = false;
+let appendMode  = false;
+let showConfidence = true;
+let ttsActive   = false;
+let currentOverlay = 'none';
+
+/* ── LOCAL TRANSLATIONS ── */
+const ocrTr = {
+  en: {
+    subtitle:    'Upload a book image or photo of printed text — the agent extracts it, reads it aloud, and makes it fully accessible.',
+    upload_title:'Upload Book Image',
+    upload_hint: 'Drag & drop an image here, or click to browse.\nSupports JPG, PNG, WEBP, BMP, GIF, TIFF',
+    preview:     'Image Preview',
+    extracted:   'EXTRACTED TEXT',
+    words:       'Words', chars:'Characters', lines:'Lines', readtime:'Read Time',
+    placeholder: 'Upload an image and click Extract Text to begin',
+    blind_tip:   '<strong>Blind & Low-Vision tip:</strong> Press <kbd style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;">Space</kbd> to upload, <kbd style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;">Enter</kbd> to extract, and <kbd style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;">R</kbd> to hear the result. All progress updates are announced to screen readers.',
+    ready_status:'Ready — upload an image to begin',
+    processing:  'Extracting text…',
+    done:        'Extraction complete!',
+    lang_lbl:    'Language / Bahasa',
+    mode_lbl:    'Recognition Mode',
+    conf_lbl:    'Confidence Threshold',
+    access_lbl:  'Accessibility',
+    font_lbl:    'Text Size',
+    overlay_lbl: 'Colour Overlay',
+    spacing_lbl: 'Line Spacing',
+    tts_lbl:     'Text-to-Speech',
+    copied:      'Copied!',
+    mode_desc:   'Best for multi-line book text and paragraphs.',
+  },
+  bm: {
+    subtitle:    'Muat naik imej buku atau foto teks bercetak — agen mengekstrak, membaca dengan kuat dan menjadikannya mudah diakses.',
+    upload_title:'Muat Naik Imej Buku',
+    upload_hint: 'Seret & lepas imej di sini, atau klik untuk semak imbas.\nSokong JPG, PNG, WEBP, BMP, GIF, TIFF',
+    preview:     'Pratonton Imej',
+    extracted:   'TEKS YANG DIEKSTRAK',
+    words:       'Patah Kata', chars:'Aksara', lines:'Baris', readtime:'Masa Baca',
+    placeholder: 'Muat naik imej dan klik Ekstrak Teks untuk mula',
+    blind_tip:   '<strong>Petua Buta & Penglihatan Rendah:</strong> Tekan <kbd style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;">Ruang</kbd> untuk muat naik, <kbd style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;">Enter</kbd> untuk ekstrak, dan <kbd style="background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;">R</kbd> untuk mendengar hasilnya.',
+    ready_status:'Sedia — muat naik imej untuk mula',
+    processing:  'Mengekstrak teks…',
+    done:        'Pengekstrakan selesai!',
+    lang_lbl:    'Bahasa / Language',
+    mode_lbl:    'Mod Pengecaman',
+    conf_lbl:    'Ambang Keyakinan',
+    access_lbl:  'Kebolehaksesan',
+    font_lbl:    'Saiz Teks',
+    overlay_lbl: 'Lapisan Warna',
+    spacing_lbl: 'Jarak Baris',
+    tts_lbl:     'Teks-ke-Pertuturan',
+    copied:      'Disalin!',
+    mode_desc:   'Terbaik untuk teks buku berbilang baris dan perenggan.',
+  }
+};
+function ocrT(k) { return (ocrTr[currentLang] || ocrTr.en)[k] || k; }
+
+function applyOCRTranslations() {
+  document.getElementById('headerSubtitle').textContent = ocrT('subtitle');
+  document.getElementById('uploadTitle').textContent    = ocrT('upload_title');
+  document.getElementById('uploadHint').textContent     = ocrT('upload_hint');
+  document.getElementById('previewTitle').textContent   = ocrT('preview');
+  document.getElementById('lblExtracted').textContent   = ocrT('extracted');
+  document.getElementById('lblStatWords').textContent   = ocrT('words');
+  document.getElementById('lblStatChars').textContent   = ocrT('chars');
+  document.getElementById('lblStatLines').textContent   = ocrT('lines');
+  document.getElementById('lblStatTime').textContent    = ocrT('readtime');
+  document.getElementById('placeholderText').textContent = ocrT('placeholder');
+  document.getElementById('blindTip').innerHTML         = ocrT('blind_tip');
+  document.getElementById('lblOcrLang').textContent     = ocrT('lang_lbl');
+  document.getElementById('lblOcrMode').textContent     = ocrT('mode_lbl');
+  document.getElementById('lblConfThreshold').textContent = ocrT('conf_lbl');
+  document.getElementById('lblAccessibility').textContent = '♿ ' + ocrT('access_lbl');
+  document.getElementById('lblFontSize').textContent    = ocrT('font_lbl');
+  document.getElementById('lblOverlay').textContent     = ocrT('overlay_lbl');
+  document.getElementById('lblLineSpacing').textContent = ocrT('spacing_lbl');
+  document.getElementById('ttsLabel').textContent       = ocrT('tts_lbl');
+  document.getElementById('modeDesc').textContent       = ocrT('mode_desc');
+  if (!extractedText) {
+    document.getElementById('ttsStatus').textContent = ocrT('ready_status');
+  }
+}
+
+/* Override shared applyTranslations to also run OCR strings */
+const _origApply = window.applyTranslations;
+document.addEventListener('DOMContentLoaded', () => {
+  applyOCRTranslations();
+  // Re-run on language toggle
+  const origToggle = window.toggleLanguage;
+  window.toggleLanguage = function() { origToggle(); applyOCRTranslations(); };
+});
+
+/* ── FILE HANDLING ── */
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.add('drag-over');
+}
+function handleDragLeave(e) {
+  document.getElementById('uploadZone').classList.remove('drag-over');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag-over');
+  const dropped = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+  if (dropped.length) addFiles(dropped);
+}
+function handleFileSelect(e) {
+  const selected = [...e.target.files].filter(f => f.type.startsWith('image/'));
+  if (selected.length) addFiles(selected);
+  e.target.value = ''; // reset so same file can be re-uploaded
+}
+
+function addFiles(newFiles) {
+  files = files.concat(newFiles);
+  activeIdx = files.length - 1;
+  renderThumbs();
+  showPreview(activeIdx);
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('appendBtn').disabled = false;
+  announce(files.length === 1
+    ? `Image loaded: ${files[0].name}. Press Enter to extract text.`
+    : `${files.length} images loaded. Press Enter to extract text.`);
+}
+
+function renderThumbs() {
+  const strip = document.getElementById('thumbStrip');
+  if (files.length === 0) { strip.style.display = 'none'; return; }
+  strip.style.display = 'flex';
+  strip.innerHTML = files.map((f, i) => {
+    const url = URL.createObjectURL(f);
+    return `<div class="thumb-item${i===activeIdx?' active':''}" onclick="showPreview(${i})" role="button" aria-label="Image ${i+1}: ${f.name}" tabindex="0" onkeydown="if(event.key==='Enter')showPreview(${i})">
+      <img src="${url}" alt="Page ${i+1}">
+      <button class="thumb-remove" onclick="event.stopPropagation();removeFile(${i})" aria-label="Remove image ${i+1}">✕</button>
+    </div>`;
+  }).join('') +
+  `<button class="thumb-add" onclick="document.getElementById('fileInput').click()" aria-label="Add more images" title="Add more pages">＋</button>`;
+}
+
+function showPreview(idx) {
+  activeIdx = idx;
+  const f = files[idx];
+  const url = URL.createObjectURL(f);
+  const previewCard = document.getElementById('previewCard');
+  previewCard.style.display = 'block';
+  document.getElementById('previewImg').src = url;
+  document.getElementById('imgMeta').textContent = `${f.name} · ${(f.size/1024).toFixed(1)} KB · Page ${idx+1} of ${files.length}`;
+  if (files.length > 1) {
+    document.getElementById('pageCounter').textContent = `Page ${idx+1} of ${files.length}`;
+    document.getElementById('pageCounter').style.display = '';
+  }
+  renderThumbs(); // update active
+}
+
+function removeFile(idx) {
+  files.splice(idx, 1);
+  if (files.length === 0) {
+    document.getElementById('previewCard').style.display = 'none';
+    document.getElementById('runBtn').disabled = true;
+    document.getElementById('appendBtn').disabled = true;
+  } else {
+    activeIdx = Math.min(activeIdx, files.length - 1);
+    showPreview(activeIdx);
+  }
+  renderThumbs();
+}
+
+/* ── OCR ── */
+async function runOCR() {
+  if (files.length === 0 || isProcessing) return;
+  if (typeof Tesseract === 'undefined') {
+    showOCRError('Tesseract.js failed to load. Please check your internet connection and refresh.');
+    return;
+  }
+
+  isProcessing = true;
+  const file = files[activeIdx];
+  const lang = document.getElementById('ocrLang').value;
+  const psm  = document.getElementById('ocrMode').value;
+
+  // Show progress UI
+  const progressEl = document.getElementById('ocrProgress');
+  progressEl.classList.add('active');
+  setProgress(0, 'Initialising OCR engine…');
+  document.getElementById('imgScanOverlay').classList.add('active');
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('runBtn').textContent = '⏳ Processing…';
+  announce(ocrT('processing'));
+
+  try {
+    const result = await Tesseract.recognize(file, lang, {
+      logger: logOCR,
+      tessedit_pageseg_mode: psm,
+    });
+
+    const { text, confidence, words, lines } = result.data;
+
+    if (appendMode && extractedText) {
+      extractedText += '\n\n── Page ' + (activeIdx + 1) + ' ──\n\n' + text.trim();
+      wordData = wordData.concat(words);
+    } else {
+      extractedText = text.trim();
+      wordData = words;
+    }
+
+    renderResult();
+    updateStats();
+    updateSignBtn();
+    setProgress(100, ocrT('done'));
+    document.getElementById('ttsBtn').disabled = false;
+    document.getElementById('copyBtn').disabled = false;
+    document.getElementById('downloadBtn').disabled = false;
+    document.getElementById('editBtn').disabled = false;
+    document.getElementById('statsRow').style.display = 'grid';
+    announce(`${ocrT('done')} ${wordData.length} words extracted. Press R to hear the text.`);
+    // Auto-speak when triggered from camera capture
+    if (window._cameraAutoSpeak && extractedText) {
+      window._cameraAutoSpeak = false;
+      setTimeout(() => { speak(extractedText); }, 600);
+    }
+
+  } catch (err) {
+    showOCRError('OCR failed: ' + (err.message || err));
+  } finally {
+    isProcessing = false;
+    document.getElementById('imgScanOverlay').classList.remove('active');
+    document.getElementById('runBtn').disabled = false;
+    document.getElementById('runBtn').innerHTML = '🔍 Extract Text';
+    setTimeout(() => progressEl.classList.remove('active'), 3000);
+  }
+}
+
+function logOCR(m) {
+  const log = document.getElementById('ocrLog');
+  log.textContent = m.status + (m.progress ? ` (${Math.round(m.progress*100)}%)` : '');
+  if (m.status === 'recognizing text') {
+    const pct = Math.round(m.progress * 100);
+    setProgress(pct, ocrT('processing') + ` ${pct}%`);
+  } else if (m.status === 'loading tesseract core') {
+    setProgress(5, 'Loading OCR engine…');
+  } else if (m.status === 'initializing tesseract') {
+    setProgress(10, 'Initialising…');
+  } else if (m.status === 'loading language traineddata') {
+    setProgress(20, 'Loading language model…');
+  } else if (m.status === 'initializing api') {
+    setProgress(30, 'Preparing…');
+  }
+}
+
+function setProgress(pct, label) {
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = label;
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+function showOCRError(msg) {
+  setProgress(0, 'Error');
+  document.getElementById('ocrLog').textContent = msg;
+  document.getElementById('resultBody').innerHTML =
+    `<div style="color:var(--danger);padding:20px;text-align:center;"><div style="font-size:32px;margin-bottom:10px;">⚠️</div><strong>OCR Error</strong><br><span style="font-size:13px;">${escapeHtml(msg)}</span></div>`;
+  announce('OCR failed. ' + msg);
+}
+
+/* ── RENDER RESULT ── */
+function renderResult() {
+  const body = document.getElementById('resultBody');
+  const thresh = parseInt(document.getElementById('confThresh').value);
+
+  // Remove placeholder
+  document.getElementById('resultPlaceholder')?.remove();
+  document.getElementById('confLegend').style.display = 'flex';
+
+  if (!showConfidence || wordData.length === 0) {
+    body.textContent = extractedText;
+    if (window.CS_PERSONALISE) CS_PERSONALISE.trackMode('ocr');
+    return;
+  }
+
+  // Word-level confidence rendering
+  let html = '';
+  wordData.forEach(w => {
+    const conf = w.confidence;
+    const word = escapeHtml(w.text);
+    if (conf < 50 && conf < thresh) {
+      html += `<span class="conf-low" title="Low confidence: ${conf}%">${word}</span> `;
+    } else if (conf < thresh) {
+      html += `<span class="conf-med" title="Medium confidence: ${conf}%">${word}</span> `;
+    } else {
+      html += word + ' ';
+    }
+    // Insert newlines on end-of-line words
+    if (w.is_italic !== undefined && word.endsWith('\n')) html += '<br>';
+  });
+
+  // Preserve paragraph breaks
+  html = html.replace(/\n\n/g, '</p><p style="margin-top:1em;">').replace(/\n/g, '<br>');
+  body.innerHTML = `<p>${html}</p>`;
+  applyCurrentOverlay();
+  if (window.CS_PERSONALISE) CS_PERSONALISE.trackMode('ocr');
+}
+
+function toggleConfidence() {
+  showConfidence = !showConfidence;
+  document.getElementById('confToggleBtn').textContent = showConfidence ? 'Hide Highlights' : 'Show Highlights';
+  renderResult();
+}
+
+/* ── STATS ── */
+function updateStats() {
+  const words = extractedText.trim().split(/\s+/).filter(Boolean).length;
+  const chars  = extractedText.length;
+  const lines  = extractedText.split('\n').filter(l => l.trim()).length;
+  const mins   = Math.ceil(words / 200);
+  document.getElementById('statWords').textContent = words.toLocaleString();
+  document.getElementById('statChars').textContent = chars.toLocaleString();
+  document.getElementById('statLines').textContent = lines.toLocaleString();
+  document.getElementById('statTime').textContent  = mins < 1 ? '<1m' : mins + 'm';
+}
+
+/* ── TTS ── */
+function toggleTTS() {
+  if (ttsActive) {
+    stopSpeech();
+    resetTTSUI();
+  } else {
+    startTTS();
+  }
+}
+
+function startTTS() {
+  if (!extractedText.trim()) return;
+  const btn = document.getElementById('ttsBtn');
+  btn.innerHTML = '⏸';
+  btn.setAttribute('aria-label', 'Pause text-to-speech');
+  document.getElementById('ttsStatus').innerHTML = '<span class="speaking-dot"></span> Reading aloud…';
+  ttsActive = true;
+  // Update TTS rate from selector
+  localStorage.setItem('cs_tts_rate', document.getElementById('ttsSpeed').value);
+  speak(extractedText.substring(0, 8000), () => resetTTSUI());
+}
+
+function resetTTSUI() {
+  ttsActive = false;
+  const btn = document.getElementById('ttsBtn');
+  btn.innerHTML = '▶';
+  btn.setAttribute('aria-label', 'Play text-to-speech');
+  const wordCount = extractedText.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('ttsStatus').textContent = wordCount > 0
+    ? `${wordCount} words ready` : ocrT('ready_status');
+}
+
+function updateTTSSpeed() {
+  localStorage.setItem('cs_tts_rate', document.getElementById('ttsSpeed').value);
+  if (ttsActive) { stopSpeech(); startTTS(); }
+}
+
+/* ── COPY & DOWNLOAD ── */
+function copyText() {
+  if (!extractedText) return;
+  navigator.clipboard.writeText(extractedText).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ ' + ocrT('copied');
+    setTimeout(() => btn.textContent = '📋 Copy', 2000);
+    announce(ocrT('copied'));
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = extractedText;
+    document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+}
+
+function downloadText() {
+  if (!extractedText) return;
+  const blob = new Blob([extractedText], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ocr-extracted-' + new Date().toISOString().slice(0,10) + '.txt';
+  a.click();
+  announce('Text file downloaded.');
+}
+
+function toggleEdit() {
+  const body = document.getElementById('resultBody');
+  const isEditing = body.contentEditable === 'true';
+  if (isEditing) {
+    body.contentEditable = 'false';
+    extractedText = body.innerText;
+    updateStats();
+    document.getElementById('editBtn').textContent = '✏️ Edit';
+    announce('Edit mode off. Text saved.');
+  } else {
+    body.contentEditable = 'true';
+    body.focus();
+    document.getElementById('editBtn').textContent = '✅ Done';
+    announce('Edit mode on. You can now edit the extracted text.');
+  }
+}
+
+function clearAll() {
+  if (extractedText && !confirm('Clear all extracted text?')) return;
+  extractedText = '';
+  wordData = [];
+  files = [];
+  activeIdx = 0;
+  appendMode = false;
+  document.getElementById('resultBody').innerHTML =
+    `<div class="result-placeholder" id="resultPlaceholder"><span>📷</span><span>${ocrT('placeholder')}</span></div>`;
+  document.getElementById('thumbStrip').style.display = 'none';
+  document.getElementById('thumbStrip').innerHTML = '';
+  document.getElementById('previewCard').style.display = 'none';
+  document.getElementById('statsRow').style.display = 'none';
+  document.getElementById('confLegend').style.display = 'none';
+  document.getElementById('copyBtn').disabled = true;
+  document.getElementById('downloadBtn').disabled = true;
+  document.getElementById('editBtn').disabled = true;
+  document.getElementById('ttsBtn').disabled = true;
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('appendBtn').disabled = true;
+  document.getElementById('appendNote').style.display = 'none';
+  document.getElementById('ttsStatus').textContent = ocrT('ready_status');
+  stopSpeech(); resetTTSUI();
+  updateSignBtn();
+  announce('All cleared.');
+}
+
+function setAppendMode(v) {
+  appendMode = v;
+  document.getElementById('appendNote').style.display = v ? 'block' : 'none';
+  document.getElementById('appendBtn').style.background = v ? 'var(--ocr-dim)' : '';
+  document.getElementById('appendBtn').style.borderColor = v ? 'var(--ocr)' : '';
+  announce(v ? 'Append mode on — next extraction will be added to existing text.' : 'Append mode off.');
+}
+
+/* ── ACCESSIBILITY ── */
+function setResultFontSize(val) {
+  document.getElementById('resultBody').style.fontSize = val + 'px';
+  document.getElementById('fontSizeVal').textContent = val + 'px';
+  document.querySelectorAll('.toggle-group:last-of-type .toggle-btn').forEach(b => b.classList.remove('active'));
+}
+
+function setOverlay(cls, el) {
+  currentOverlay = cls;
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  applyCurrentOverlay();
+}
+
+function applyCurrentOverlay() {
+  const body = document.getElementById('resultBody');
+  body.className = 'result-body';
+  if (currentOverlay !== 'none') body.classList.add(currentOverlay);
+}
+
+function setLineSpacing(val) {
+  document.getElementById('resultBody').style.lineHeight = val;
+  document.getElementById('lineSpaceVal').textContent = parseFloat(val).toFixed(2);
+}
+
+function announce(msg) {
+  const el = document.getElementById('ariaLive');
+  el.textContent = '';
+  setTimeout(() => el.textContent = msg, 50);
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+/* ══════════════════════════════════════
+   CAMERA CAPTURE
+   ══════════════════════════════════════ */
+let cameraStream    = null;
+let capturedBlob    = null;
+let camFacingMode   = 'environment'; // prefer rear camera; toggled by switchCameraFacing
+let cameraReady     = false;
+let hasMultipleCams = false;
+
+async function openCamera() {
+  const modal = document.getElementById('cameraModal');
+  modal.style.display = 'flex';
+  setCamStatus('loading', 'Starting camera…');
+  announce('Camera opened. Position the camera over the text you want to extract, then click Capture Image.');
+  camSpeak('Camera opened. Point the camera at the printed text you want to read, then click Capture Image, or press Space.');
+
+  // Reset button states
+  document.getElementById('captureBtn').disabled   = false;
+  document.getElementById('captureBtn').style.display   = '';
+  document.getElementById('retakeBtn').style.display    = 'none';
+  document.getElementById('usePhotoBtn').style.display  = 'none';
+  document.getElementById('cameraVideo').style.display  = 'block';
+  document.getElementById('capturedPreview').style.display = 'none';
+  document.getElementById('camViewfinder').style.display   = 'block';
+
+  try {
+    // Enumerate cameras to decide whether to show Switch button
+    if (navigator.mediaDevices.enumerateDevices) {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      hasMultipleCams = devices.filter(d => d.kind === 'videoinput').length > 1;
+      document.getElementById('switchCamBtn').style.display = hasMultipleCams ? '' : 'none';
+    }
+
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: camFacingMode },
+        width:  { ideal: 1920 },
+        height: { ideal: 1080 }
+      }
+    });
+
+    const video = document.getElementById('cameraVideo');
+    video.srcObject = cameraStream;
+    video.classList.toggle('mirror', camFacingMode === 'user');
+    await video.play();
+    cameraReady = true;
+    setCamStatus('live', '🟢 Camera live — hold steady over the text and capture');
+
+  } catch (err) {
+    cameraReady = false;
+    document.getElementById('captureBtn').disabled = true;
+    let msg = '';
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      msg = '🚫 Camera permission denied. Allow camera access in your browser settings, then try again.';
+    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+      msg = '📷 No camera found. Please connect a camera or use file upload instead.';
+    } else if (err.name === 'NotSupportedError' || err.name === 'NotReadableError') {
+      msg = '⚠️ Camera unavailable or already in use. Try closing other apps using the camera.';
+    } else {
+      msg = '⚠️ Camera error: ' + (err.message || err.name);
+    }
+    setCamStatus('error', msg);
+    announce(msg);
+    camSpeak(msg);
+  }
+}
+
+function capturePhoto() {
+  const video   = document.getElementById('cameraVideo');
+  const canvas  = document.getElementById('captureCanvas');
+  const preview = document.getElementById('capturedPreview');
+  const flash   = document.getElementById('camFlash');
+
+  if (!cameraReady || !video.videoWidth) {
+    announce('Camera not ready. Please wait a moment and try again.');
+    return;
+  }
+
+  // Draw current video frame to canvas
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  // Un-mirror when capturing from front camera so OCR reads correct orientation
+  if (camFacingMode === 'user') {
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(video, 0, 0);
+
+  // Flash animation
+  flash.classList.remove('flashing');
+  void flash.offsetWidth; // trigger reflow
+  flash.classList.add('flashing');
+
+  canvas.toBlob(blob => {
+    if (!blob) {
+      setCamStatus('error', '⚠️ Failed to capture image. Please try again.');
+      announce('Capture failed. Please try again.');
+      return;
+    }
+    capturedBlob = blob;
+
+    // Show still preview, hide live video
+    const objUrl = URL.createObjectURL(blob);
+    preview.src = objUrl;
+    preview.style.display = 'block';
+    video.style.display   = 'none';
+    document.getElementById('camViewfinder').style.display = 'none';
+
+    // Swap control buttons
+    document.getElementById('captureBtn').style.display   = 'none';
+    document.getElementById('switchCamBtn').style.display = 'none';
+    document.getElementById('retakeBtn').style.display    = '';
+    document.getElementById('usePhotoBtn').style.display  = '';
+
+    setCamStatus('taken', '✅ Photo captured — click Use This Image to extract text');
+    announce('Photo captured. Click Use This Image to extract text, or Retake Photo to try again.');
+    camSpeak('Photo captured. Click Use This Image to start text extraction, or Retake Photo to try again.');
+
+  }, 'image/jpeg', 0.95);
+}
+
+function retakePhoto() {
+  capturedBlob = null;
+
+  const video   = document.getElementById('cameraVideo');
+  const preview = document.getElementById('capturedPreview');
+  if (preview.src) { URL.revokeObjectURL(preview.src); preview.src = ''; }
+  preview.style.display = 'none';
+  video.style.display   = 'block';
+  document.getElementById('camViewfinder').style.display   = 'block';
+  document.getElementById('captureBtn').style.display      = '';
+  document.getElementById('captureBtn').disabled           = false;
+  document.getElementById('switchCamBtn').style.display    = hasMultipleCams ? '' : 'none';
+  document.getElementById('retakeBtn').style.display       = 'none';
+  document.getElementById('usePhotoBtn').style.display     = 'none';
+
+  setCamStatus('live', '🟢 Camera live — hold steady and capture');
+  announce('Camera restarted. Position over text and press Capture Image.');
+  camSpeak('Camera restarted. Position the camera over the text and press Capture Image.');
+}
+
+function useCapture() {
+  if (!capturedBlob) return;
+
+  // Build a timestamped filename
+  const stamp = new Date().toISOString().slice(0,19).replace(/[T:]/g,'-');
+  const file  = new File([capturedBlob], 'camera-' + stamp + '.jpg', { type: 'image/jpeg' });
+
+  setCamStatus('taken', '⚙️ Adding to queue…');
+  announce('Image added. Running OCR now.');
+  camSpeak('Image added. Starting text extraction.');
+
+  // Close camera first so video stream stops
+  closeCamera(/* keepBlob */ true);
+
+  // Add to the OCR queue and auto-run
+  addFiles([file]);
+  setTimeout(() => {
+    const runBtn = document.getElementById('runBtn');
+    if (runBtn && !runBtn.disabled) {
+      window._cameraAutoSpeak = true; // flag to auto-speak after OCR
+      runOCR();
+    }
+  }, 400);
+}
+
+async function switchCameraFacing() {
+  camFacingMode = camFacingMode === 'environment' ? 'user' : 'environment';
+  stopCameraStream();
+  cameraReady = false;
+  setCamStatus('loading', 'Switching camera…');
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: camFacingMode }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+    });
+    const video = document.getElementById('cameraVideo');
+    video.srcObject = cameraStream;
+    video.classList.toggle('mirror', camFacingMode === 'user');
+    await video.play();
+    cameraReady = true;
+    const label = camFacingMode === 'environment' ? 'rear' : 'front';
+    setCamStatus('live', '🟢 Switched to ' + label + ' camera');
+    announce('Switched to ' + label + ' camera.');
+  } catch (err) {
+    setCamStatus('error', 'Could not switch camera: ' + (err.message || err.name));
+  }
+}
+
+function stopCameraStream() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  cameraReady = false;
+}
+
+function closeCamera(keepBlob) {
+  stopCameraStream();
+  if (!keepBlob) capturedBlob = null;
+  document.getElementById('cameraModal').style.display = 'none';
+  const video   = document.getElementById('cameraVideo');
+  const preview = document.getElementById('capturedPreview');
+  video.srcObject = null;
+  video.style.display   = 'block';
+  video.classList.remove('mirror');
+  if (!keepBlob && preview.src) { URL.revokeObjectURL(preview.src); preview.src = ''; }
+  preview.style.display = 'none';
+  announce('Camera closed.');
+}
+
+function setCamStatus(state, message) {
+  const el  = document.getElementById('camStatus');
+  const dot = document.getElementById('camLiveDot');
+  el.className = 'cam-status cam-s-' + state;
+  document.getElementById('camStatusText').textContent = message;
+  // Dot colour matches state
+  const colours = { loading:'var(--primary-light)', live:'#4ade80', taken:'var(--ocr)', error:'#f87171' };
+  dot.style.background = colours[state] || 'var(--text-dim)';
+}
+
+function camSpeak(text) {
+  if (typeof speak === 'function') speak(text);
+}
+
+// Camera modal keyboard handling (Escape = close, Space/Enter = capture or use)
+document.addEventListener('keydown', e => {
+  const modal = document.getElementById('cameraModal');
+  if (!modal || modal.style.display === 'none') return;
+  if (e.key === 'Escape') { e.preventDefault(); closeCamera(); return; }
+  const retakeVisible = document.getElementById('retakeBtn').style.display !== 'none';
+  const useVisible    = document.getElementById('usePhotoBtn').style.display !== 'none';
+  if ((e.key === ' ' || e.key === 'Enter') && !retakeVisible) {
+    e.preventDefault();
+    if (useVisible) useCapture(); else capturePhoto();
+  }
+});
+
+/* ── KEYBOARD SHORTCUTS ── */
+document.addEventListener('keydown', e => {
+  if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  if (e.target.contentEditable === 'true') return;
+  // Skip global shortcuts when camera modal is open
+  if (document.getElementById('cameraModal').style.display !== 'none') return;
+  switch(e.key.toLowerCase()) {
+    case ' ':
+      e.preventDefault();
+      document.getElementById('fileInput').click();
+      break;
+    case 'v':
+      e.preventDefault();
+      openCamera();
+      break;
+    case 'enter':
+      if (!document.getElementById('runBtn').disabled) runOCR();
+      break;
+    case 'r':
+      if (!document.getElementById('ttsBtn').disabled) toggleTTS();
+      break;
+    case 's':
+      stopSpeech(); resetTTSUI();
+      break;
+    case 'c':
+      if (!document.getElementById('copyBtn').disabled) copyText();
+      break;
+    case 'x':
+      clearAll();
+      break;
+  }
+});
+
+/* ── SEND TO SIGN LANGUAGE AGENT ── */
+function sendOCRtoSign() {
+  var text = extractedText || '';
+  if (!text.trim()) {
+    var resultEl = document.getElementById('resultBody');
+    if (resultEl) text = resultEl.innerText || resultEl.value || '';
+  }
+  if (!text.trim()) { alert('Extract text first, then open Sign Language Agent.'); return; }
+  localStorage.setItem('ocrExtractedText', text.trim());
+  localStorage.setItem('signLangText', text.trim());
+  window.location.href = 'sign-language.html';
+}
+
+function updateSignBtn() {
+  var btn = document.getElementById('btnSendSign');
+  if (!btn) return;
+  var hasText = extractedText && extractedText.trim().length > 0;
+  btn.style.display = hasText ? 'inline-block' : 'none';
+}
+
+/* ── BRAILLE INTEGRATION ── */
+function ocrConvertToBraille() {
+  var text = '';
+  var resultEl = document.getElementById('resultBody') || document.querySelector('.ocr-output');
+  if (resultEl) text = resultEl.innerText || resultEl.value || resultEl.textContent || '';
+  if (!text.trim()) text = extractedText || '';
+  if (!text.trim()) { alert('Extract text first, then convert to Braille.'); return; }
+  if (!window.CS_BRAILLE) { alert('Braille system not loaded.'); return; }
+  CS_BRAILLE.injectStyles();
+  CS_BRAILLE.injectPanel('ocrBrailleOutput', text.trim());
+  document.getElementById('ocrBrailleOutput').scrollIntoView({behavior:'smooth'});
+}
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', () => {
+  applyOCRTranslations();
+  document.getElementById('ttsStatus').textContent = ocrT('ready_status');
+  // Sync TTS speed from localStorage
+  const savedRate = localStorage.getItem('cs_tts_rate');
+  if (savedRate) {
+    const sel = document.getElementById('ttsSpeed');
+    [...sel.options].forEach(o => { if (o.value === savedRate) o.selected = true; });
+  }
+
+  // ── VOICE-FIRST SUPPORT ──
+  // Set page context for the global voice system (voice-system.js)
+  if (window.CS_VOICE && typeof window.CS_VOICE.setPageContext === 'function') {
+    window.CS_VOICE.setPageContext(
+      "OCR Agent",
+      "Say Open Camera to use your webcam. Say Upload Image to select a file. Say Extract Text to process. Say Read Aloud to hear the result. Say Help for all commands."
+    );
+  }
+
+  // Register voice command handlers once CS_VOICE is ready
+  function registerVoiceCommands() {
+    if (!window.CS_VOICE || typeof window.CS_VOICE.addCommand !== 'function') return;
+
+    // "Open Camera" — opens the webcam modal
+    window.CS_VOICE.addCommand(['open camera', 'camera', 'take photo', 'use webcam'], () => {
+      voiceAnnounce('Opening camera.');
+      openCamera();
+    });
+
+    // "Upload Image" — triggers the file input
+    window.CS_VOICE.addCommand(['upload image', 'upload file', 'open file', 'select image', 'browse'], () => {
+      voiceAnnounce('Opening file browser.');
+      document.getElementById('fileInput').click();
+    });
+
+    // "Extract Text" / "Capture" — runs OCR on the current image
+    window.CS_VOICE.addCommand(['extract text', 'run ocr', 'capture', 'process image', 'start ocr'], () => {
+      const btn = document.getElementById('runBtn');
+      if (btn && !btn.disabled) {
+        voiceAnnounce('Extracting text from image.');
+        runOCR();
+      } else {
+        voiceAnnounce('No image loaded. Please upload an image first.');
+      }
+    });
+
+    // "Read Aloud" — speaks the OCR result
+    window.CS_VOICE.addCommand(['read aloud', 'read text', 'speak', 'play', 'read result'], () => {
+      const btn = document.getElementById('ttsBtn');
+      if (btn && !btn.disabled) {
+        voiceAnnounce('Reading extracted text aloud.');
+        startTTS();
+      } else {
+        voiceAnnounce('No text to read. Please extract text from an image first.');
+      }
+    });
+
+    // "Stop" — stops speech
+    window.CS_VOICE.addCommand(['stop', 'stop reading', 'stop speech', 'pause'], () => {
+      voiceAnnounce('Stopped.');
+      stopSpeech();
+      resetTTSUI();
+    });
+
+    // "Help" — speaks the page context
+    window.CS_VOICE.addCommand(['help', 'what can i say', 'commands'], () => {
+      const msg = 'OCR Agent voice commands: Say Open Camera to use your webcam. Say Upload Image to select a file. Say Extract Text to process the image. Say Read Aloud to hear the result. Say Stop to stop reading. Say Clear to reset.';
+      voiceAnnounce(msg);
+      if (typeof speak === 'function') speak(msg);
+    });
+
+    // "Clear" — clears all
+    window.CS_VOICE.addCommand(['clear', 'clear all', 'reset'], () => {
+      voiceAnnounce('Clearing all.');
+      clearAll();
+    });
+  }
+
+  // Helper: push text into the voice ARIA live region
+  function voiceAnnounce(msg) {
+    const el = document.getElementById('voiceAnnounce');
+    if (!el) return;
+    el.textContent = '';
+    setTimeout(() => { el.textContent = msg; }, 50);
+  }
+
+  // Try to register immediately; retry after a short delay in case voice-system.js loads late
+  registerVoiceCommands();
+  setTimeout(registerVoiceCommands, 1000);
+
+  // ── PERSONALISATION INIT ──
+  if (window.CS_PERSONALISE) {
+    CS_PERSONALISE.init();
+    CS_PERSONALISE.trackAgentUse('ocr-agent');
+  }
+
+  // ── BRAILLE INIT ──
+  if (window.CS_BRAILLE) { CS_BRAILLE.injectStyles(); CS_BRAILLE.init(); }
+  // Show braille + avatar buttons when OCR result appears
+  var brailleObserver = new MutationObserver(function() {
+    var btn = document.getElementById('ocrBrailleBtn');
+    var avatarBtn = document.getElementById('ocrAvatarBtn');
+    var res = document.getElementById('resultBody');
+    if (btn && res && (res.innerText || res.value || '').trim().length > 10) btn.style.display = 'inline-block';
+    if (avatarBtn && res && (res.innerText || res.value || '').trim().length > 10) avatarBtn.style.display = 'inline-block';
+    // Also check extractedText variable
+    if (btn && extractedText && extractedText.trim().length > 10) btn.style.display = 'inline-block';
+    if (avatarBtn && extractedText && extractedText.trim().length > 10) avatarBtn.style.display = 'inline-block';
+  });
+  var brailleTarget = document.getElementById('resultBody') || document.body;
+  brailleObserver.observe(brailleTarget, {childList:true, subtree:true, characterData:true});
+});
+</script>
+<script src="braille-system.js"></script>
+<div id="psOcrSuggest" style="display:none;" class="ps-card" aria-live="polite">
+  <div style="font-size:13px;font-weight:800;color:#6366f1;" data-i18n="ps_ocr_suggest_title">🧠 Based on your usage pattern</div>
+  <div id="psOcrSuggestText" style="font-size:14px;color:#1e293b;margin-top:6px;"></div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (!window.CS_PERSONALISE) return;
+  var p = CS_PERSONALISE.getProfile();
+  var lang = localStorage.getItem('cs_lang') || 'en';
+  if (p.ocrUsageCount > 2) {
+    var el = document.getElementById('psOcrSuggest');
+    var txt = document.getElementById('psOcrSuggestText');
+    if (el && txt) {
+      txt.textContent = lang==='ms' ? 'Anda kerap menggunakan OCR. Bacaan suara dan Braille akan dicadangkan selepas pengekstrakan.' : 'You frequently use OCR. Audio reading and Braille output will be suggested after extraction.';
+      el.style.display='block';
+    }
+  }
+});
+</script>
+<script src="personalisation-system.js"></script>
+<script>
+function ocrSignWithAvatar() {
+  var resultEl = document.getElementById('resultBody') || document.querySelector('.ocr-output');
+  var text = resultEl ? (resultEl.innerText || resultEl.value || resultEl.textContent || '') : '';
+  if (!text.trim()) text = extractedText || '';
+  if (!text.trim()) { alert('Extract text first.'); return; }
+  localStorage.setItem('signLangText', text.trim());
+  localStorage.setItem('ocrExtractedText', text.trim());
+  window.location.href = 'sign-language.html';
+}
+</script>
+</body>
+</html>

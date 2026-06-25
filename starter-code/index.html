@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CelikSense AI – Knowledge Without Barrier, Intelligence Without Limits</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── Homepage-only styles ── */
+:root {
+  --a1:#6366f1; --a2:#06b6d4; --a3:#f59e0b; --a4:#22c55e;
+  --a5:#8b5cf6; --a6:#ec4899; --a7:#ef4444; --a8:#10b981;
+}
+
+/* ── HERO ── */
+.hero {
+  position:relative;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  padding-top:var(--nav-h);
+  background: linear-gradient(135deg, #c4b8ff 0%, #ddd6ff 35%, #7dd3ea 65%, #7dd3ea 100%);
+}
+.hero::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(ellipse 70% 60% at 15% 50%, rgba(99,102,241,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 85% 50%, rgba(6,182,212,0.15) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 30% at 50% 100%, rgba(139,92,246,0.12) 0%, transparent 50%);
+  z-index:1;
+}
+#heroCanvas {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:0;
+}
+.hero-inner {
+  position:relative;
+  z-index:2;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  align-items:center;
+  gap:56px;
+  padding:60px 20px 80px;
+  max-width:1240px;
+  margin:0 auto;
+  width:100%;
+}
+.hero-left {
+  background:rgba(255,255,255,0.22);
+  backdrop-filter:blur(20px);
+  border:1.5px solid rgba(255,255,255,0.6);
+  border-radius:28px;
+  padding:48px 44px;
+  box-shadow:0 8px 40px rgba(99,102,241,0.12), 0 1px 0 rgba(255,255,255,0.8) inset;
+}
+.hero-eyebrow {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 18px 7px 12px;
+  background:rgba(255,255,255,0.75);
+  backdrop-filter:blur(12px);
+  border:1.5px solid rgba(99,102,241,0.35);
+  border-radius:30px;
+  font-size:11px;
+  font-weight:800;
+  color:#4f46e5;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  margin-bottom:28px;
+  box-shadow:0 2px 12px rgba(99,102,241,0.15);
+}
+.hero-eyebrow-dot {
+  width:8px;height:8px;border-radius:50%;
+  background:linear-gradient(135deg,#6366f1,#06b6d4);
+  box-shadow:0 0 8px rgba(99,102,241,0.8);
+  animation:pulse 2s ease-in-out infinite;
+}
+.hero-headline {
+  font-size:clamp(40px,5.5vw,70px);
+  font-weight:900;
+  line-height:1.04;
+  letter-spacing:-0.03em;
+  margin-bottom:22px;
+}
+.hero-hl-1 { color:#0f172a; display:block; }
+.hero-hl-2 {
+  display:block;
+  background:linear-gradient(135deg,#3730a3 0%,#0369a1 50%,#047857 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter:drop-shadow(0 2px 8px rgba(55,48,163,0.25));
+}
+.hero-tagline {
+  font-size:clamp(15px,1.6vw,18px);
+  color:#1e293b;
+  line-height:1.75;
+  margin-bottom:40px;
+  max-width:480px;
+  font-weight:500;
+}
+.hero-tagline em { color:#4f46e5; font-style:normal; font-weight:700; }
+.hero-cta-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:44px; }
+
+/* Vibrant CTA buttons */
+.btn-hero-primary {
+  background:linear-gradient(135deg,#4f46e5,#7c3aed);
+  color:#fff;
+  border:none;
+  padding:16px 36px;
+  border-radius:14px;
+  font-weight:800;
+  font-size:16px;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  box-shadow:0 8px 28px rgba(79,70,229,0.45), 0 1px 0 rgba(255,255,255,0.2) inset;
+  transition:all 0.25s ease;
+  letter-spacing:0.01em;
+}
+.btn-hero-primary:hover { transform:translateY(-3px); box-shadow:0 16px 40px rgba(79,70,229,0.55); }
+.btn-hero-outline {
+  background:rgba(255,255,255,0.85);
+  color:#1e293b;
+  border:1.5px solid rgba(255,255,255,0.9);
+  padding:16px 32px;
+  border-radius:14px;
+  font-weight:700;
+  font-size:16px;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  transition:all 0.25s ease;
+  backdrop-filter:blur(12px);
+  box-shadow:0 4px 16px rgba(0,0,0,0.08);
+}
+.btn-hero-outline:hover { background:#ffffff; transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.12); }
+
+.hero-stat-row {
+  display:flex;
+  gap:0;
+  border:1.5px solid rgba(99,102,241,0.2);
+  border-radius:20px;
+  overflow:hidden;
+  background:rgba(255,255,255,0.88);
+  backdrop-filter:blur(20px);
+  max-width:460px;
+  box-shadow:0 8px 32px rgba(99,102,241,0.15), 0 1px 0 rgba(255,255,255,0.9) inset;
+}
+.hero-stat {
+  flex:1;
+  padding:20px 16px;
+  text-align:center;
+  border-right:1px solid rgba(99,102,241,0.1);
+}
+.hero-stat:last-child { border-right:none; }
+.hero-stat-num {
+  font-size:28px;
+  font-weight:900;
+  background:linear-gradient(135deg,#4f46e5,#7c3aed);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  display:block;
+  letter-spacing:-0.02em;
+}
+.hero-stat-label { font-size:10px; color:#475569; margin-top:4px; text-transform:uppercase; letter-spacing:0.08em; font-weight:600; }
+
+/* Agent orb grid right side */
+.hero-right {
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  grid-template-rows:auto auto auto;
+  gap:0;
+  width:100%;
+  align-self:stretch;
+  padding:12px 0;
+}
+.hero-orb-marquee-row {
+  grid-column:1/-1;
+  display:flex;
+  align-items:center;
+  padding:14px 0;
+  overflow:hidden;
+  position:relative;
+}
+.hero-orb-marquee-inner {
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  white-space:nowrap;
+  animation:marqueeScroll 14s linear infinite;
+}
+@keyframes marqueeScroll {
+  0%   { transform:translateX(-100%); }
+  100% { transform:translateX(100vw); }
+}
+.marquee-line1 {
+  font-size:15px;
+  font-weight:800;
+  color:#1e293b;
+  letter-spacing:0.01em;
+  white-space:nowrap;
+}
+.marquee-line2 {
+  font-size:13px;
+  font-weight:600;
+  font-style:italic;
+  color:#475569;
+  letter-spacing:0.01em;
+  white-space:nowrap;
+}
+.hero-agent-orb {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  text-decoration:none;
+  color:inherit;
+  padding:16px 8px;
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  position:relative;
+}
+.hero-agent-orb:hover { transform:translateY(-8px); }
+.hero-agent-orb:hover .orb-circle {
+  box-shadow:0 16px 40px var(--ac-shadow,rgba(99,102,241,0.45));
+  transform:scale(1.08);
+}
+.orb-circle {
+  width:115px;height:115px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:50px;
+  background:linear-gradient(135deg, var(--ac,#6366f1), var(--ac2,#8b5cf6));
+  box-shadow:0 8px 24px var(--ac-shadow,rgba(99,102,241,0.35));
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  position:relative;
+  flex-shrink:0;
+}
+.orb-circle::after {
+  content:'';
+  position:absolute;
+  inset:3px;
+  border-radius:50%;
+  background:linear-gradient(135deg,rgba(255,255,255,0.3) 0%,transparent 60%);
+  pointer-events:none;
+}
+.orb-ring {
+  position:absolute;
+  inset:-6px;
+  border-radius:50%;
+  border:2px solid var(--ac,#6366f1);
+  opacity:0;
+  transition:all 0.3s ease;
+}
+.hero-agent-orb:hover .orb-ring { opacity:0.35; transform:scale(1.05); }
+.orb-name {
+  font-size:16px;
+  font-weight:900;
+  color:#0f172a;
+  text-align:center;
+  line-height:1.3;
+  letter-spacing:0.01em;
+}
+.orb-tag {
+  font-size:15px;
+  font-weight:800;
+  color:#0f172a;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+}
+@keyframes orbFloat {
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(-6px); }
+}
+
+/* ── AGENTS SECTION ── */
+.agents-section {
+  padding:100px 0;
+  background:linear-gradient(180deg, #ddd6ff 0%, #c4b8ff 30%, #7dd3ea 70%, #ddd6ff 100%);
+  border-top:1px solid rgba(99,102,241,0.12);
+  border-bottom:1px solid rgba(6,182,212,0.12);
+}
+.section-badge {
+  display:inline-block;
+  padding:6px 20px;
+  border-radius:30px;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  margin-bottom:16px;
+  background:rgba(255,255,255,0.7);
+  backdrop-filter:blur(12px);
+  border:1.5px solid rgba(99,102,241,0.25);
+  color:#4f46e5;
+  box-shadow:0 2px 10px rgba(99,102,241,0.1);
+}
+
+/* Agent card — vibrant redesign */
+.agent-card-v2 {
+  border-radius:22px;
+  padding:30px 26px;
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  cursor:pointer;
+  text-decoration:none;
+  color:inherit;
+  background:#ffffff;
+  border:1.5px solid rgba(0,0,0,0.07);
+  box-shadow:0 4px 20px rgba(0,0,0,0.06);
+}
+.agent-card-v2::before {
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:4px;
+  background:linear-gradient(90deg, var(--ac,#6366f1), var(--ac2,#8b5cf6));
+  border-radius:2px 2px 0 0;
+}
+.agent-card-v2::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at top left, var(--ac-dim,rgba(99,102,241,0.08)) 0%, transparent 65%);
+  pointer-events:none;
+}
+.agent-card-v2:hover {
+  transform:translateY(-8px) scale(1.01);
+  box-shadow:0 16px 40px rgba(0,0,0,0.12), 0 0 0 1px var(--ac-dim,rgba(99,102,241,0.2));
+  border-color:rgba(99,102,241,0.2);
+}
+.agent-card-v2:hover .agent-v2-arrow { transform:translate(4px,-4px); opacity:1; }
+.agent-v2-num {
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  color:var(--ac,#6366f1);
+  opacity:0.7;
+  margin-bottom:14px;
+}
+.agent-v2-icon-wrap {
+  width:56px;height:56px;
+  border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;
+  margin-bottom:16px;
+  background:linear-gradient(135deg, var(--ac-dim,rgba(99,102,241,0.12)), rgba(99,102,241,0.06));
+  border:1px solid var(--ac-dim,rgba(99,102,241,0.2));
+  flex-shrink:0;
+}
+.agent-v2-name { font-size:17px; font-weight:800; margin-bottom:8px; line-height:1.25; color:#0f172a; }
+.agent-v2-desc { font-size:13px; color:#475569; line-height:1.65; flex:1; }
+.agent-v2-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:20px;
+  padding-top:14px;
+  border-top:1px solid rgba(0,0,0,0.08);
+}
+.agent-v2-tag {
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.07em;
+  color:var(--ac,#6366f1);
+  background:var(--ac-dim,rgba(99,102,241,0.12));
+  padding:3px 10px;
+  border-radius:6px;
+}
+.agent-v2-arrow { font-size:18px; color:var(--ac,#6366f1); opacity:0.4; transition:all 0.2s ease; }
+
+/* ── LEARNERS ── */
+.learners-section {
+  padding:100px 0;
+  background:linear-gradient(135deg,#7dd3ea 0%,#c4b8ff 50%,#ddd6ff 100%);
+}
+.learner-card-v2 {
+  border-radius:22px;
+  padding:36px 28px;
+  transition:all 0.3s ease;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+  border:1.5px solid rgba(0,0,0,0.07);
+  background:#ffffff;
+  box-shadow:0 4px 20px rgba(0,0,0,0.06);
+}
+.learner-card-v2::before {
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:4px;
+  background:linear-gradient(90deg,var(--lc,#6366f1),var(--lc2,#8b5cf6));
+}
+.learner-card-v2:hover { transform:translateY(-8px); box-shadow:0 24px 48px rgba(99,102,241,0.18); border-color:rgba(99,102,241,0.2); }
+.learner-icon-wrap {
+  width:76px;height:76px;
+  border-radius:22px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:34px;
+  margin:0 auto 20px;
+  border:1.5px solid rgba(0,0,0,0.06);
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+.learner-v2-name { font-size:16px; font-weight:800; margin-bottom:8px; color:#0f172a; }
+.learner-v2-desc { font-size:12px; color:#475569; line-height:1.65; margin-bottom:14px; }
+.learner-v2-agents {
+  font-size:11px;
+  font-weight:700;
+  color:#fff;
+  background:rgba(99,102,241,0.25);
+  border:1px solid rgba(99,102,241,0.3);
+  padding:4px 12px;
+  border-radius:20px;
+  display:inline-block;
+}
+
+/* ── HOW IT WORKS ── */
+.how-section {
+  padding:100px 0;
+  background:linear-gradient(180deg,#ddd6ff 0%,#c4b8ff 50%,#7dd3ea 100%);
+  border-top:1px solid rgba(99,102,241,0.1);
+  border-bottom:1px solid rgba(6,182,212,0.1);
+}
+.step-card {
+  background:#ffffff;
+  border:1.5px solid rgba(0,0,0,0.07);
+  border-radius:24px;
+  padding:40px 32px;
+  position:relative;
+  overflow:hidden;
+  transition:all 0.3s ease;
+  box-shadow:0 4px 20px rgba(0,0,0,0.06);
+}
+.step-card:hover { transform:translateY(-6px); border-color:rgba(99,102,241,0.3); box-shadow:0 16px 40px rgba(99,102,241,0.15); }
+.step-num {
+  font-size:90px;
+  font-weight:900;
+  line-height:1;
+  color:rgba(99,102,241,0.07);
+  position:absolute;
+  top:12px;right:16px;
+  letter-spacing:-0.04em;
+}
+.step-icon {
+  font-size:36px;
+  margin-bottom:18px;
+  display:block;
+  filter:drop-shadow(0 4px 12px rgba(99,102,241,0.3));
+}
+.step-title { font-size:19px; font-weight:800; margin-bottom:10px; color:#0f172a; }
+.step-desc { font-size:14px; color:#475569; line-height:1.7; }
+.step-connector {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  padding:0 12px;
+  background:linear-gradient(135deg,#6366f1,#06b6d4);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+/* ── WHY SECTION ── */
+.why-section {
+  padding:100px 0;
+  background:linear-gradient(135deg,#7dd3ea 0%,#ddd6ff 40%,#c4b8ff 100%);
+}
+.why-card {
+  padding:32px;
+  border-radius:22px;
+  background:#ffffff;
+  border:1.5px solid rgba(0,0,0,0.07);
+  transition:all 0.25s ease;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,0.06);
+}
+.why-card:hover { border-color:rgba(99,102,241,0.3); transform:translateY(-6px); box-shadow:0 16px 40px rgba(99,102,241,0.15); }
+.why-icon-wrap {
+  width:54px;height:54px;
+  border-radius:16px;
+  background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(6,182,212,0.1));
+  border:1.5px solid rgba(99,102,241,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;
+  margin-bottom:18px;
+}
+.why-title { font-size:16px; font-weight:800; margin-bottom:8px; color:#0f172a; }
+.why-desc { font-size:13px; color:#475569; line-height:1.65; }
+
+/* ── CTA ── */
+.cta-section {
+  padding:120px 0;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+  background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 45%,#0891b2 80%,#0d9488 100%);
+}
+.cta-bg {
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 50%,rgba(255,255,255,0.08) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 40% at 10% 90%,rgba(6,182,212,0.25) 0%,transparent 50%),
+    radial-gradient(ellipse 50% 40% at 90% 10%,rgba(139,92,246,0.25) 0%,transparent 50%);
+}
+.cta-inner {
+  position:relative;
+  z-index:1;
+  max-width:680px;
+  margin:0 auto;
+  padding:0 20px;
+}
+.cta-headline { font-size:clamp(28px,4.5vw,50px); font-weight:900; line-height:1.1; margin-bottom:16px; letter-spacing:-0.02em; color:#fff; }
+.cta-sub { font-size:17px; color:rgba(255,255,255,0.85); margin-bottom:36px; line-height:1.7; }
+.cta-btns { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+
+/* ── FOOTER ── */
+.site-footer {
+  background:#ffffff;
+  border-top:1px solid rgba(0,0,0,0.08);
+}
+.footer-top { padding:56px 0 40px; }
+.footer-logo-wrap { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.footer-tagline-text { font-size:13px; color:#64748b; line-height:1.7; max-width:260px; }
+.footer-social { display:flex; gap:8px; margin-top:16px; }
+.footer-social-btn { width:36px;height:36px; border-radius:10px; background:rgba(0,0,0,0.05); border:1px solid rgba(0,0,0,0.1); display:flex;align-items:center;justify-content:center; font-size:14px; color:#64748b; transition:var(--transition); cursor:pointer; }
+.footer-social-btn:hover { color:#a5b4fc; border-color:rgba(99,102,241,0.4); background:rgba(99,102,241,0.1); }
+.footer-col-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:#475569; margin-bottom:16px; }
+.footer-link-list { display:flex; flex-direction:column; gap:10px; }
+.footer-link-list a { font-size:13px; color:#64748b; transition:var(--transition); display:flex; align-items:center; gap:8px; }
+.footer-link-list a:hover { color:#a5b4fc; }
+.footer-bottom-bar {
+  border-top:1px solid rgba(0,0,0,0.08);
+  padding:20px 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  font-size:12px;
+  color:#475569;
+}
+.footer-bottom-links { display:flex; gap:20px; }
+.footer-bottom-links a { color:#475569; transition:var(--transition); }
+.footer-bottom-links a:hover { color:#94a3b8; }
+
+/* ── SCROLL REVEAL ── */
+.reveal { opacity:0; transform:translateY(28px); transition:opacity 0.65s ease,transform 0.65s ease; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+.reveal-delay-1 { transition-delay:0.1s; }
+.reveal-delay-2 { transition-delay:0.2s; }
+.reveal-delay-3 { transition-delay:0.3s; }
+.reveal-delay-4 { transition-delay:0.4s; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .hero-inner{ grid-template-columns:1fr; gap:32px; padding-bottom:48px; }
+  .hero-right{ display:none; }
+  .step-connector{ display:none; }
+}
+@media(max-width:640px){
+  .hero-stat-row{ flex-wrap:wrap; }
+  .hero-stat{ border-right:none; border-bottom:1px solid rgba(0,0,0,0.08); }
+  .hero-stat:last-child{ border-bottom:none; }
+}
+@media(prefers-reduced-motion: reduce){
+  .hero-orb-marquee-row * { animation: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════ NAVBAR ════ -->
+<nav class="navbar" role="navigation" aria-label="Main navigation">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand" aria-label="CelikSense AI Home">
+      <div class="brand-icon" aria-hidden="true">CS</div>
+      <div>
+        <span class="brand-name">CelikSense AI</span>
+        <span class="brand-tagline" data-i18n="tagline">Agentic Multi-Sensory Learning</span>
+      </div>
+    </a>
+
+    <div class="nav-links" id="navLinks" role="menubar">
+      <a href="index.html" class="active" data-i18n="nav_home" role="menuitem">Home</a>
+      <a href="dashboard.html" data-i18n="nav_dashboard" role="menuitem">Dashboard</a>
+      <div class="nav-dropdown" role="menuitem">
+        <button data-i18n="nav_agents" aria-haspopup="true" aria-expanded="false">Agents ▾</button>
+        <div class="dropdown-menu" role="menu">
+          <a href="ai-librarian.html" role="menuitem">📚 AI Librarian</a>
+          <a href="reading-companion.html" role="menuitem">📖 Reading Companion</a>
+          <a href="adhd-agent.html" role="menuitem">🧠 ADHD Agent</a>
+          <a href="dyslexia-agent.html" role="menuitem">🔤 Dyslexia Agent</a>
+          <a href="blind-audio.html" role="menuitem">🔊 Blind Audio Agent</a>
+          <a href="sign-language.html" role="menuitem">🤟 Sign Language Agent</a>
+          <a href="early-warning.html" role="menuitem">⚠️ Early Warning Agent</a>
+          <a href="intervention.html" role="menuitem">💡 Intervention Agent</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn" aria-label="Switch language">BM</button>
+      <a href="profile.html" class="btn btn-ghost btn-sm" aria-label="View profile">👤 Profile</a>
+      <a href="dashboard.html" class="btn btn-primary btn-sm" data-i18n="nav_signup">Sign Up</a>
+      <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
+      <button class="nav-hamburger" onclick="toggleNav()" aria-label="Open menu" aria-expanded="false" id="hamburger">☰</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ════ HERO ════ -->
+<section class="hero" aria-labelledby="hero-heading">
+  <canvas id="heroCanvas" aria-hidden="true"></canvas>
+
+  <div class="hero-inner container">
+    <!-- Left copy -->
+    <div class="hero-left">
+      <div class="hero-eyebrow" role="doc-subtitle">
+        <span class="hero-eyebrow-dot" aria-hidden="true"></span>
+        <span data-i18n="hero_badge">8 AI Agents · Inclusive Learning</span>
+      </div>
+
+      <h1 class="hero-headline" id="hero-heading">
+        <span class="hero-hl-1" data-i18n="hero_title">CelikSense AI</span>
+        <span class="hero-hl-2" data-i18n="hero_subtitle">Multi-Sensory Learning Ecosystem</span>
+      </h1>
+
+      <p class="hero-tagline">
+        <em data-i18n="hero_tagline">Knowledge Without Barrier, Intelligence Without Limits</em>
+        — a bilingual AI platform that adapts to blind, deaf, ADHD, and dyslexia learners.
+      </p>
+
+      <div class="hero-cta-row">
+        <a href="dashboard.html" class="btn-hero-primary" data-i18n="hero_cta1">🚀 Get Started</a>
+        <a href="#agents" class="btn-hero-outline" data-i18n="btn_explore_agents">✨ Explore Agents</a>
+      </div>
+
+      <div class="hero-stat-row" role="list" aria-label="Platform statistics">
+        <div class="hero-stat" role="listitem">
+          <span class="hero-stat-num" data-count="8">8</span>
+          <span class="hero-stat-label">AI Agents</span>
+        </div>
+        <div class="hero-stat" role="listitem">
+          <span class="hero-stat-num" data-count="5">5</span>
+          <span class="hero-stat-label">Learner Types</span>
+        </div>
+        <div class="hero-stat" role="listitem">
+          <span class="hero-stat-num">2</span>
+          <span class="hero-stat-label">Languages</span>
+        </div>
+        <div class="hero-stat" role="listitem">
+          <span class="hero-stat-num">100%</span>
+          <span class="hero-stat-label">Accessible</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Agent orbs -->
+    <div class="hero-right">
+      <a href="ai-librarian.html" class="hero-agent-orb" style="--ac:#6366f1;--ac2:#8b5cf6;--ac-shadow:rgba(99,102,241,0.4);">
+        <div class="orb-circle"><div class="orb-ring"></div>📚</div>
+        <div class="orb-name" data-i18n="a1_name">AI Librarian</div>
+        <div class="orb-tag" data-i18n="orb_discover">Discover</div>
+      </a>
+      <a href="reading-companion.html" class="hero-agent-orb" style="--ac:#06b6d4;--ac2:#0891b2;--ac-shadow:rgba(6,182,212,0.4);">
+        <div class="orb-circle"><div class="orb-ring"></div>📖</div>
+        <div class="orb-name" data-i18n="a2_name">Reading Companion</div>
+        <div class="orb-tag" data-i18n="orb_read">Read</div>
+      </a>
+      <a href="adhd-agent.html" class="hero-agent-orb" style="--ac:#f59e0b;--ac2:#f97316;--ac-shadow:rgba(245,158,11,0.4);">
+        <div class="orb-circle"><div class="orb-ring"></div>⚡</div>
+        <div class="orb-name" data-i18n="a3_name">ADHD Agent</div>
+        <div class="orb-tag" data-i18n="orb_focus">Focus</div>
+      </a>
+      <a href="dyslexia-agent.html" class="hero-agent-orb" style="--ac:#22c55e;--ac2:#10b981;--ac-shadow:rgba(34,197,94,0.4);">
+        <div class="orb-circle"><div class="orb-ring"></div>🔤</div>
+        <div class="orb-name" data-i18n="a4_name">Dyslexia Agent</div>
+        <div class="orb-tag" data-i18n="orb_read_easier">Read Easier</div>
+      </a>
+      <div class="hero-orb-marquee-row" aria-hidden="true">
+        <div class="hero-orb-marquee-inner">
+          <span class="marquee-line1" data-i18n="hero_tagline">Ilmu Tanpa Sempadan, Kecerdasan Tanpa Had</span>
+          <span class="marquee-line2">Knowledge Without Barrier, Intelligence Without Limits</span>
+        </div>
+      </div>
+
+      <a href="blind-audio.html" class="hero-agent-orb" style="--ac:#8b5cf6;--ac2:#7c3aed;--ac-shadow:rgba(139,92,246,0.4);">
+        <div class="orb-circle"><div class="orb-ring"></div>🔊</div>
+        <div class="orb-name" data-i18n="a5_name">Blind Audio Agent</div>
+        <div class="orb-tag" data-i18n="orb_listen">Listen</div>
+      </a>
+      <a href="sign-language.html" class="hero-agent-orb" style="--ac:#ec4899;--ac2:#f43f5e;--ac-shadow:rgba(236,72,153,0.4);">
+        <div class="orb-circle"><div class="orb-ring"></div>🖐️</div>
+        <div class="orb-name" data-i18n="a6_name">Sign Language</div>
+        <div class="orb-tag" data-i18n="orb_sign">Sign</div>
+      </a>
+      <a href="early-warning.html" class="hero-agent-orb" style="--ac:#ef4444;--ac2:#dc2626;--ac-shadow:rgba(239,68,68,0.4);">
+        <div class="orb-circle"><div class="orb-ring"></div>⚠️</div>
+        <div class="orb-name" data-i18n="a7_name">Early Warning</div>
+        <div class="orb-tag" data-i18n="orb_monitor">Monitor</div>
+      </a>
+      <a href="intervention.html" class="hero-agent-orb" style="--ac:#10b981;--ac2:#0d9488;--ac-shadow:rgba(16,185,129,0.4);">
+        <div class="orb-circle"><div class="orb-ring"></div>💡</div>
+        <div class="orb-name" data-i18n="a8_name">Intervention Agent</div>
+        <div class="orb-tag" data-i18n="orb_plan">Plan</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Scroll hint -->
+  <div style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;z-index:2;opacity:0.5;">
+    <span style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);">Scroll</span>
+    <div style="width:1px;height:32px;background:linear-gradient(to bottom,var(--text-dim),transparent);animation:float 2s ease-in-out infinite;"></div>
+  </div>
+</section>
+
+<!-- ════ AGENTS ════ -->
+<section class="agents-section" id="agents" aria-labelledby="agents-heading">
+  <div class="container">
+    <div class="section-header text-center reveal" style="margin-bottom:48px;">
+      <div class="page-badge">Our 8 AI Agents</div>
+      <h2 class="section-title" id="agents-heading" style="font-size:clamp(22px,3.5vw,32px);margin-top:12px;" data-i18n="agents_title">8 Agents, One Ecosystem</h2>
+      <p class="section-desc" style="max-width:520px;margin:10px auto 0;" data-i18n="agents_desc">Each agent is purpose-built for a specific learning need. Together they form a personalised, adaptive learning system.</p>
+    </div>
+
+    <div class="grid grid-auto" style="--min:260px;">
+
+      <a href="ai-librarian.html" class="agent-card-v2 reveal" style="--ac:#6366f1;--ac-dim:rgba(99,102,241,0.07);" aria-label="Open AI Librarian Agent">
+        <div class="agent-v2-num">01</div>
+        <div class="agent-v2-icon-wrap">📚</div>
+        <div class="agent-v2-name" data-i18n="a1_name">AI Librarian</div>
+        <div class="agent-v2-desc" data-i18n="a1_desc">Smart book recommendations based on learner profile and accessibility needs.</div>
+        <div class="agent-v2-footer">
+          <span class="agent-v2-tag">Discover</span>
+          <span class="agent-v2-arrow">↗</span>
+        </div>
+      </a>
+
+      <a href="reading-companion.html" class="agent-card-v2 reveal reveal-delay-1" style="--ac:#06b6d4;--ac-dim:rgba(6,182,212,0.07);" aria-label="Open Reading Companion Agent">
+        <div class="agent-v2-num">02</div>
+        <div class="agent-v2-icon-wrap">📖</div>
+        <div class="agent-v2-name" data-i18n="a2_name">Reading Companion</div>
+        <div class="agent-v2-desc" data-i18n="a2_desc">Personal reading guide with comprehension support, vocabulary, and audio navigation.</div>
+        <div class="agent-v2-footer">
+          <span class="agent-v2-tag">Read</span>
+          <span class="agent-v2-arrow">↗</span>
+        </div>
+      </a>
+
+      <a href="adhd-agent.html" class="agent-card-v2 reveal reveal-delay-2" style="--ac:#f59e0b;--ac-dim:rgba(245,158,11,0.07);" aria-label="Open ADHD Adaptive Agent">
+        <div class="agent-v2-num">03</div>
+        <div class="agent-v2-icon-wrap">⚡</div>
+        <div class="agent-v2-name" data-i18n="a3_name">ADHD Agent</div>
+        <div class="agent-v2-desc" data-i18n="a3_desc">Focus windows, micro-sessions, smart highlighting, and note builder for ADHD learners.</div>
+        <div class="agent-v2-footer">
+          <span class="agent-v2-tag">Focus</span>
+          <span class="agent-v2-arrow">↗</span>
+        </div>
+      </a>
+
+      <a href="dyslexia-agent.html" class="agent-card-v2 reveal" style="--ac:#22c55e;--ac-dim:rgba(34,197,94,0.07);" aria-label="Open Dyslexia Adaptive Agent">
+        <div class="agent-v2-num">04</div>
+        <div class="agent-v2-icon-wrap">🔤</div>
+        <div class="agent-v2-name" data-i18n="a4_name">Dyslexia Agent</div>
+        <div class="agent-v2-desc" data-i18n="a4_desc">Dyslexia-friendly fonts, colour overlays, reading ruler, and visual mind maps.</div>
+        <div class="agent-v2-footer">
+          <span class="agent-v2-tag">Read Easier</span>
+          <span class="agent-v2-arrow">↗</span>
+        </div>
+      </a>
+
+      <a href="blind-audio.html" class="agent-card-v2 reveal reveal-delay-1" style="--ac:#8b5cf6;--ac-dim:rgba(139,92,246,0.07);" aria-label="Open Blind Audio Navigation Agent">
+        <div class="agent-v2-num">05</div>
+        <div class="agent-v2-icon-wrap">🔊</div>
+        <div class="agent-v2-name" data-i18n="a5_name">Blind Audio Agent</div>
+        <div class="agent-v2-desc" data-i18n="a5_desc">Full audio navigation and text-to-speech for blind and low-vision learners.</div>
+        <div class="agent-v2-footer">
+          <span class="agent-v2-tag">Listen</span>
+          <span class="agent-v2-arrow">↗</span>
+        </div>
+      </a>
+
+      <a href="sign-language.html" class="agent-card-v2 reveal reveal-delay-2" style="--ac:#ec4899;--ac-dim:rgba(236,72,153,0.07);" aria-label="Open Sign Language Agent">
+        <div class="agent-v2-num">06</div>
+        <div class="agent-v2-icon-wrap">🤟</div>
+        <div class="agent-v2-name" data-i18n="a6_name">Sign Language Agent</div>
+        <div class="agent-v2-desc" data-i18n="a6_desc">MSL/BIM visual sign cards, alphabet guide, and common phrases for deaf learners.</div>
+        <div class="agent-v2-footer">
+          <span class="agent-v2-tag">Sign</span>
+          <span class="agent-v2-arrow">↗</span>
+        </div>
+      </a>
+
+      <a href="early-warning.html" class="agent-card-v2 reveal" style="--ac:#ef4444;--ac-dim:rgba(239,68,68,0.07);" aria-label="Open Early Warning Agent">
+        <div class="agent-v2-num">07</div>
+        <div class="agent-v2-icon-wrap">⚠️</div>
+        <div class="agent-v2-name" data-i18n="a7_name">Early Warning Agent</div>
+        <div class="agent-v2-desc" data-i18n="a7_desc">Performance monitoring that flags at-risk learners and triggers timely educator alerts.</div>
+        <div class="agent-v2-footer">
+          <span class="agent-v2-tag">Monitor</span>
+          <span class="agent-v2-arrow">↗</span>
+        </div>
+      </a>
+
+      <a href="intervention.html" class="agent-card-v2 reveal reveal-delay-1" style="--ac:#10b981;--ac-dim:rgba(16,185,129,0.07);" aria-label="Open Intervention Recommendation Agent">
+        <div class="agent-v2-num">08</div>
+        <div class="agent-v2-icon-wrap">💡</div>
+        <div class="agent-v2-name" data-i18n="a8_name">Intervention Agent</div>
+        <div class="agent-v2-desc" data-i18n="a8_desc">AI-generated personalised strategies, action plans, and curated resource library.</div>
+        <div class="agent-v2-footer">
+          <span class="agent-v2-tag">Plan</span>
+          <span class="agent-v2-arrow">↗</span>
+        </div>
+      </a>
+
+    </div>
+
+    <div class="text-center" style="margin-top:36px;">
+      <a href="dashboard.html" class="btn btn-outline" data-i18n="btn_view_all_agents">View All Agents in Dashboard →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ════ LEARNERS ════ -->
+<section class="learners-section" aria-labelledby="learners-heading">
+  <div class="container">
+    <div class="section-header text-center reveal" style="margin-bottom:48px;">
+      <h2 class="section-title" style="font-size:clamp(22px,3.5vw,32px);" id="learners-heading" data-i18n="learners_title">Supporting Every Learner</h2>
+      <p class="section-desc" style="max-width:480px;margin:10px auto 0;" data-i18n="learners_section_desc">Inclusive AI tools designed from the ground up for diverse learning needs in Malaysian classrooms and homes.</p>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
+
+      <div class="learner-card-v2 reveal" style="--lc:#8b5cf6;--lc2:#6366f1;">
+        <div class="learner-icon-wrap" style="background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(99,102,241,0.1));border-color:rgba(139,92,246,0.3);">🔆</div>
+        <div class="learner-v2-name" data-i18n="learner_blind">Blind & Low Vision</div>
+        <div class="learner-v2-desc" data-i18n="learner_blind_desc">Full audio navigation, keyboard shortcuts, and TTS for independent learning.</div>
+        <div class="learner-v2-agents" data-i18n="learner_blind_agent">Blind Audio Agent</div>
+      </div>
+
+      <div class="learner-card-v2 reveal reveal-delay-1" style="--lc:#ec4899;--lc2:#f43f5e;">
+        <div class="learner-icon-wrap" style="background:linear-gradient(135deg,rgba(236,72,153,0.2),rgba(244,63,94,0.1));border-color:rgba(236,72,153,0.3);">🤟</div>
+        <div class="learner-v2-name" data-i18n="learner_deaf">Deaf & Hard of Hearing</div>
+        <div class="learner-v2-desc" data-i18n="learner_deaf_desc">MSL/BIM sign cards, visual reading modes, and captioned content support.</div>
+        <div class="learner-v2-agents" data-i18n="learner_deaf_agent">Sign Language Agent</div>
+      </div>
+
+      <div class="learner-card-v2 reveal reveal-delay-2" style="--lc:#f59e0b;--lc2:#f97316;">
+        <div class="learner-icon-wrap" style="background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(249,115,22,0.1));border-color:rgba(245,158,11,0.3);">🧠</div>
+        <div class="learner-v2-name" data-i18n="learner_adhd">ADHD</div>
+        <div class="learner-v2-desc" data-i18n="learner_adhd_desc">Micro-sessions, focus timers, reading windows, and interest-driven engagement.</div>
+        <div class="learner-v2-agents" data-i18n="learner_adhd_agent">ADHD Agent</div>
+      </div>
+
+      <div class="learner-card-v2 reveal reveal-delay-3" style="--lc:#22c55e;--lc2:#10b981;">
+        <div class="learner-icon-wrap" style="background:linear-gradient(135deg,rgba(34,197,94,0.2),rgba(16,185,129,0.1));border-color:rgba(34,197,94,0.3);">🔤</div>
+        <div class="learner-v2-name" data-i18n="learner_dyslexia">Dyslexia</div>
+        <div class="learner-v2-desc" data-i18n="learner_dyslexia_desc">Friendly fonts, colour overlays, reading rulers, and mind map visualisation.</div>
+        <div class="learner-v2-agents" data-i18n="learner_dyslexia_agent">Dyslexia Agent</div>
+      </div>
+
+      <div class="learner-card-v2 reveal reveal-delay-4" style="--lc:#6366f1;--lc2:#06b6d4;">
+        <div class="learner-icon-wrap" style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(6,182,212,0.1));border-color:rgba(99,102,241,0.3);">🌟</div>
+        <div class="learner-v2-name" data-i18n="learner_general">All Learners</div>
+        <div class="learner-v2-desc" data-i18n="learner_general_desc">AI Librarian, Reading Companion, and Intervention Agent serve every student.</div>
+        <div class="learner-v2-agents" data-i18n="learner_general_agent">All 8 Agents</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════ HOW IT WORKS ════ -->
+<section class="how-section" aria-labelledby="how-heading">
+  <div class="container">
+    <div class="section-header text-center reveal" style="margin-bottom:48px;">
+      <h2 class="section-title" style="font-size:clamp(22px,3.5vw,32px);" id="how-heading" data-i18n="how_title">How It Works</h2>
+      <p class="section-desc" style="max-width:460px;margin:10px auto 0;" data-i18n="how_desc">Three steps from signup to a fully personalised, accessible learning experience.</p>
+    </div>
+    <div style="display:flex;align-items:stretch;gap:0;max-width:1000px;margin:0 auto;">
+
+      <div class="step-card reveal" style="flex:1;">
+        <div class="step-num" aria-hidden="true">1</div>
+        <span class="step-icon">👤</span>
+        <div class="step-title" data-i18n="how_step1_title">Set Your Profile</div>
+        <div class="step-desc" data-i18n="how_step1_desc">Tell CelikSense about your learning needs, language preference, and interests. Takes under two minutes.</div>
+        <div style="margin-top:16px;"><a href="profile.html" class="btn btn-outline btn-sm" data-i18n="how_step1_btn">Go to Profile</a></div>
+      </div>
+
+      <div class="step-connector" aria-hidden="true">→</div>
+
+      <div class="step-card reveal reveal-delay-1" style="flex:1;">
+        <div class="step-num" aria-hidden="true">2</div>
+        <span class="step-icon">🤖</span>
+        <div class="step-title" data-i18n="how_step2_title">AI Adapts for You</div>
+        <div class="step-desc" data-i18n="how_step2_desc">The 8 agents automatically configure fonts, audio, overlays, session length, and language to match your profile.</div>
+        <div style="margin-top:16px;"><a href="dashboard.html" class="btn btn-outline btn-sm" data-i18n="how_step2_btn">Open Dashboard</a></div>
+      </div>
+
+      <div class="step-connector" aria-hidden="true">→</div>
+
+      <div class="step-card reveal reveal-delay-2" style="flex:1;">
+        <div class="step-num" aria-hidden="true">3</div>
+        <span class="step-icon">📈</span>
+        <div class="step-title" data-i18n="how_step3_title">Learn Without Barriers</div>
+        <div class="step-desc" data-i18n="how_step3_desc">Read, listen, sign, and explore. The Early Warning Agent monitors your progress and suggests interventions when needed.</div>
+        <div style="margin-top:16px;"><a href="reading-companion.html" class="btn btn-outline btn-sm" data-i18n="how_step3_btn">Start Reading</a></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════ WHY ════ -->
+<section class="why-section" aria-labelledby="why-heading">
+  <div class="container">
+    <div class="section-header text-center reveal" style="margin-bottom:48px;">
+      <h2 class="section-title" style="font-size:clamp(22px,3.5vw,32px);" id="why-heading" data-i18n="why_title">Why CelikSense AI?</h2>
+      <p class="section-desc" style="max-width:480px;margin:10px auto 0;" data-i18n="why_desc">Designed from the ground up for inclusive, accessible, bilingual learning.</p>
+    </div>
+    <div class="grid grid-3" style="gap:16px;">
+      <div class="why-card reveal"><div class="why-icon-wrap">🤖</div><div class="why-title" data-i18n="why1_title">Truly Agentic AI</div><div class="why-desc" data-i18n="why1_desc">8 specialised agents that communicate and co-ordinate to personalise every session, not just a single chatbot.</div></div>
+      <div class="why-card reveal reveal-delay-1"><div class="why-icon-wrap">🌏</div><div class="why-title" data-i18n="why2_title">Bilingual Throughout</div><div class="why-desc" data-i18n="why2_desc">Complete English and Bahasa Melayu support across every agent, every label, and every audio instruction.</div></div>
+      <div class="why-card reveal reveal-delay-2"><div class="why-icon-wrap">♿</div><div class="why-title" data-i18n="why3_title">Built for Access</div><div class="why-desc" data-i18n="why3_desc">Keyboard navigation, ARIA labels, TTS, high-contrast mode, and screen-reader support are first-class features, not add-ons.</div></div>
+      <div class="why-card reveal"><div class="why-icon-wrap">🎯</div><div class="why-title" data-i18n="why4_title">Adaptive by Default</div><div class="why-desc" data-i18n="why4_desc">Learns your preferences, adjusts fonts, colours, session lengths, and content difficulty automatically session by session.</div></div>
+      <div class="why-card reveal reveal-delay-1"><div class="why-icon-wrap">📊</div><div class="why-title" data-i18n="why5_title">Early Warning System</div><div class="why-desc" data-i18n="why5_desc">Proactively identifies learners at risk and generates personalised, prioritised intervention plans for educators.</div></div>
+      <div class="why-card reveal reveal-delay-2"><div class="why-icon-wrap">🔊</div><div class="why-title" data-i18n="why6_title">Multi-Sensory Learning</div><div class="why-desc" data-i18n="why6_desc">Visual, audio, tactile, and sign-language modes mean every learner finds a path that works for their brain.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CTA ════ -->
+<section class="cta-section" aria-labelledby="cta-heading">
+  <div class="cta-bg" aria-hidden="true"></div>
+  <div class="cta-inner reveal">
+    <div class="page-badge" style="margin-bottom:20px;" data-i18n="cta_badge">Ready to start?</div>
+    <h2 class="cta-headline" id="cta-heading" data-i18n="cta_headline">Learning that <span style="color:#fde68a;-webkit-text-fill-color:#fde68a;font-weight:900;">adapts to you</span></h2>
+    <p class="cta-sub" data-i18n="cta_sub">Join educators and learners across Malaysia using CelikSense AI to make reading, comprehension, and communication genuinely accessible.</p>
+    <div class="cta-btns">
+      <a href="dashboard.html" class="btn btn-primary btn-lg" data-i18n="cta_btn1">Open Dashboard →</a>
+      <a href="profile.html" class="btn btn-outline btn-lg" data-i18n="cta_btn2">Create Profile</a>
+    </div>
+  </div>
+</section>
+
+<!-- ════ FOOTER ════ -->
+<footer class="site-footer" role="contentinfo">
+  <div class="container">
+    <div class="footer-top">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;flex-wrap:wrap;">
+        <div class="footer-brand-col">
+          <div class="footer-logo-wrap">
+            <div class="brand-icon" aria-hidden="true">CS</div>
+            <span class="brand-name" style="font-size:18px;">CelikSense AI</span>
+          </div>
+          <p class="footer-tagline-text" data-i18n="footer_tagline1">Agentic Multi-Sensory Learning Ecosystem for inclusive education in Malaysia and beyond.</p>
+          <p class="footer-tagline-text" style="margin-top:8px;font-style:italic;color:var(--text-dim);" data-i18n="footer_tagline2">Knowledge Without Barrier, Intelligence Without Limits.</p>
+          <div class="footer-social" aria-label="Social links">
+            <button class="footer-social-btn" disabled aria-hidden="true">✉</button>
+            <button class="footer-social-btn" disabled aria-hidden="true">f</button>
+            <button class="footer-social-btn" disabled aria-hidden="true">𝕏</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-col-title" data-i18n="footer_col_core">Core Agents</div>
+          <div class="footer-link-list">
+            <a href="ai-librarian.html"><span aria-hidden="true">📚</span> AI Librarian</a>
+            <a href="reading-companion.html"><span aria-hidden="true">📖</span> Reading Companion</a>
+            <a href="adhd-agent.html"><span aria-hidden="true">🧠</span> ADHD Agent</a>
+            <a href="dyslexia-agent.html"><span aria-hidden="true">🔤</span> Dyslexia Agent</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-col-title" data-i18n="footer_col_more">More Agents</div>
+          <div class="footer-link-list">
+            <a href="blind-audio.html"><span aria-hidden="true">🔊</span> Blind Audio</a>
+            <a href="sign-language.html"><span aria-hidden="true">🤟</span> Sign Language</a>
+            <a href="early-warning.html"><span aria-hidden="true">⚠️</span> Early Warning</a>
+            <a href="intervention.html"><span aria-hidden="true">💡</span> Intervention</a>
+          </div>
+        </div>
+
+        <div>
+          <div class="footer-col-title" data-i18n="footer_col_platform">Platform</div>
+          <div class="footer-link-list">
+            <a href="index.html">Home</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="profile.html">My Profile</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom-bar">
+      <span>© 2026 CelikSense AI. All rights reserved.</span>
+      <div class="footer-bottom-links" role="list">
+        <a href="#" role="listitem">Privacy</a>
+        <a href="#" role="listitem">Accessibility</a>
+        <a href="#" role="listitem">Contact</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="shared.js"></script>
+<script>
+/* ── Hero canvas: animated particle field ── */
+(function(){
+  const canvas = document.getElementById('heroCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles;
+  const N = 80;
+
+  function resize(){
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+
+  function initParticles(){
+    particles = Array.from({length:N},()=>({
+      x: Math.random()*W, y: Math.random()*H,
+      vx: (Math.random()-0.5)*0.35,
+      vy: (Math.random()-0.5)*0.35,
+      r: Math.random()*1.5+0.5,
+      a: Math.random()
+    }));
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Connections
+    ctx.lineWidth = 0.5;
+    for(let i=0;i<N;i++){
+      for(let j=i+1;j<N;j++){
+        const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<120){
+          const a=(1-d/120)*0.12;
+          ctx.strokeStyle=`rgba(129,140,248,${a})`;
+          ctx.beginPath(); ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y); ctx.stroke();
+        }
+      }
+    }
+    // Dots
+    particles.forEach(p=>{
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(129,140,248,${p.a*0.4})`;
+      ctx.fill();
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>W) p.vx*=-1;
+      if(p.y<0||p.y>H) p.vy*=-1;
+    });
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener('resize', ()=>{ resize(); });
+  resize(); initParticles(); draw();
+})();
+
+
+/* ── Scroll reveal ── */
+(function(){
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+  },{threshold:0.12});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+})();
+
+/* ── Hamburger aria ── */
+document.getElementById('hamburger').addEventListener('click',function(){
+  const expanded = this.getAttribute('aria-expanded')==='true';
+  this.setAttribute('aria-expanded', String(!expanded));
+});
+</script>
+</body>
+</html>

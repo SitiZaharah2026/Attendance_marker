@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile – CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.profile-layout { display:grid; grid-template-columns:300px 1fr; gap:24px; align-items:start; }
+
+/* Avatar */
+.avatar-ring {
+  width:90px;height:90px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;font-weight:900;color:white;
+  position:relative;
+  flex-shrink:0;
+  box-shadow:0 0 0 4px rgba(99,102,241,0.2);
+}
+.avatar-ring .status-dot {
+  position:absolute;bottom:4px;right:4px;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--success);
+  border:2px solid var(--bg-surface);
+}
+.profile-name { font-size:22px; font-weight:800; margin-bottom:4px; }
+.profile-role { font-size:13px; color:var(--text-muted); margin-bottom:12px; }
+.profile-badges { display:flex; gap:6px; flex-wrap:wrap; }
+
+/* Tab nav */
+.tab-nav { display:flex; gap:2px; margin-bottom:24px; background:var(--bg-surface); padding:4px; border-radius:12px; border:1px solid var(--border); }
+.tab-link {
+  flex:1;padding:9px 14px;border-radius:9px;border:none;
+  background:transparent;color:var(--text-muted);
+  font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition);
+  white-space:nowrap;text-align:center;
+}
+.tab-link.active { background:var(--bg-card); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,0.2); }
+.tab-link:hover:not(.active) { color:var(--text); }
+.tab-pane { display:none; }
+.tab-pane.active { display:block; }
+
+/* Achievement badges */
+.achievement-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px; }
+.achievement { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 10px; text-align:center; transition:var(--transition); }
+.achievement.earned { border-color:rgba(245,158,11,0.3); }
+.achievement.earned:hover { transform:translateY(-2px); box-shadow:var(--shadow); }
+.achievement.locked { opacity:0.35; }
+.achievement-icon { font-size:28px; margin-bottom:6px; display:block; }
+.achievement-name { font-size:11px; font-weight:700; color:var(--text); }
+.achievement-desc { font-size:10px; color:var(--text-dim); margin-top:2px; }
+
+/* Activity feed */
+.activity-feed { display:flex; flex-direction:column; gap:0; }
+.activity-entry {
+  display:flex;align-items:flex-start;gap:14px;
+  padding:14px 0;
+  border-bottom:1px solid var(--border);
+  position:relative;
+}
+.activity-entry:last-child { border-bottom:none; }
+.activity-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px; }
+.activity-body { flex:1; }
+.activity-title { font-size:14px; font-weight:600; margin-bottom:2px; }
+.activity-meta { font-size:12px; color:var(--text-dim); }
+.activity-badge { margin-left:auto; flex-shrink:0; }
+
+/* Accessibility prefs */
+.pref-row { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--border); }
+.pref-row:last-child { border-bottom:none; }
+.pref-label { font-size:14px; font-weight:600; }
+.pref-desc { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.toggle-switch { position:relative; display:inline-block; width:44px; height:24px; }
+.toggle-switch input { opacity:0; width:0; height:0; }
+.toggle-slider {
+  position:absolute;inset:0;
+  background:var(--bg-hover);
+  border-radius:12px;cursor:pointer;
+  border:1px solid var(--border);
+  transition:var(--transition);
+}
+.toggle-slider::before {
+  content:'';
+  position:absolute;
+  width:18px;height:18px;
+  left:2px;top:2px;
+  background:var(--text-dim);
+  border-radius:50%;
+  transition:var(--transition);
+}
+.toggle-switch input:checked + .toggle-slider { background:var(--primary); border-color:var(--primary); }
+.toggle-switch input:checked + .toggle-slider::before { transform:translateX(20px); background:white; }
+
+/* Reading list in profile */
+.reading-item { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+.reading-item:last-child { border-bottom:none; }
+.reading-cover { width:40px;height:52px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0; }
+.reading-title { font-size:14px; font-weight:600; margin-bottom:2px; }
+.reading-progress-mini { height:4px; background:var(--bg-surface); border-radius:2px; margin-top:6px; }
+.reading-fill-mini { height:100%; border-radius:2px; background:linear-gradient(90deg,var(--primary),var(--accent)); }
+
+/* Editable field */
+.editable-field {
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  font-size:14px;
+  transition:var(--transition);
+}
+.editable-field:hover { border-color:rgba(99,102,241,0.3); }
+.editable-value { flex:1; color:var(--text); font-weight:500; }
+.edit-btn { font-size:12px; color:var(--text-dim); cursor:pointer; background:transparent; border:none; padding:2px 6px; border-radius:4px; transition:var(--transition); }
+.edit-btn:hover { color:var(--primary-light); background:rgba(99,102,241,0.1); }
+
+@media(max-width:768px){
+  .profile-layout { grid-template-columns:1fr; }
+  .tab-nav { flex-wrap:wrap; }
+  .tab-link { flex:none; }
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand">
+      <div class="brand-icon">CS</div>
+      <div>
+        <span class="brand-name">CelikSense AI</span>
+        <span class="brand-tagline" data-i18n="tagline">Agentic Multi-Sensory Learning</span>
+      </div>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="dashboard.html" data-i18n="nav_dashboard">Dashboard</a>
+      <div class="nav-dropdown">
+        <button data-i18n="nav_agents" aria-haspopup="true" aria-expanded="false">Agents ▾</button>
+        <div class="dropdown-menu">
+          <a href="ai-librarian.html">📚 AI Librarian</a>
+          <a href="reading-companion.html">📖 Reading Companion</a>
+          <a href="adhd-agent.html">🧠 ADHD Agent</a>
+          <a href="dyslexia-agent.html">🔤 Dyslexia Agent</a>
+          <a href="blind-audio.html">🔊 Blind Audio Agent</a>
+          <a href="sign-language.html">🤟 Sign Language Agent</a>
+          <a href="early-warning.html">⚠️ Early Warning Agent</a>
+          <a href="intervention.html">💡 Intervention Agent</a>
+        </div>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn" aria-label="Switch to Bahasa Melayu">BM</button>
+      <a href="profile.html" class="btn btn-ghost btn-sm active">👤 Profile</a>
+      <a href="dashboard.html" class="btn btn-primary btn-sm">Dashboard</a>
+      <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
+      <button class="nav-hamburger" onclick="toggleNav()">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page-header" style="padding-bottom:24px;">
+  <div class="page-badge">👤 My Profile</div>
+  <h1 class="page-title gradient-text">Learner Profile</h1>
+  <p class="page-subtitle">Manage your accessibility settings, reading preferences, and learning history.</p>
+</div>
+
+<div class="container" style="padding-bottom:60px;">
+  <div class="profile-layout">
+
+    <!-- ── LEFT SIDEBAR ── -->
+    <div>
+      <!-- Profile Card -->
+      <div class="card" style="margin-bottom:16px;text-align:center;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+          <div class="avatar-ring" id="avatarEl">
+            <span id="avatarInitials">AZ</span>
+            <div class="status-dot" title="Online"></div>
+          </div>
+          <div>
+            <div class="profile-name" id="displayName">Ahmad Zaki</div>
+            <div class="profile-role" id="displayRole">Primary 4 · ADHD Learner</div>
+          </div>
+          <div class="profile-badges">
+            <span class="badge badge-warning" id="needBadge">ADHD</span>
+            <span class="badge badge-primary" id="langBadge">Bilingual</span>
+            <span class="badge badge-success">Active</span>
+          </div>
+          <button class="btn btn-outline btn-sm w-full" onclick="showTab('settings')">✏️ Edit Profile</button>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="control-panel" style="margin-bottom:16px;">
+        <div class="panel-title">📊 This Week</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="stat-card"><div class="stat-value" style="font-size:24px;">12</div><div class="stat-label">Sessions</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:24px;">3.2h</div><div class="stat-label">Read Time</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:24px;">84</div><div class="stat-label">Focus Score</div></div>
+          <div class="stat-card"><div class="stat-value" style="font-size:24px;">5</div><div class="stat-label">Books</div></div>
+        </div>
+      </div>
+
+      <!-- Quick Nav -->
+      <div class="control-panel">
+        <div class="panel-title">⚡ Quick Access</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <a href="adhd-agent.html" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">🧠 My ADHD Agent</a>
+          <a href="reading-companion.html" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">📖 Reading Companion</a>
+          <a href="ai-librarian.html" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">📚 My Reading List</a>
+          <a href="early-warning.html" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">⚠️ Risk Report</a>
+          <a href="intervention.html" class="btn btn-ghost btn-sm" style="justify-content:flex-start;">💡 Intervention Plan</a>
+          <a href="dashboard.html" class="btn btn-primary btn-sm">📊 Dashboard</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RIGHT MAIN ── -->
+    <div>
+      <!-- Tabs -->
+      <div class="tab-nav" role="tablist">
+        <button class="tab-link active" onclick="showTab('overview')" role="tab" aria-selected="true" aria-controls="tab-overview">Overview</button>
+        <button class="tab-link" onclick="showTab('settings')" role="tab" aria-selected="false" aria-controls="tab-settings">Profile Settings</button>
+        <button class="tab-link" onclick="showTab('accessibility')" role="tab" aria-selected="false" aria-controls="tab-accessibility">Accessibility</button>
+        <button class="tab-link" onclick="showTab('activity')" role="tab" aria-selected="false" aria-controls="tab-activity">Activity</button>
+        <button class="tab-link" onclick="showTab('achievements')" role="tab" aria-selected="false" aria-controls="tab-achievements">Achievements</button>
+      </div>
+
+      <!-- ── OVERVIEW ── -->
+      <div class="tab-pane active" id="tab-overview">
+
+        <!-- Learning Profile Summary -->
+        <section class="ps-card" aria-label="Learning Profile Summary" style="margin:20px 0;">
+          <div class="ps-card-title" data-i18n="ps_profile_summary">📊 Learning Profile Summary</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:14px 0;" id="psProfileStats"></div>
+          <div style="margin-top:12px;">
+            <span data-i18n="ps_preferred_mode_label">Preferred Mode: </span><span id="psPreferredModeBadge" class="ps-mode-badge"></span>
+          </div>
+          <a href="personalisation-agent.html" style="display:inline-block;margin-top:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:10px 22px;border-radius:12px;font-weight:800;font-size:14px;text-decoration:none;" data-i18n="ps_view_full">🧠 View Full Learning Profile</a>
+        </section>
+
+        <a href="ai-teacher-agent.html" style="display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(239,68,68,.05));border:1.5px solid rgba(245,158,11,.3);border-radius:16px;padding:16px;text-decoration:none;color:#1e293b;margin:8px 0;transition:box-shadow .2s;" aria-label="Open AI Teacher Agent" onmouseover="this.style.boxShadow='0 4px 18px rgba(245,158,11,.2)'" onmouseout="this.style.boxShadow=''">
+          <span style="font-size:30px;" aria-hidden="true">👩‍🏫</span>
+          <div>
+            <div style="font-weight:800;font-size:15px;" data-i18n="teacher_agent_title">AI Teacher Agent</div>
+            <div style="font-size:13px;color:#64748b;margin-top:3px;" data-i18n="teacher_agent_desc">Explains books, generates quizzes, answers questions, creates mind maps, and motivates learners.</div>
+          </div>
+        </a>
+
+        <div class="sl-card-section" style="margin:8px 0;background:linear-gradient(135deg,rgba(236,72,153,.05),rgba(139,92,246,.05));border-color:rgba(139,92,246,.2);">
+  <div class="sl-card-title" data-i18n="avatar_profile_section">👤 My Sign Language Avatar</div>
+  <div id="profileAvatarDisplay" style="display:none;">
+    <div class="ca-avatar-widget">
+      <img id="profileAvatarImg" class="ca-avatar-mini" alt="My Avatar" />
+      <div>
+        <div style="font-weight:800;font-size:15px;" id="profileAvatarName">My Avatar</div>
+        <div style="font-size:12px;color:#64748b;margin-top:3px;" data-i18n="avatar_profile_ready">Avatar ready for signing</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+      <a href="sign-language.html" style="background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff;padding:9px 18px;border-radius:10px;font-weight:700;font-size:13px;text-decoration:none;" data-i18n="avatar_go_sign">🤟 Start Signing</a>
+      <button onclick="profileUpdateAvatar()" style="background:#f1f5f9;color:#475569;border:1.5px solid #e2e8f0;padding:9px 18px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;" data-i18n="avatar_update">📷 Update Avatar</button>
+      <button onclick="profileDeleteAvatar()" style="background:#fee2e2;color:#ef4444;border:1.5px solid #fecaca;padding:9px 18px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;" data-i18n="avatar_delete">🗑️ Delete</button>
+    </div>
+  </div>
+  <div id="profileAvatarCreate" style="text-align:center;padding:16px 0;">
+    <div style="font-size:13px;color:#64748b;margin-bottom:10px;" data-i18n="avatar_no_avatar">No avatar created yet.</div>
+    <a href="sign-language.html" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:10px 20px;border-radius:12px;font-weight:700;font-size:14px;text-decoration:none;" data-i18n="avatar_create_now">📷 Create My Avatar</a>
+  </div>
+</div>
+
+        <!-- Progress Overview -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="panel-title">📈 Learning Progress</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
+            <div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Reading Progress</div>
+              <div style="font-size:24px;font-weight:800;color:var(--primary-light);">72%</div>
+              <div class="progress-bar" style="margin-top:8px;"><div class="progress-fill" style="width:72%"></div></div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">3 of 5 chapters</div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Comprehension</div>
+              <div style="font-size:24px;font-weight:800;color:var(--success);">88%</div>
+              <div class="progress-bar" style="margin-top:8px;"><div class="progress-fill" style="width:88%;background:var(--success)"></div></div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Above average</div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Focus Score</div>
+              <div style="font-size:24px;font-weight:800;color:var(--warning);">76</div>
+              <div class="progress-bar" style="margin-top:8px;"><div class="progress-fill" style="width:76%;background:var(--warning)"></div></div>
+              <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Improving ↑</div>
+            </div>
+          </div>
+          <div class="alert alert-info" style="margin:0;font-size:13px;">
+            <span>💡</span>
+            <div>Your comprehension score is strong. Try increasing session length from 10 to 15 minutes this week. <a href="adhd-agent.html" style="color:var(--primary-light);font-weight:600;">Open ADHD Agent →</a></div>
+          </div>
+        </div>
+
+        <!-- Current Reading List -->
+        <div class="card" style="margin-bottom:16px;">
+          <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between;">
+            📚 Currently Reading
+            <a href="ai-librarian.html" class="btn btn-ghost btn-sm">Find More Books</a>
+          </div>
+          <div id="readingListProfile">
+            <div class="reading-item">
+              <div class="reading-cover" style="background:rgba(34,197,94,0.1);">📗</div>
+              <div style="flex:1;">
+                <div class="reading-title">The Magic of Reading</div>
+                <div style="font-size:12px;color:var(--text-muted);">Ahmad Zaki · Chapter 3 of 5</div>
+                <div class="reading-progress-mini"><div class="reading-fill-mini" style="width:60%"></div></div>
+              </div>
+              <a href="reading-companion.html" class="btn btn-primary btn-sm">Continue</a>
+            </div>
+            <div class="reading-item">
+              <div class="reading-cover" style="background:rgba(99,102,241,0.1);">🔬</div>
+              <div style="flex:1;">
+                <div class="reading-title">Dunia Sains Kita</div>
+                <div style="font-size:12px;color:var(--text-muted);">Nur Azlina · Chapter 1 of 8</div>
+                <div class="reading-progress-mini"><div class="reading-fill-mini" style="width:12%"></div></div>
+              </div>
+              <a href="reading-companion.html" class="btn btn-outline btn-sm">Read</a>
+            </div>
+            <div class="reading-item">
+              <div class="reading-cover" style="background:rgba(245,158,11,0.1);">🧪</div>
+              <div style="flex:1;">
+                <div class="reading-title">My First Science Book</div>
+                <div style="font-size:12px;color:var(--text-muted);">Raj Kumar · Complete ✓</div>
+                <div class="reading-progress-mini"><div class="reading-fill-mini" style="width:100%;background:var(--success)"></div></div>
+              </div>
+              <span class="badge badge-success">Done</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommended Intervention -->
+        <div class="card">
+          <div class="panel-title">💡 AI Recommendation</div>
+          <div class="intervention-card" style="margin-bottom:0;">
+            <div class="intervention-priority">Based on your last 7 sessions</div>
+            <div class="intervention-title">Try 15-Minute Focus Sessions This Week</div>
+            <div class="intervention-desc">Your focus scores have been consistently above 75 for 3 sessions. The ADHD Agent suggests stepping up from 10-minute to 15-minute sessions while keeping 3-minute breaks.</div>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+              <a href="adhd-agent.html" class="btn btn-primary btn-sm">Open ADHD Agent</a>
+              <a href="intervention.html" class="btn btn-ghost btn-sm">Full Plan</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SETTINGS ── -->
+      <div class="tab-pane" id="tab-settings">
+        <div class="card" style="margin-bottom:16px;">
+          <div class="panel-title">👤 Personal Information</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-control" id="settingName" value="Ahmad Zaki" oninput="updateDisplayName()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Display ID / Username</label>
+              <input type="text" class="form-control" value="AhmadZ_04" readonly style="opacity:0.6;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" class="form-control" value="ahmad.zaki@school.edu.my">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Role</label>
+              <select class="form-control" id="settingRole" onchange="updateRole()">
+                <option value="student" selected>Student / Learner</option>
+                <option value="teacher">Teacher / Educator</option>
+                <option value="parent">Parent / Guardian</option>
+                <option value="admin">School Administrator</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <div class="panel-title">📚 Learning Profile</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="form-group">
+              <label class="form-label">Primary Learning Need</label>
+              <select class="form-control" id="settingNeed" onchange="updateNeedBadge()">
+                <option value="adhd" selected>ADHD</option>
+                <option value="dyslexia">Dyslexia</option>
+                <option value="blind">Blind / Low Vision</option>
+                <option value="deaf">Deaf / Hard of Hearing</option>
+                <option value="general">General Learner</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Grade Level</label>
+              <select class="form-control" onchange="updateRole()">
+                <option>Primary 1</option><option>Primary 2</option><option>Primary 3</option>
+                <option selected>Primary 4</option><option>Primary 5</option><option>Primary 6</option>
+                <option>Secondary 1</option><option>Secondary 2</option><option>Secondary 3</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Language Preference</label>
+              <select class="form-control" id="settingLang" onchange="savePref()">
+                <option value="en">English</option>
+                <option value="bm">Bahasa Melayu</option>
+                <option value="both" selected>Bilingual (EN + BM)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Interests (for book matching)</label>
+              <input type="text" class="form-control" id="settingInterests" placeholder="e.g. science, football, music…" value="science, nature, sports">
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <div class="panel-title">⏱ Session Preferences</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="form-group">
+              <label class="form-label">Default Session Length</label>
+              <select class="form-control" id="settingSession">
+                <option>5 minutes</option>
+                <option selected>10 minutes</option>
+                <option>15 minutes</option>
+                <option>20 minutes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Break Length</label>
+              <select class="form-control">
+                <option>2 minutes</option>
+                <option selected>3 minutes</option>
+                <option>5 minutes</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-primary" onclick="saveSettings()">✅ Save Profile</button>
+          <button class="btn btn-ghost" onclick="resetSettings()">Reset</button>
+        </div>
+        <div id="saveMsg" class="hidden" style="margin-top:10px;"></div>
+      </div>
+
+      <!-- ── ACCESSIBILITY ── -->
+      <div class="tab-pane" id="tab-accessibility">
+        <div class="card" style="margin-bottom:16px;">
+          <div class="panel-title">👁️ Visual Accessibility</div>
+
+          <div class="pref-row">
+            <div>
+              <div class="pref-label">OpenDyslexic Font</div>
+              <div class="pref-desc">Use dyslexia-friendly font across all reading areas</div>
+            </div>
+            <label class="toggle-switch" aria-label="Toggle OpenDyslexic font">
+              <input type="checkbox" id="prefDyslexicFont" onchange="savePref()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="pref-row">
+            <div>
+              <div class="pref-label">Colour Overlay</div>
+              <div class="pref-desc">Default reading overlay colour</div>
+            </div>
+            <select class="form-control" style="width:130px;" id="prefOverlay" onchange="savePref()">
+              <option value="none">None</option>
+              <option value="yellow">Yellow</option>
+              <option value="blue">Blue</option>
+              <option value="green" selected>Green</option>
+              <option value="pink">Pink</option>
+              <option value="grey">Grey</option>
+            </select>
+          </div>
+
+          <div class="pref-row">
+            <div>
+              <div class="pref-label">Large Text Mode</div>
+              <div class="pref-desc">Increase default font size across all pages</div>
+            </div>
+            <label class="toggle-switch" aria-label="Toggle large text mode">
+              <input type="checkbox" id="prefLargeText" onchange="savePref();applyLargeText()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="pref-row">
+            <div>
+              <div class="pref-label">High Contrast Mode</div>
+              <div class="pref-desc">Increase contrast for low-vision learners</div>
+            </div>
+            <label class="toggle-switch" aria-label="Toggle high contrast">
+              <input type="checkbox" id="prefHighContrast" onchange="savePref()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="pref-row" style="border-bottom:none;">
+            <div>
+              <div class="pref-label">Reading Ruler</div>
+              <div class="pref-desc">Show reading ruler by default on all pages</div>
+            </div>
+            <label class="toggle-switch" aria-label="Toggle reading ruler">
+              <input type="checkbox" id="prefRuler" onchange="savePref()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <div class="panel-title">🔊 Audio Accessibility</div>
+
+          <div class="pref-row">
+            <div>
+              <div class="pref-label">Auto-Read on Page Load</div>
+              <div class="pref-desc">Automatically start audio guide when any agent opens</div>
+            </div>
+            <label class="toggle-switch" aria-label="Toggle auto-read">
+              <input type="checkbox" id="prefAutoRead" onchange="savePref()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="pref-row">
+            <div>
+              <div class="pref-label">TTS Speed</div>
+              <div class="pref-desc">Default speech rate for all Text-to-Speech</div>
+            </div>
+            <select class="form-control" style="width:120px;" id="prefTTSSpeed" onchange="saveTTSRate()">
+              <option value="0.6">Slow (0.6×)</option>
+              <option value="0.9" selected>Normal (0.9×)</option>
+              <option value="1.2">Fast (1.2×)</option>
+              <option value="1.5">Very Fast (1.5×)</option>
+            </select>
+          </div>
+
+          <div class="pref-row" style="border-bottom:none;">
+            <div>
+              <div class="pref-label">TTS Language</div>
+              <div class="pref-desc">Language for voice output (matches UI language by default)</div>
+            </div>
+            <select class="form-control" style="width:170px;" id="prefTTSLang" onchange="savePref()">
+              <option value="auto" selected>Auto (matches UI)</option>
+              <option value="en-US">English (US)</option>
+              <option value="en-GB">English (UK)</option>
+              <option value="ms-MY">Bahasa Melayu</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="panel-title">⌨ Navigation Preferences</div>
+          <div class="pref-row">
+            <div>
+              <div class="pref-label">Keyboard Navigation Hints</div>
+              <div class="pref-desc">Show keyboard shortcut hints on agent pages</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="prefKeyHints" checked onchange="savePref()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="pref-row" style="border-bottom:none;">
+            <div>
+              <div class="pref-label">Reduced Motion</div>
+              <div class="pref-desc">Minimise animations across all pages</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="prefReducedMotion" onchange="savePref();applyReducedMotion()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;">
+          <button class="btn btn-primary" onclick="saveAllPrefs()">✅ Save Accessibility Settings</button>
+          <span id="prefSaveMsg" style="margin-left:12px;font-size:13px;color:var(--success);display:none;">Saved!</span>
+        </div>
+      </div>
+
+      <!-- ── ACTIVITY ── -->
+      <div class="tab-pane" id="tab-activity">
+        <div class="card">
+          <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center;">
+            🕐 Recent Activity
+            <button class="btn btn-ghost btn-sm" onclick="clearActivity()">Clear All</button>
+          </div>
+          <div class="activity-feed" id="activityFeed">
+            <!-- populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ACHIEVEMENTS ── -->
+      <div class="tab-pane" id="tab-achievements">
+        <div class="card">
+          <div class="panel-title">🏆 Achievements</div>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">Earn badges by completing reading sessions and reaching milestones.</p>
+          <div class="achievement-grid" id="achievementsGrid"></div>
+        </div>
+      </div>
+
+    </div><!-- end right main -->
+  </div><!-- end profile-layout -->
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2026 CelikSense AI · <a href="index.html" style="color:var(--primary-light)">Home</a> · <a href="dashboard.html" style="color:var(--primary-light)">Dashboard</a></span>
+      <span>👤 Learner Profile</span>
+    </div>
+  </div>
+</footer>
+
+<script src="shared.js"></script>
+<script src="personalisation-system.js"></script>
+<script>
+/* ── TABS ── */
+function showTab(id) {
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-link').forEach(b=>{ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+  document.getElementById('tab-'+id).classList.add('active');
+  const btn = [...document.querySelectorAll('.tab-link')].find(b=>b.getAttribute('onclick')===`showTab('${id}')`);
+  if(btn){ btn.classList.add('active'); btn.setAttribute('aria-selected','true'); }
+}
+
+/* ── PROFILE UPDATES ── */
+function updateDisplayName() {
+  const v = document.getElementById('settingName').value;
+  document.getElementById('displayName').textContent = v || 'Learner';
+  const initials = v.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('avatarInitials').textContent = initials || 'L';
+}
+
+function updateRole() {
+  const role = document.getElementById('settingRole');
+  const grade = document.querySelector('#tab-settings select:nth-of-type(2)');
+  document.getElementById('displayRole').textContent = `${grade ? grade.value : 'Primary 4'} · ${needLabel(document.getElementById('settingNeed').value)} Learner`;
+}
+
+function updateNeedBadge() {
+  const val = document.getElementById('settingNeed').value;
+  document.getElementById('needBadge').textContent = needLabel(val);
+  const cls = {adhd:'badge-warning',dyslexia:'badge-success',blind:'badge-violet',deaf:'badge-cyan',general:'badge-primary'};
+  document.getElementById('needBadge').className = `badge ${cls[val]||'badge-primary'}`;
+}
+
+function needLabel(v){ return {adhd:'ADHD',dyslexia:'Dyslexia',blind:'Blind/LV',deaf:'Deaf/HoH',general:'General'}[v]||v.toUpperCase(); }
+
+/* ── SAVE SETTINGS ── */
+function saveSettings() {
+  const data = {
+    name: document.getElementById('settingName').value,
+    need: document.getElementById('settingNeed').value,
+    lang: document.getElementById('settingLang').value,
+    interests: document.getElementById('settingInterests').value,
+    session: document.getElementById('settingSession').value,
+  };
+  localStorage.setItem('cs_profile', JSON.stringify(data));
+  const msg = document.getElementById('saveMsg');
+  msg.innerHTML = '<div class="alert alert-success"><span>✅</span>Profile saved successfully!</div>';
+  msg.classList.remove('hidden');
+  setTimeout(()=>msg.classList.add('hidden'), 3000);
+  updateDisplayName(); updateNeedBadge(); updateRole();
+}
+
+function resetSettings() {
+  document.getElementById('settingName').value = 'Ahmad Zaki';
+  document.getElementById('settingNeed').value = 'adhd';
+  document.getElementById('settingLang').value = 'both';
+  document.getElementById('settingInterests').value = 'science, nature, sports';
+  document.getElementById('settingSession').value = '10 minutes';
+  updateDisplayName(); updateNeedBadge(); updateRole();
+}
+
+/* ── ACCESSIBILITY PREFS ── */
+function savePref() {
+  const prefs = {
+    dyslexicFont: document.getElementById('prefDyslexicFont').checked,
+    overlay: document.getElementById('prefOverlay').value,
+    largeText: document.getElementById('prefLargeText').checked,
+    highContrast: document.getElementById('prefHighContrast').checked,
+    ruler: document.getElementById('prefRuler').checked,
+    autoRead: document.getElementById('prefAutoRead').checked,
+    keyHints: document.getElementById('prefKeyHints').checked,
+    reducedMotion: document.getElementById('prefReducedMotion').checked,
+  };
+  localStorage.setItem('cs_prefs', JSON.stringify(prefs));
+}
+
+function saveTTSRate() {
+  const v = document.getElementById('prefTTSSpeed').value;
+  localStorage.setItem('cs_tts_rate', v);
+}
+
+function saveAllPrefs() {
+  savePref(); saveTTSRate();
+  const msg = document.getElementById('prefSaveMsg');
+  msg.style.display = 'inline';
+  setTimeout(()=>msg.style.display='none', 2500);
+}
+
+function applyLargeText() {
+  document.body.style.fontSize = document.getElementById('prefLargeText').checked ? '18px' : '';
+}
+
+function applyReducedMotion() {
+  document.body.style.setProperty('--transition', document.getElementById('prefReducedMotion').checked ? '0s' : '');
+}
+
+function loadPrefs() {
+  try {
+    const p = JSON.parse(localStorage.getItem('cs_prefs')||'{}');
+    if(p.dyslexicFont!==undefined) document.getElementById('prefDyslexicFont').checked = p.dyslexicFont;
+    if(p.overlay) document.getElementById('prefOverlay').value = p.overlay;
+    if(p.largeText!==undefined) document.getElementById('prefLargeText').checked = p.largeText;
+    if(p.highContrast!==undefined) document.getElementById('prefHighContrast').checked = p.highContrast;
+    if(p.ruler!==undefined) document.getElementById('prefRuler').checked = p.ruler;
+    if(p.autoRead!==undefined) document.getElementById('prefAutoRead').checked = p.autoRead;
+    if(p.keyHints!==undefined) document.getElementById('prefKeyHints').checked = p.keyHints;
+    if(p.reducedMotion!==undefined) document.getElementById('prefReducedMotion').checked = p.reducedMotion;
+    const rate = localStorage.getItem('cs_tts_rate');
+    if(rate) document.getElementById('prefTTSSpeed').value = rate;
+  } catch(e){}
+  try {
+    const prof = JSON.parse(localStorage.getItem('cs_profile')||'{}');
+    if(prof.name) { document.getElementById('settingName').value = prof.name; updateDisplayName(); }
+    if(prof.need) { document.getElementById('settingNeed').value = prof.need; updateNeedBadge(); }
+    if(prof.lang) document.getElementById('settingLang').value = prof.lang;
+    if(prof.interests) document.getElementById('settingInterests').value = prof.interests;
+  } catch(e){}
+}
+
+/* ── ACTIVITY LOG ── */
+const activityData = [
+  {title:'ADHD Agent – 10 min Focus Session',time:'Today, 9:42 AM',color:'#f59e0b',badge:'Focus',badgeCls:'badge-warning'},
+  {title:'Reading Companion – The Magic of Reading Ch. 3',time:'Today, 9:15 AM',color:'#06b6d4',badge:'Reading',badgeCls:'badge-cyan'},
+  {title:'AI Librarian – Added "Dunia Sains Kita"',time:'Yesterday, 4:30 PM',color:'#6366f1',badge:'Library',badgeCls:'badge-primary'},
+  {title:'Dyslexia Agent – Green overlay enabled',time:'Yesterday, 3:00 PM',color:'#22c55e',badge:'Accessibility',badgeCls:'badge-success'},
+  {title:'Early Warning – Risk assessment completed',time:'2 days ago',color:'#ef4444',badge:'Low Risk',badgeCls:'badge-success'},
+  {title:'Intervention Plan – ADHD strategy generated',time:'2 days ago',color:'#10b981',badge:'Plan',badgeCls:'badge-success'},
+  {title:'Sign Language – Practised BIM alphabet A–M',time:'3 days ago',color:'#ec4899',badge:'Sign',badgeCls:'badge-violet'},
+  {title:'Reading Companion – My First Science Book completed',time:'4 days ago',color:'#06b6d4',badge:'Complete',badgeCls:'badge-success'},
+];
+
+function renderActivity() {
+  document.getElementById('activityFeed').innerHTML = activityData.map(a=>`
+    <div class="activity-entry">
+      <div class="activity-dot" style="background:${a.color};box-shadow:0 0 0 3px ${a.color}22;"></div>
+      <div class="activity-body">
+        <div class="activity-title">${a.title}</div>
+        <div class="activity-meta">${a.time}</div>
+      </div>
+      <span class="badge ${a.badgeCls} activity-badge">${a.badge}</span>
+    </div>
+  `).join('');
+}
+
+function clearActivity() {
+  if(confirm('Clear all activity? This cannot be undone.'))
+    document.getElementById('activityFeed').innerHTML = '<p style="padding:20px 0;color:var(--text-muted);font-size:13px;">No activity recorded yet.</p>';
+}
+
+/* ── ACHIEVEMENTS ── */
+const achievements = [
+  {icon:'🚀',name:'First Session',desc:'Completed your first reading session',earned:true},
+  {icon:'📚',name:'Book Worm',desc:'Added 3 books to your reading list',earned:true},
+  {icon:'⏱',name:'Time Keeper',desc:'Completed 5 timed ADHD sessions',earned:true},
+  {icon:'🎯',name:'Sharp Focus',desc:'Achieved 80+ focus score',earned:true},
+  {icon:'🌈',name:'Colour Explorer',desc:'Tried all 5 colour overlays',earned:false},
+  {icon:'🤟',name:'Sign Learner',desc:'Learned 10 BIM signs',earned:false},
+  {icon:'🔊',name:'Audio Navigator',desc:'Used blind audio agent 3 times',earned:false},
+  {icon:'💡',name:'Intervention Pro',desc:'Generated a full intervention plan',earned:true},
+  {icon:'🏆',name:'Week Streak',desc:'Logged 7 days in a row',earned:false},
+  {icon:'🌟',name:'All-Rounder',desc:'Used all 8 AI agents',earned:false},
+  {icon:'📖',name:'Chapter Done',desc:'Finished a full book chapter',earned:true},
+  {icon:'🧠',name:'ADHD Champion',desc:'15 ADHD sessions completed',earned:false},
+];
+
+function renderAchievements() {
+  document.getElementById('achievementsGrid').innerHTML = achievements.map(a=>`
+    <div class="achievement ${a.earned?'earned':'locked'}" title="${a.desc}">
+      <span class="achievement-icon">${a.earned?a.icon:'🔒'}</span>
+      <div class="achievement-name">${a.name}</div>
+      <div class="achievement-desc">${a.desc}</div>
+    </div>
+  `).join('');
+}
+
+/* ── INIT ── */
+renderActivity();
+renderAchievements();
+loadPrefs();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (!window.CS_PERSONALISE) return;
+  CS_PERSONALISE.init();
+  CS_PERSONALISE.trackAgentUse('profile');
+  var p = CS_PERSONALISE.getProfile();
+  var lang = localStorage.getItem('cs_lang') || 'en';
+  var stats = [
+    { num: p.sessionCount, label: lang==='ms'?'Sesi':'Sessions' },
+    { num: p.totalReadingMinutes+' min', label: lang==='ms'?'Masa Membaca':'Reading Time' },
+    { num: p.streak+' '+(lang==='ms'?'hari':'days'), label: lang==='ms'?'Berturut-turut':'Streak' },
+    { num: p.readingCompletionRate+'%', label: lang==='ms'?'Kadar Siap':'Completion' }
+  ];
+  var grid = document.getElementById('psProfileStats');
+  if (grid) {
+    grid.innerHTML = stats.map(function(s) {
+      return '<div class="ps-stat"><div class="ps-stat-num">' + s.num + '</div><div class="ps-stat-label">' + s.label + '</div></div>';
+    }).join('');
+  }
+  var badge = document.getElementById('psPreferredModeBadge');
+  if (badge) badge.textContent = p.preferredMode;
+});
+</script>
+<script>
+(function() {
+  var avatarData = null;
+  try { avatarData = JSON.parse(localStorage.getItem('cs_personal_avatar')); } catch(e){}
+  if (avatarData) {
+    var disp = document.getElementById('profileAvatarDisplay');
+    var cre = document.getElementById('profileAvatarCreate');
+    if (disp) disp.style.display='block';
+    if (cre) cre.style.display='none';
+    var nameEl = document.getElementById('profileAvatarName');
+    if (nameEl && avatarData.name) nameEl.textContent = avatarData.name;
+    // Render avatar SVG using avatar-creator.js if loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      if (!window.CS_AVATAR) return;
+      var svg = CS_AVATAR.generateAvatarSVGWithExpression(avatarData, 'friendly');
+      var url = CS_AVATAR.svgToDataUrl(svg);
+      var img = document.getElementById('profileAvatarImg');
+      if (img) img.src = url;
+    });
+  }
+  window.profileUpdateAvatar = function() { window.location.href='sign-language.html'; };
+  window.profileDeleteAvatar = function() {
+    if (confirm('Delete your avatar?')) {
+      localStorage.removeItem('cs_personal_avatar');
+      var disp = document.getElementById('profileAvatarDisplay');
+      var cre = document.getElementById('profileAvatarCreate');
+      if (disp) disp.style.display='none';
+      if (cre) cre.style.display='block';
+    }
+  };
+})();
+</script>
+</body>
+</html>

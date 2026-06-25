@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Teacher Agent – CelikSense AI</title>
+  <link href="styles.css" rel="stylesheet" />
+  <style>
+    @media(max-width:768px){
+      #teacherMain{grid-template-columns:1fr!important;}
+      .teacher-btn-row{flex-direction:column!important;}
+    }
+    .teacher-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:18px;padding:20px;box-shadow:0 2px 12px rgba(99,102,241,.06);}
+    .teacher-card h2{font-size:16px;font-weight:800;color:#1e293b;margin:0 0 14px;display:flex;align-items:center;gap:8px;}
+    .t-btn{padding:10px 18px;border-radius:10px;border:none;color:#fff;font-weight:700;font-size:14px;cursor:pointer;transition:opacity .2s;}
+    .t-btn:hover{opacity:.88;}
+    .t-btn-ghost{background:#f1f5f9;color:#475569;border:1.5px solid #e2e8f0;padding:8px 16px;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer;}
+    .t-btn-ghost:hover{background:#e2e8f0;}
+    .quiz-option{display:block;width:100%;text-align:left;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:11px 16px;margin:6px 0;cursor:pointer;font-size:14px;font-weight:600;transition:background .15s;}
+    .quiz-option:hover{background:#ede9fe;}
+    .quiz-option.correct{background:#d1fae5;border-color:#10b981;color:#065f46;}
+    .quiz-option.incorrect{background:#fee2e2;border-color:#ef4444;color:#991b1b;}
+    .mindmap-node{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-radius:12px;padding:10px 18px;font-weight:700;font-size:14px;display:inline-block;margin:4px;}
+    .mindmap-child{background:#f1f5f9;color:#1e293b;border-radius:10px;padding:8px 14px;font-size:13px;display:inline-block;margin:3px;border-left:3px solid #6366f1;}
+    .flow-step{background:#fff;border:2px solid #6366f1;border-radius:10px;padding:12px 18px;margin:6px 0;font-size:14px;font-weight:700;color:#1e293b;position:relative;}
+    .flow-arrow{text-align:center;color:#6366f1;font-size:20px;line-height:1;}
+    .cause-box{background:#fef3c7;border:2px solid #f59e0b;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;color:#92400e;margin:4px;}
+    .effect-box{background:#dbeafe;border:2px solid #3b82f6;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;color:#1e40af;margin:4px;}
+    .spinner{display:inline-block;animation:spin 1s linear infinite;font-size:22px;}
+    @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}
+    }
+    .motivation-fade{animation:fadeIn .5s ease;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+    .quiz-block{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:12px;padding:14px;margin-bottom:14px;}
+    .quiz-question{font-weight:700;font-size:14px;color:#1e293b;margin-bottom:8px;}
+    .step-item{background:#f0f9ff;border-left:4px solid #6366f1;border-radius:0 10px 10px 0;padding:10px 14px;margin:6px 0;font-size:14px;font-weight:600;color:#1e293b;}
+    .diagram-label{font-size:12px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+    .cause-effect-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0;}
+    .ce-arrow{font-size:20px;color:#64748b;}
+    body.dyslexia-teacher-mode{font-size:17px!important;letter-spacing:.05em;line-height:2!important;}
+    body.adhd-teacher-mode *:focus{outline:3px solid #7c3aed!important;outline-offset:2px;}
+    body.blind-teacher-mode button:focus,body.blind-teacher-mode a:focus{outline:3px solid #f59e0b!important;outline-offset:3px;}
+    .saved-toast{position:fixed;bottom:24px;right:24px;background:#10b981;color:#fff;padding:10px 22px;border-radius:12px;font-weight:700;font-size:14px;z-index:9999;animation:fadeIn .3s ease;}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" role="navigation" aria-label="Main Navigation">
+  <div class="nav-container">
+    <a href="index.html" class="nav-brand" aria-label="CelikSense AI Home">
+      <span class="brand-icon">🎓</span>
+      <span class="brand-name">CelikSense <span style="color:var(--primary,#6366f1)">AI</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link" data-i18n="nav_home">Home</a>
+      <a href="dashboard.html" class="nav-link" data-i18n="nav_dashboard">Dashboard</a>
+      <a href="profile.html" class="nav-link" data-i18n="nav_profile">Profile</a>
+      <a href="settings.html" class="nav-link" data-i18n="nav_settings">Settings</a>
+    </div>
+    <button class="lang-toggle" id="langToggle" aria-label="Toggle language" onclick="toggleLang()">BM / EN</button>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#06b6d4 100%);padding:40px 24px;text-align:center;color:#fff;">
+  <div style="font-size:52px;margin-bottom:12px;" aria-hidden="true">👩‍🏫</div>
+  <h1 style="font-size:28px;font-weight:900;margin:0 0 8px;" data-i18n="teacher_title">AI Teacher Agent</h1>
+  <p style="font-size:15px;opacity:.85;max-width:540px;margin:0 auto;" data-i18n="teacher_subtitle">Your virtual teacher — explains, quizzes, answers questions, creates diagrams and mind maps, and motivates you.</p>
+  <div style="margin-top:16px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+    <span style="background:rgba(255,255,255,.2);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;" data-i18n="teacher_badge1">🤖 Gemini AI</span>
+    <span style="background:rgba(255,255,255,.2);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;" data-i18n="teacher_badge2">📚 Quiz Generator</span>
+    <span style="background:rgba(255,255,255,.2);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;" data-i18n="teacher_badge3">🗺️ Mind Map</span>
+    <span style="background:rgba(255,255,255,.2);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;" data-i18n="teacher_badge4">💪 Motivation</span>
+  </div>
+</div>
+
+<!-- API KEY NOTICE -->
+<div id="apiNotice" style="background:#fef9c3;border:1px solid #fde68a;border-radius:12px;padding:12px 18px;margin:16px auto;max-width:900px;font-size:13px;color:#78350f;display:flex;align-items:center;gap:10px;">
+  <span>🔑</span>
+  <span data-i18n="teacher_api_notice">Gemini API key required for AI features. <a href="settings.html" style="color:#92400e;font-weight:700;">Set key in Settings →</a> Prototype mode is active if no key is set.</span>
+</div>
+
+<!-- MAIN LAYOUT -->
+<main style="max-width:1100px;margin:0 auto;padding:20px 16px;display:grid;grid-template-columns:1fr 1fr;gap:20px;" id="teacherMain">
+
+  <!-- LEFT COLUMN -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Section 1: Text Input -->
+    <div class="teacher-card">
+      <h2 data-i18n="teacher_input_title">📄 Reading Text Input</h2>
+      <textarea
+        id="teacherInput"
+        rows="10"
+        placeholder="Paste your reading text, book content, or OCR text here..."
+        data-i18n-placeholder="teacher_input_placeholder"
+        style="width:100%;font-size:15px;border-radius:10px;padding:14px;border:1.5px solid #e2e8f0;resize:vertical;font-family:inherit;color:#1e293b;line-height:1.7;box-sizing:border-box;outline:none;transition:border-color .2s;"
+        onfocus="this.style.borderColor='#6366f1'"
+        onblur="this.style.borderColor='#e2e8f0'"
+        aria-label="Reading text input"
+      ></textarea>
+
+      <div class="teacher-btn-row" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;">
+        <button id="btnExplain" class="t-btn" onclick="teacherExplain()" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);" data-i18n="teacher_btn_explain">💡 Explain This</button>
+        <button id="btnSimple" class="t-btn" onclick="teacherSimple()" style="background:linear-gradient(135deg,#0ea5e9,#06b6d4);" data-i18n="teacher_btn_simple">🔤 Simple Words</button>
+        <button id="btnExplainBM" class="t-btn" onclick="teacherExplainBM()" style="background:linear-gradient(135deg,#059669,#10b981);" data-i18n="teacher_btn_bm">🇲🇾 Explain in BM</button>
+        <button id="btnExplainEN" class="t-btn" onclick="teacherExplainEN()" style="background:linear-gradient(135deg,#4f46e5,#6366f1);" data-i18n="teacher_btn_en">🇬🇧 Explain in EN</button>
+      </div>
+
+      <div id="teacherLoading" style="display:none;margin-top:14px;text-align:center;padding:12px;background:#f8fafc;border-radius:10px;" aria-live="polite" aria-label="Loading">
+        <span class="spinner">⏳</span>
+        <span style="font-size:14px;font-weight:700;color:#6366f1;margin-left:8px;" data-i18n="teacher_thinking">Thinking...</span>
+      </div>
+    </div>
+
+    <!-- Section 2: Ask the Teacher -->
+    <div class="teacher-card">
+      <h2 data-i18n="teacher_ask_title">💬 Ask the Teacher</h2>
+      <input
+        id="teacherQuestion"
+        type="text"
+        placeholder="Ask a question about the text..."
+        data-i18n-placeholder="teacher_ask_placeholder"
+        style="width:100%;padding:12px;border-radius:10px;border:1.5px solid #e2e8f0;font-size:14px;font-family:inherit;color:#1e293b;box-sizing:border-box;outline:none;transition:border-color .2s;"
+        onfocus="this.style.borderColor='#6366f1'"
+        onblur="this.style.borderColor='#e2e8f0'"
+        onkeydown="if(event.key==='Enter')teacherAsk()"
+        aria-label="Question input"
+      />
+      <button id="btnAsk" class="t-btn" onclick="teacherAsk()" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);width:100%;margin-top:10px;" data-i18n="teacher_btn_ask">🙋 Ask</button>
+      <div
+        id="teacherAnswer"
+        style="display:none;background:#f0f9ff;border-left:4px solid #0ea5e9;border-radius:10px;padding:14px;margin-top:12px;font-size:14px;line-height:1.7;color:#0c4a6e;"
+        aria-live="polite"
+        role="region"
+        aria-label="Teacher answer"
+      ></div>
+    </div>
+
+    <!-- Section 3: Motivation -->
+    <div class="teacher-card" style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-color:#fcd34d;">
+      <h2 data-i18n="teacher_motivation_title" style="color:#92400e;">💪 Motivation Corner</h2>
+      <div
+        id="motivationMessage"
+        style="font-size:15px;font-weight:600;color:#78350f;line-height:1.7;min-height:48px;margin-bottom:14px;"
+        aria-live="polite"
+      ></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="showMotivation()" class="t-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706);" data-i18n="teacher_btn_new_msg">✨ New Message</button>
+        <button onclick="speakMotivation()" class="t-btn-ghost" data-i18n="teacher_btn_read_aloud">🔊 Read Aloud</button>
+      </div>
+    </div>
+
+  </div><!-- /LEFT COLUMN -->
+
+  <!-- RIGHT COLUMN -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Section 4: Explanation Output -->
+    <div class="teacher-card">
+      <h2 data-i18n="teacher_explain_title">📖 Explanation</h2>
+      <div
+        id="teacherOutput"
+        style="min-height:120px;font-size:15px;line-height:1.8;color:#1e293b;"
+        aria-live="polite"
+        role="region"
+        aria-label="Explanation output"
+      >
+        <span id="teacherOutputPlaceholder" style="color:#94a3b8;font-style:italic;" data-i18n="teacher_output_placeholder">Explanation will appear here...</span>
+      </div>
+      <div id="teacherOutputActions" style="display:none;margin-top:12px;display:none;gap:8px;flex-wrap:wrap;">
+        <button onclick="speakExplanation()" class="t-btn-ghost" data-i18n="teacher_btn_speak">🔊 Read Aloud</button>
+        <button onclick="copyExplanation()" class="t-btn-ghost" data-i18n="teacher_btn_copy">📋 Copy</button>
+        <button onclick="saveExplanation()" class="t-btn-ghost" data-i18n="teacher_btn_save">💾 Save</button>
+      </div>
+    </div>
+
+    <!-- Section 5: Quiz Generator -->
+    <div class="teacher-card">
+      <h2 data-i18n="teacher_quiz_title">📝 Quiz Generator</h2>
+      <div class="teacher-btn-row" style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="t-btn" onclick="generateQuiz('mcq')" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);font-size:13px;padding:9px 14px;" data-i18n="teacher_quiz_mcq">🎯 Multiple Choice</button>
+        <button class="t-btn" onclick="generateQuiz('tf')" style="background:linear-gradient(135deg,#0ea5e9,#06b6d4);font-size:13px;padding:9px 14px;" data-i18n="teacher_quiz_tf">✅ True/False</button>
+        <button class="t-btn" onclick="generateQuiz('short')" style="background:linear-gradient(135deg,#059669,#10b981);font-size:13px;padding:9px 14px;" data-i18n="teacher_quiz_short">✍️ Short Answer</button>
+        <button class="t-btn" onclick="generateQuiz('reflect')" style="background:linear-gradient(135deg,#f59e0b,#d97706);font-size:13px;padding:9px 14px;" data-i18n="teacher_quiz_reflect">💭 Reflection</button>
+      </div>
+      <div id="quizOutput" style="margin-top:14px;" aria-live="polite" role="region" aria-label="Quiz output"></div>
+      <div id="quizScore" style="display:none;margin-top:12px;background:#d1fae5;border:2px solid #10b981;border-radius:12px;padding:14px;text-align:center;font-size:16px;font-weight:800;color:#065f46;" aria-live="polite"></div>
+    </div>
+
+    <!-- Section 6: Diagram & Mind Map -->
+    <div class="teacher-card">
+      <h2 data-i18n="teacher_diagram_title">🗺️ Diagram &amp; Mind Map</h2>
+      <div class="teacher-btn-row" style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button class="t-btn" onclick="generateDiagram('flow')" style="background:linear-gradient(135deg,#4f46e5,#6366f1);font-size:13px;padding:9px 14px;" data-i18n="teacher_diag_flow">📊 Flow Chart</button>
+        <button class="t-btn" onclick="generateDiagram('cause')" style="background:linear-gradient(135deg,#7c3aed,#8b5cf6);font-size:13px;padding:9px 14px;" data-i18n="teacher_diag_cause">🔗 Cause &amp; Effect</button>
+        <button class="t-btn" onclick="generateDiagram('mindmap')" style="background:linear-gradient(135deg,#6d28d9,#7c3aed);font-size:13px;padding:9px 14px;" data-i18n="teacher_diag_mindmap">🧠 Mind Map</button>
+        <button class="t-btn" onclick="generateDiagram('steps')" style="background:linear-gradient(135deg,#0891b2,#06b6d4);font-size:13px;padding:9px 14px;" data-i18n="teacher_diag_steps">📋 Step-by-Step</button>
+      </div>
+      <div id="diagramOutput" style="margin-top:14px;" aria-live="polite" role="region" aria-label="Diagram output"></div>
+    </div>
+
+  </div><!-- /RIGHT COLUMN -->
+
+</main>
+
+<!-- INCLUSIVE SUPPORT BAR -->
+<div style="max-width:1100px;margin:0 auto 24px;padding:0 16px;">
+  <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:16px;padding:18px 22px;">
+    <div style="font-weight:800;font-size:15px;color:#1e293b;margin-bottom:12px;" data-i18n="teacher_inclusive_title">♿ Inclusive Support</div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+      <button onclick="enableBlindMode()" style="background:#1e293b;color:#f8fafc;border:none;padding:9px 18px;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;" aria-label="Enable Blind Learner Mode" data-i18n="teacher_blind_mode">🎙️ Blind Mode</button>
+      <button onclick="enableDeafMode()" style="background:#0284c7;color:#fff;border:none;padding:9px 18px;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;" aria-label="Enable Deaf Learner Mode" data-i18n="teacher_deaf_mode">🖐️ Deaf Mode</button>
+      <button onclick="enableADHDMode()" style="background:#7c3aed;color:#fff;border:none;padding:9px 18px;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;" aria-label="Enable ADHD Mode" data-i18n="teacher_adhd_mode">⚡ ADHD Mode</button>
+      <button onclick="enableDyslexiaMode()" style="background:#059669;color:#fff;border:none;padding:9px 18px;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;" aria-label="Enable Dyslexia Mode" data-i18n="teacher_dyslexia_mode">📖 Dyslexia Mode</button>
+      <button id="btnTTS" onclick="toggleTTS()" style="background:#f59e0b;color:#fff;border:none;padding:9px 18px;border-radius:10px;font-weight:700;cursor:pointer;font-size:13px;" aria-label="Toggle Text to Speech" data-i18n="teacher_tts">🔊 Auto TTS</button>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer style="text-align:center;padding:24px;color:#64748b;font-size:13px;border-top:1px solid #e2e8f0;">
+  <span data-i18n="footer_tagline1">CelikSense AI</span> · <span data-i18n="teacher_footer_note">AI Teacher Agent · Prototype</span>
+</footer>
+
+<script src="shared.js"></script>
+<script src="personalisation-system.js"></script>
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+var GEMINI_MODEL = 'gemini-2.0-flash';
+var autoTTS = false;
+var currentLang = localStorage.getItem('cs_lang') || 'en';
+
+// ─── GEMINI HELPER ────────────────────────────────────────────────────────────
+function getGeminiKey() {
+  return localStorage.getItem('gemini_api_key') || '';
+}
+
+async function callGemini(prompt) {
+  var key = getGeminiKey();
+  if (!key) return null;
+  try {
+    var resp = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent?key=' + key,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      }
+    );
+    var data = await resp.json();
+    if (
+      data.candidates &&
+      data.candidates[0] &&
+      data.candidates[0].content &&
+      data.candidates[0].content.parts
+    ) {
+      return data.candidates[0].content.parts[0].text;
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// ─── PROTOTYPE FALLBACKS ──────────────────────────────────────────────────────
+var FALLBACK_EXPLAIN = {
+  en: "This text discusses an important topic. Key ideas include the main subject and its supporting details. To understand better, focus on the first and last sentences of each paragraph as they usually contain the main idea.",
+  ms: "Teks ini membincangkan topik yang penting. Idea utama merangkumi subjek utama dan butiran sokongannya. Untuk memahami dengan lebih baik, fokus pada ayat pertama dan terakhir setiap perenggan kerana ia biasanya mengandungi idea utama."
+};
+var FALLBACK_SIMPLE = {
+  en: "Here is a simple version: The text talks about a topic. It has main ideas and supporting details. Read it slowly. Pause at each sentence. Ask yourself: what is this about?",
+  ms: "Ini adalah versi mudah: Teks ini membincangkan satu topik. Ia mempunyai idea utama dan butiran sokongan. Baca dengan perlahan. Berhenti sebentar di setiap ayat. Tanya diri anda: ini tentang apa?"
+};
+var FALLBACK_QA = {
+  en: "Based on the text, here is a possible answer: The main idea relates to the subject of the passage. Look for key words and topic sentences for more details.",
+  ms: "Berdasarkan teks, berikut adalah jawapan yang mungkin: Idea utama berkaitan dengan subjek petikan. Cari kata kunci dan ayat topik untuk butiran lanjut."
+};
+
+// ─── MOTIVATIONAL MESSAGES ────────────────────────────────────────────────────
+var MOTIVATION_EN = [
+  "Great effort! You have completed one reading task. 🌟",
+  "Take your time. Learning is a journey, not a race. 🚀",
+  "You are improving your reading confidence every day. 💪",
+  "Let us try one small step together. You can do it! 🎯",
+  "Every paragraph you read makes you smarter. 📚",
+  "Mistakes help us learn. Keep going! 🌈",
+  "Your brain is growing stronger with every reading session. 🧠",
+  "Well done! Progress, not perfection. 🏆"
+];
+var MOTIVATION_MS = [
+  "Usaha yang baik! Anda telah menyelesaikan satu tugasan bacaan. 🌟",
+  "Ambil masa anda. Pembelajaran adalah perjalanan, bukan perlumbaan. 🚀",
+  "Keyakinan membaca anda semakin meningkat setiap hari. 💪",
+  "Mari cuba satu langkah kecil bersama. Anda boleh! 🎯",
+  "Setiap perenggan yang anda baca menjadikan anda lebih bijak. 📚",
+  "Kesilapan membantu kita belajar. Teruskan! 🌈",
+  "Otak anda semakin kuat dengan setiap sesi membaca. 🧠",
+  "Syabas! Kemajuan, bukan kesempurnaan. 🏆"
+];
+
+// ─── LOADING STATE ────────────────────────────────────────────────────────────
+function showLoading() {
+  document.getElementById('teacherLoading').style.display = 'block';
+}
+function hideLoading() {
+  document.getElementById('teacherLoading').style.display = 'none';
+}
+
+// ─── OUTPUT HELPER ────────────────────────────────────────────────────────────
+function setOutput(text) {
+  var out = document.getElementById('teacherOutput');
+  var ph = document.getElementById('teacherOutputPlaceholder');
+  if (ph) ph.style.display = 'none';
+  out.innerHTML = '<p style="margin:0;white-space:pre-wrap;">' + escapeHtml(text) + '</p>';
+  var actions = document.getElementById('teacherOutputActions');
+  actions.style.display = 'flex';
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function getInputText() {
+  return document.getElementById('teacherInput').value.trim();
+}
+
+function alertEmpty() {
+  alert(currentLang === 'ms'
+    ? 'Sila masukkan teks dahulu.'
+    : 'Please enter some text first.');
+}
+
+// ─── EXPLAIN FUNCTIONS ────────────────────────────────────────────────────────
+async function teacherExplain() {
+  var text = getInputText();
+  if (!text) { alertEmpty(); return; }
+  showLoading();
+  var result = await callGemini(
+    'You are a helpful teacher. Explain this text clearly in simple English for a student. Text: ' + text
+  );
+  hideLoading();
+  result = result || FALLBACK_EXPLAIN.en;
+  setOutput(result);
+  if (autoTTS) speakText(result);
+  localStorage.setItem('teacher_last_explanation', result);
+}
+
+async function teacherSimple() {
+  var text = getInputText();
+  if (!text) { alertEmpty(); return; }
+  showLoading();
+  var result = await callGemini(
+    'Explain in very simple words, short sentences, suitable for a primary school student: ' + text
+  );
+  hideLoading();
+  result = result || FALLBACK_SIMPLE.en;
+  setOutput(result);
+  if (autoTTS) speakText(result);
+  localStorage.setItem('teacher_last_explanation', result);
+}
+
+async function teacherExplainBM() {
+  var text = getInputText();
+  if (!text) { alertEmpty(); return; }
+  showLoading();
+  var result = await callGemini(
+    'Terangkan teks ini dalam Bahasa Melayu yang mudah untuk pelajar sekolah menengah: ' + text
+  );
+  hideLoading();
+  result = result || FALLBACK_EXPLAIN.ms;
+  setOutput(result);
+  if (autoTTS) speakText(result);
+  localStorage.setItem('teacher_last_explanation', result);
+}
+
+async function teacherExplainEN() {
+  var text = getInputText();
+  if (!text) { alertEmpty(); return; }
+  showLoading();
+  var result = await callGemini(
+    'Explain in simple English for a secondary school student: ' + text
+  );
+  hideLoading();
+  result = result || FALLBACK_EXPLAIN.en;
+  setOutput(result);
+  if (autoTTS) speakText(result);
+  localStorage.setItem('teacher_last_explanation', result);
+}
+
+// ─── ASK THE TEACHER ─────────────────────────────────────────────────────────
+async function teacherAsk() {
+  var question = document.getElementById('teacherQuestion').value.trim();
+  var text = getInputText();
+  if (!question) {
+    alert(currentLang === 'ms' ? 'Sila taip soalan anda.' : 'Please type your question.');
+    return;
+  }
+  showLoading();
+  var lang = currentLang === 'ms' ? 'Bahasa Melayu' : 'English';
+  var prompt = 'You are a patient teacher. A student asks: \'' + question + '\'. Based on this text: \'' + (text || '(no text provided)') + '\'. Give a clear, simple, encouraging answer in ' + lang + '.';
+  var result = await callGemini(prompt);
+  hideLoading();
+  result = result || (currentLang === 'ms' ? FALLBACK_QA.ms : FALLBACK_QA.en);
+  var answerEl = document.getElementById('teacherAnswer');
+  answerEl.style.display = 'block';
+  answerEl.innerHTML = '<strong>' + escapeHtml(question) + '</strong><br><br>' + escapeHtml(result);
+  if (autoTTS) speakText(result);
+}
+
+// ─── QUIZ GENERATOR ───────────────────────────────────────────────────────────
+async function generateQuiz(type) {
+  var text = getInputText();
+  if (!text) { alertEmpty(); return; }
+  showLoading();
+  var lang = currentLang === 'ms' ? 'Bahasa Melayu' : 'English';
+  var prompt = '';
+  if (type === 'mcq') {
+    prompt = 'Generate 3 multiple-choice questions with 4 options each (A,B,C,D) based on this text. Format each as: Q: question\nA) option\nB) option\nC) option\nD) option\nAnswer: X\n\nLanguage: ' + lang + '\n\nText: ' + text;
+  } else if (type === 'tf') {
+    prompt = 'Generate 4 True or False questions based on this text. Format each as: Statement | Answer: True/False\n\nLanguage: ' + lang + '\n\nText: ' + text;
+  } else if (type === 'short') {
+    prompt = 'Generate 3 short answer questions based on this text. Language: ' + lang + '\n\nText: ' + text;
+  } else if (type === 'reflect') {
+    prompt = 'Generate 2 reflection questions that help a learner think deeply about this text. Language: ' + lang + '\n\nText: ' + text;
+  }
+  var result = await callGemini(prompt);
+  hideLoading();
+  if (!result) result = getPrototypeQuiz(type, text);
+  renderQuiz(type, result);
+}
+
+function getPrototypeQuiz(type, text) {
+  var sentences = text.split(/[.!?]+/).map(function(s){return s.trim();}).filter(function(s){return s.length > 10;});
+  if (type === 'mcq') {
+    return 'Q: What is the main topic of the text?\nA) Option A\nB) Option B\nC) The main subject described in the passage\nD) Option D\nAnswer: C\n\nQ: According to the text, which detail is mentioned?\nA) An unrelated detail\nB) The supporting idea from the passage\nC) Option C\nD) Option D\nAnswer: B';
+  } else if (type === 'tf') {
+    return 'The text discusses a specific topic | Answer: True\nThe passage has no main idea | Answer: False\nKey words help us understand the text | Answer: True\nThe text is completely unrelated to learning | Answer: False';
+  } else if (type === 'short') {
+    return '1. What is the main idea of this text?\n2. What are two key details mentioned in the passage?\n3. Why is this topic important?';
+  } else if (type === 'reflect') {
+    return '1. How does this text connect to something you already know?\n2. What would you like to learn more about after reading this text?';
+  }
+  return 'No questions available. Please try again with a Gemini API key.';
+}
+
+function renderQuiz(type, content) {
+  var output = document.getElementById('quizOutput');
+  var html = '';
+
+  if (type === 'mcq') {
+    var questionBlocks = content.split(/Q:/i).filter(function(b){return b.trim().length > 0;});
+    questionBlocks.forEach(function(block, qi) {
+      var lines = block.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length > 0;});
+      if (lines.length < 2) return;
+      var qText = lines[0];
+      var options = [];
+      var answer = '';
+      lines.forEach(function(l) {
+        if (/^[A-D]\)/i.test(l)) options.push(l);
+        if (/^Answer:/i.test(l)) answer = l.replace(/^Answer:\s*/i,'').trim().toUpperCase();
+      });
+      html += '<div class="quiz-block">';
+      html += '<div class="quiz-question">Q' + (qi+1) + ': ' + escapeHtml(qText) + '</div>';
+      options.forEach(function(opt) {
+        var letter = opt[0].toUpperCase();
+        var isCorrect = (letter === answer);
+        html += '<button class="quiz-option" onclick="checkMCQ(this,' + isCorrect + ')" data-correct="' + isCorrect + '">' + escapeHtml(opt) + '</button>';
+      });
+      html += '</div>';
+    });
+  } else if (type === 'tf') {
+    var statements = content.split('\n').filter(function(l){return l.trim().length > 0;});
+    statements.forEach(function(stmt, si) {
+      var parts = stmt.split('|');
+      var stmtText = parts[0] ? parts[0].trim() : stmt;
+      var correctAnswer = '';
+      if (parts[1]) {
+        var m = parts[1].match(/Answer:\s*(True|False)/i);
+        if (m) correctAnswer = m[1].toLowerCase();
+      }
+      html += '<div class="quiz-block">';
+      html += '<div class="quiz-question">' + escapeHtml(stmtText) + '</div>';
+      html += '<div style="display:flex;gap:8px;margin-top:6px;">';
+      html += '<button class="quiz-option" style="width:auto;padding:8px 20px;" onclick="checkTF(this,\'true\',\'' + correctAnswer + '\')">✅ True</button>';
+      html += '<button class="quiz-option" style="width:auto;padding:8px 20px;" onclick="checkTF(this,\'false\',\'' + correctAnswer + '\')">❌ False</button>';
+      html += '</div></div>';
+    });
+  } else if (type === 'short') {
+    var items = content.split('\n').filter(function(l){return l.trim().length > 0;});
+    items.forEach(function(item) {
+      html += '<div class="quiz-block">';
+      html += '<div class="quiz-question">' + escapeHtml(item) + '</div>';
+      html += '<textarea style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px;font-size:13px;font-family:inherit;resize:vertical;min-height:60px;box-sizing:border-box;" placeholder="Write your answer here..."></textarea>';
+      html += '</div>';
+    });
+  } else if (type === 'reflect') {
+    var ritems = content.split('\n').filter(function(l){return l.trim().length > 0;});
+    ritems.forEach(function(item) {
+      html += '<div class="quiz-block" style="background:linear-gradient(135deg,#fef3c7,#fff);">';
+      html += '<div class="quiz-question" style="color:#92400e;">🤔 ' + escapeHtml(item) + '</div>';
+      html += '<textarea style="width:100%;border:1.5px solid #fde68a;border-radius:8px;padding:10px;font-size:13px;font-family:inherit;resize:vertical;min-height:70px;box-sizing:border-box;background:#fffbeb;" placeholder="Your reflection..."></textarea>';
+      html += '</div>';
+    });
+  }
+
+  if (!html) html = '<p style="color:#94a3b8;font-style:italic;font-size:13px;">Could not generate quiz. Please try again.</p>';
+  output.innerHTML = html;
+  document.getElementById('quizScore').style.display = 'none';
+}
+
+function checkMCQ(btn, isCorrect) {
+  var block = btn.closest('.quiz-block');
+  var opts = block.querySelectorAll('.quiz-option');
+  opts.forEach(function(o) { o.disabled = true; });
+  if (isCorrect) {
+    btn.classList.add('correct');
+    btn.innerHTML = btn.innerHTML + ' ✓';
+  } else {
+    btn.classList.add('incorrect');
+    opts.forEach(function(o) {
+      if (o.dataset.correct === 'true') o.classList.add('correct');
+    });
+  }
+}
+
+function checkTF(btn, chosen, correct) {
+  var block = btn.closest('.quiz-block');
+  var btns = block.querySelectorAll('.quiz-option');
+  btns.forEach(function(b) { b.disabled = true; });
+  if (chosen === correct) {
+    btn.classList.add('correct');
+  } else {
+    btn.classList.add('incorrect');
+    btns.forEach(function(b) {
+      if (b.textContent.toLowerCase().includes(correct)) b.classList.add('correct');
+    });
+  }
+}
+
+// ─── DIAGRAM / MIND MAP ───────────────────────────────────────────────────────
+async function generateDiagram(type) {
+  var text = getInputText();
+  if (!text) { alertEmpty(); return; }
+  showLoading();
+  var lang = currentLang === 'ms' ? 'Bahasa Melayu' : 'English';
+  var prompt = '';
+  if (type === 'flow') {
+    prompt = 'Extract 4-6 key steps from this text and format as: Step 1: ... | Step 2: ... | Step 3: ... (continue for each step). Text: ' + text;
+  } else if (type === 'cause') {
+    prompt = 'Identify 2 causes and 2 effects from this text. Format as: Cause: ... | Effect: ... (one pair per line). Text: ' + text;
+  } else if (type === 'mindmap') {
+    prompt = 'Create a mind map outline from this text. Format: Main Topic: ... | Subtopic 1: ... | Subtopic 2: ... | Subtopic 3: ... | Detail 1.1: ... | Summary: ... Text: ' + text;
+  } else if (type === 'steps') {
+    prompt = 'Convert this text into 5 numbered step-by-step learning points. Language: ' + lang + '. Text: ' + text;
+  }
+  var result = await callGemini(prompt);
+  hideLoading();
+  if (!result) result = getPrototypeDiagram(type, text);
+  renderDiagram(type, result);
+}
+
+function getPrototypeDiagram(type, text) {
+  var sentences = text.split(/[.!?]+/).map(function(s){return s.trim();}).filter(function(s){return s.length > 10;}).slice(0,6);
+  if (type === 'flow') {
+    return sentences.map(function(s,i){return 'Step '+(i+1)+': '+s;}).join(' | ');
+  } else if (type === 'cause') {
+    var s1 = sentences[0] || 'An event occurred';
+    var s2 = sentences[1] || 'A situation developed';
+    var s3 = sentences[2] || 'A result was observed';
+    var s4 = sentences[3] || 'An outcome was reached';
+    return 'Cause: ' + s1 + ' | Effect: ' + s2 + '\nCause: ' + s3 + ' | Effect: ' + s4;
+  } else if (type === 'mindmap') {
+    var main = sentences[0] ? sentences[0].substring(0,50) : 'Main Topic';
+    var subs = sentences.slice(1,4).map(function(s,i){return 'Subtopic '+(i+1)+': '+s.substring(0,60);});
+    return 'Main Topic: ' + main + ' | ' + subs.join(' | ') + ' | Summary: Key ideas from the text';
+  } else if (type === 'steps') {
+    return sentences.map(function(s,i){return (i+1)+'. '+s;}).join('\n');
+  }
+  return text;
+}
+
+function renderDiagram(type, content) {
+  var output = document.getElementById('diagramOutput');
+  var html = '';
+
+  if (type === 'flow') {
+    var steps = content.split(/\||\n/).map(function(s){return s.trim();}).filter(function(s){return /step\s*\d+:/i.test(s) || s.length > 5;});
+    if (steps.length === 0) steps = content.split(/\||\n/).filter(function(s){return s.trim().length > 5;});
+    steps.forEach(function(step, i) {
+      html += '<div class="flow-step">' + escapeHtml(step) + '</div>';
+      if (i < steps.length - 1) html += '<div class="flow-arrow">↓</div>';
+    });
+  } else if (type === 'cause') {
+    var pairs = content.split('\n').filter(function(l){return l.trim().length > 0;});
+    html += '<div class="diagram-label">Cause &amp; Effect Diagram</div>';
+    pairs.forEach(function(pair) {
+      var parts = pair.split('|');
+      if (parts.length >= 2) {
+        var cause = parts[0].replace(/^Cause:\s*/i,'').trim();
+        var effect = parts[1].replace(/^Effect:\s*/i,'').trim();
+        html += '<div class="cause-effect-row">';
+        html += '<div class="cause-box">⚡ Cause<br>' + escapeHtml(cause) + '</div>';
+        html += '<div class="ce-arrow">→</div>';
+        html += '<div class="effect-box">💥 Effect<br>' + escapeHtml(effect) + '</div>';
+        html += '</div>';
+      } else {
+        html += '<div style="padding:8px;font-size:14px;color:#475569;">' + escapeHtml(pair) + '</div>';
+      }
+    });
+  } else if (type === 'mindmap') {
+    var parts = content.split(/\||\n/).map(function(s){return s.trim();}).filter(function(s){return s.length > 3;});
+    var mainTopic = '';
+    var subtopics = [];
+    var details = [];
+    var summary = '';
+    parts.forEach(function(p) {
+      if (/^Main Topic:/i.test(p)) mainTopic = p.replace(/^Main Topic:\s*/i,'');
+      else if (/^Subtopic/i.test(p)) subtopics.push(p.replace(/^Subtopic\s*\d+:\s*/i,''));
+      else if (/^Detail/i.test(p)) details.push(p.replace(/^Detail\s*[\d.]+:\s*/i,''));
+      else if (/^Summary:/i.test(p)) summary = p.replace(/^Summary:\s*/i,'');
+      else if (p.length > 5) subtopics.push(p);
+    });
+    html += '<div style="text-align:center;margin-bottom:12px;">';
+    html += '<div class="mindmap-node" style="font-size:16px;">' + escapeHtml(mainTopic || 'Main Topic') + '</div>';
+    html += '</div>';
+    if (subtopics.length > 0) {
+      html += '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:10px;">';
+      subtopics.forEach(function(s) {
+        html += '<div class="mindmap-child">📌 ' + escapeHtml(s) + '</div>';
+      });
+      html += '</div>';
+    }
+    if (details.length > 0) {
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">';
+      details.forEach(function(d) {
+        html += '<div style="background:#f0fdf4;border-radius:8px;padding:6px 12px;font-size:12px;color:#065f46;border:1px solid #bbf7d0;">• ' + escapeHtml(d) + '</div>';
+      });
+      html += '</div>';
+    }
+    if (summary) {
+      html += '<div style="background:#f8fafc;border:1.5px dashed #6366f1;border-radius:10px;padding:10px 14px;font-size:13px;color:#4338ca;font-weight:700;margin-top:8px;">📝 ' + escapeHtml(summary) + '</div>';
+    }
+  } else if (type === 'steps') {
+    var lines = content.split('\n').filter(function(l){return l.trim().length > 0;});
+    html += '<div class="diagram-label">Step-by-Step Learning</div>';
+    lines.forEach(function(line, i) {
+      html += '<div class="step-item">' + escapeHtml(line) + '</div>';
+    });
+  }
+
+  if (!html) html = '<p style="color:#94a3b8;font-style:italic;font-size:13px;">Could not generate diagram. Please try again.</p>';
+  output.innerHTML = html;
+}
+
+// ─── MOTIVATION ───────────────────────────────────────────────────────────────
+function showMotivation() {
+  var msgs = currentLang === 'ms' ? MOTIVATION_MS : MOTIVATION_EN;
+  var idx = Math.floor(Math.random() * msgs.length);
+  var el = document.getElementById('motivationMessage');
+  el.className = 'motivation-fade';
+  el.textContent = msgs[idx];
+  void el.offsetWidth;
+  el.className = 'motivation-fade';
+}
+
+function speakMotivation() {
+  var el = document.getElementById('motivationMessage');
+  speakText(el.textContent);
+}
+
+function speakExplanation() {
+  var el = document.getElementById('teacherOutput');
+  speakText(el.innerText);
+}
+
+function speakText(text) {
+  if (!text || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  var utter = new SpeechSynthesisUtterance(text);
+  utter.lang = currentLang === 'ms' ? 'ms-MY' : 'en-US';
+  utter.rate = 0.9;
+  window.speechSynthesis.speak(utter);
+}
+
+function copyExplanation() {
+  var el = document.getElementById('teacherOutput');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(el.innerText).then(function() {
+      showToast(currentLang === 'ms' ? 'Disalin!' : 'Copied!');
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = el.innerText;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast(currentLang === 'ms' ? 'Disalin!' : 'Copied!');
+  }
+}
+
+function saveExplanation() {
+  var el = document.getElementById('teacherOutput');
+  localStorage.setItem('teacher_last_explanation', el.innerText);
+  showToast(currentLang === 'ms' ? 'Disimpan!' : 'Saved!');
+}
+
+function showToast(msg) {
+  var existing = document.querySelector('.saved-toast');
+  if (existing) existing.remove();
+  var toast = document.createElement('div');
+  toast.className = 'saved-toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 2200);
+}
+
+// ─── INCLUSIVE MODES ──────────────────────────────────────────────────────────
+function enableBlindMode() {
+  document.body.classList.add('blind-teacher-mode');
+  speakText(currentLang === 'ms'
+    ? 'Mod buta diaktifkan. Gunakan Tab untuk menavigasi dan Ruang untuk mengaktifkan butang.'
+    : 'Blind mode enabled. Use Tab to navigate and Space to activate buttons.');
+  announceAriaLive('Blind mode enabled. Use Tab to navigate and Space to activate buttons.');
+}
+
+function enableDeafMode() {
+  document.body.classList.add('deaf-teacher-mode');
+  var outputs = document.querySelectorAll('[aria-live]');
+  outputs.forEach(function(el) {
+    el.style.fontWeight = '700';
+    el.style.border = '2px solid #0284c7';
+  });
+  announceAriaLive(currentLang === 'ms' ? 'Mod pekak diaktifkan.' : 'Deaf mode enabled. All outputs are visually highlighted.');
+}
+
+function enableADHDMode() {
+  document.body.classList.add('adhd-teacher-mode');
+  document.querySelectorAll('.teacher-card').forEach(function(card) {
+    card.style.borderColor = '#7c3aed';
+    card.style.boxShadow = '0 0 0 3px rgba(124,58,237,.15)';
+  });
+  announceAriaLive(currentLang === 'ms' ? 'Mod ADHD diaktifkan.' : 'ADHD mode enabled. Focus borders activated.');
+}
+
+function enableDyslexiaMode() {
+  document.body.classList.add('dyslexia-teacher-mode');
+  var link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap';
+  document.head.appendChild(link);
+  document.body.style.fontFamily = "'Lexend', sans-serif";
+  document.body.style.fontSize = '17px';
+  document.body.style.lineHeight = '2';
+  announceAriaLive(currentLang === 'ms' ? 'Mod disleksia diaktifkan.' : 'Dyslexia mode enabled. Font and spacing adjusted.');
+}
+
+function toggleTTS() {
+  autoTTS = !autoTTS;
+  var btn = document.getElementById('btnTTS');
+  if (autoTTS) {
+    btn.textContent = '🔊 Auto TTS: ON';
+    btn.style.background = '#10b981';
+  } else {
+    btn.textContent = '🔊 Auto TTS';
+    btn.style.background = '#f59e0b';
+  }
+}
+
+function announceAriaLive(msg) {
+  var el = document.getElementById('ariaAnnouncer');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'ariaAnnouncer';
+    el.setAttribute('aria-live', 'assertive');
+    el.setAttribute('role', 'status');
+    el.style.cssText = 'position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;';
+    document.body.appendChild(el);
+  }
+  el.textContent = '';
+  setTimeout(function() { el.textContent = msg; }, 50);
+}
+
+// ─── LANGUAGE TOGGLE ─────────────────────────────────────────────────────────
+function toggleLang() {
+  if (typeof CS !== 'undefined' && CS.lang && typeof CS.lang.toggle === 'function') {
+    CS.lang.toggle();
+    currentLang = localStorage.getItem('cs_lang') || 'en';
+  } else {
+    currentLang = currentLang === 'en' ? 'ms' : 'en';
+    localStorage.setItem('cs_lang', currentLang);
+  }
+  updateLangDisplay();
+}
+
+function updateLangDisplay() {
+  if (typeof CS !== 'undefined' && CS.lang && typeof CS.lang.apply === 'function') {
+    CS.lang.apply();
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  // Personalisation
+  if (typeof CS_PERSONALISE !== 'undefined') {
+    if (typeof CS_PERSONALISE.init === 'function') CS_PERSONALISE.init();
+    if (typeof CS_PERSONALISE.trackAgentUse === 'function') CS_PERSONALISE.trackAgentUse('ai-teacher');
+  }
+
+  // Show motivation
+  showMotivation();
+
+  // Auto-populate from other agents
+  var ocrText = localStorage.getItem('ocrExtractedText') || localStorage.getItem('ocr_extracted_text') || '';
+  var signText = localStorage.getItem('signLangText') || localStorage.getItem('sign_lang_text') || '';
+  var inputEl = document.getElementById('teacherInput');
+  if (ocrText && !inputEl.value) {
+    inputEl.value = ocrText;
+  } else if (signText && !inputEl.value) {
+    inputEl.value = signText;
+  }
+
+  // Apply language
+  currentLang = localStorage.getItem('cs_lang') || 'en';
+  updateLangDisplay();
+
+  // API notice
+  var key = getGeminiKey();
+  var notice = document.getElementById('apiNotice');
+  if (key && notice) {
+    notice.style.background = '#f0fdf4';
+    notice.style.borderColor = '#86efac';
+    notice.style.color = '#166534';
+    notice.innerHTML = '<span>✅</span><span>Gemini API key detected. AI features are active.</span>';
+  }
+});
+</script>
+</body>
+</html>
