@@ -135,12 +135,12 @@
         <div class="panel-title">📖 Reading Area</div>
 
         <!-- Highlight Toolbar -->
-        <div class="highlight-toolbar">
-          <button class="hl-btn" style="background:#fbbf2440;color:#92400e;" onclick="hlColor('#fbbf2440')">Yellow</button>
-          <button class="hl-btn" style="background:#6ee7b740;color:#065f46;" onclick="hlColor('#6ee7b740')">Green</button>
-          <button class="hl-btn" style="background:#a5b4fc40;color:#3730a3;" onclick="hlColor('#a5b4fc40')">Purple</button>
-          <button class="hl-btn" style="background:#fca5a540;color:#7f1d1d;" onclick="hlColor('#fca5a540')">Red</button>
-          <button class="hl-btn" style="background:transparent;border:1px solid var(--border);color:var(--text-muted);" onclick="clearHighlights()">Clear</button>
+        <div class="highlight-toolbar" role="toolbar" aria-label="Text highlight colours">
+          <button class="hl-btn" style="background:#fbbf2440;color:#92400e;" onclick="hlColor('#fbbf2440')" aria-label="Highlight selection yellow">Yellow</button>
+          <button class="hl-btn" style="background:#6ee7b740;color:#065f46;" onclick="hlColor('#6ee7b740')" aria-label="Highlight selection green">Green</button>
+          <button class="hl-btn" style="background:#a5b4fc40;color:#3730a3;" onclick="hlColor('#a5b4fc40')" aria-label="Highlight selection purple">Purple</button>
+          <button class="hl-btn" style="background:#fca5a540;color:#7f1d1d;" onclick="hlColor('#fca5a540')" aria-label="Highlight selection red">Red</button>
+          <button class="hl-btn" style="background:transparent;border:1px solid var(--border);color:var(--text-muted);" onclick="clearHighlights()" aria-label="Clear all highlights">Clear</button>
         </div>
 
         <div id="focusWrapper" class="focus-window-wrap" style="position:relative;">
@@ -190,7 +190,7 @@
           <input type="text" class="form-control" id="noteInput" placeholder="Add a note or quote…" style="flex:1;">
           <button class="btn btn-primary btn-sm" onclick="addNote()">+</button>
         </div>
-        <div id="notesList"></div>
+        <div id="notesList" aria-live="polite" aria-label="Notes list"></div>
         <button class="btn btn-ghost btn-sm w-full" onclick="exportNotes()" style="margin-top:8px;">📤 Export Notes</button>
       </div>
 
