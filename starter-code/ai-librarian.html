@@ -53,7 +53,7 @@
       <a href="profile.html" class="btn btn-ghost btn-sm">👤 Profile</a>
       <a href="dashboard.html" class="btn btn-outline btn-sm">← Dashboard</a>
       <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
-      <button class="nav-hamburger" onclick="toggleNav()">☰</button>
+      <button class="nav-hamburger" onclick="toggleNav()" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navLinks">☰</button>
     </div>
   </div>
 </nav>
@@ -85,17 +85,17 @@
           <button class="btn btn-primary" onclick="filterBooks()">Search</button>
         </div>
         <div class="filter-tabs">
-          <button class="filter-tab active" onclick="setFilter('all',this)">All Books</button>
-          <button class="filter-tab" onclick="setFilter('adhd',this)">🧠 ADHD-Friendly</button>
-          <button class="filter-tab" onclick="setFilter('dyslexia',this)">🔤 Dyslexia-Friendly</button>
-          <button class="filter-tab" onclick="setFilter('audio',this)">🔊 Audiobook</button>
-          <button class="filter-tab" onclick="setFilter('sign',this)">🤟 Sign Language</button>
-          <button class="filter-tab" onclick="setFilter('bm',this)">🇲🇾 Bahasa Melayu</button>
+          <button class="filter-tab active" onclick="setFilter('all',this)" aria-pressed="true">All Books</button>
+          <button class="filter-tab" onclick="setFilter('adhd',this)" aria-pressed="false">🧠 ADHD-Friendly</button>
+          <button class="filter-tab" onclick="setFilter('dyslexia',this)" aria-pressed="false">🔤 Dyslexia-Friendly</button>
+          <button class="filter-tab" onclick="setFilter('audio',this)" aria-pressed="false">🔊 Audiobook</button>
+          <button class="filter-tab" onclick="setFilter('sign',this)" aria-pressed="false">🤟 Sign Language</button>
+          <button class="filter-tab" onclick="setFilter('bm',this)" aria-pressed="false">🇲🇾 Bahasa Melayu</button>
         </div>
       </div>
 
       <!-- Book Grid -->
-      <div class="grid grid-3" id="bookGrid" style="margin-bottom:24px;"></div>
+      <div class="grid grid-3" id="bookGrid" style="margin-bottom:24px;" aria-live="polite" aria-relevant="additions removals"></div>
       <div id="noResults" class="hidden text-center" style="padding:40px;color:var(--text-muted);">
         <div style="font-size:40px;margin-bottom:12px;">📭</div>
         <div>No books match your search. Try different keywords.</div>
@@ -190,8 +190,12 @@ let readingList = [];
 
 function setFilter(filter, btn) {
   currentFilter = filter;
-  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.filter-tab').forEach(t => {
+    t.classList.remove('active');
+    t.setAttribute('aria-pressed', 'false');
+  });
   btn.classList.add('active');
+  btn.setAttribute('aria-pressed', 'true');
   filterBooks();
 }
 
@@ -220,7 +224,7 @@ function renderBooks(list) {
         <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:12px;">${b.desc}</div>
         <div class="book-footer">
           <a href="reading-companion.html" class="btn btn-primary btn-sm">▶ Read</a>
-          <button class="btn btn-ghost btn-sm" onclick="addToList(${b.id})">+ Add</button>
+          <button class="btn btn-ghost btn-sm" onclick="addToList(${b.id})" aria-label="Add ${b.title} to reading list">+ Add</button>
         </div>
       </div>
     </div>
@@ -252,7 +256,7 @@ function renderReadingList() {
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
       <span style="font-size:22px;">${b.emoji}</span>
       <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${b.title}</div><div style="font-size:11px;color:var(--text-muted);">${b.author}</div></div>
-      <button class="btn btn-ghost btn-sm" onclick="removeFromList(${b.id})">×</button>
+      <button class="btn btn-ghost btn-sm" onclick="removeFromList(${b.id})" aria-label="Remove ${b.title} from reading list">×</button>
     </div>
   `).join('');
 }
@@ -274,7 +278,7 @@ function updateRecommendations() {
       </div>
       <div style="margin-top:10px;display:flex;gap:8px;">
         <a href="reading-companion.html" class="btn btn-primary btn-sm">▶ Read</a>
-        <button class="btn btn-ghost btn-sm" onclick="addToList(${b.id})">+ Add</button>
+        <button class="btn btn-ghost btn-sm" onclick="addToList(${b.id})" aria-label="Add ${b.title} to reading list">+ Add</button>
       </div>
     </div>
   `).join('');

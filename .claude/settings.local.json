@@ -5,7 +5,9 @@
       "Bash(powershell -Command \"Get-ChildItem -Path 'C:\\\\Users\\\\user\\\\Desktop', 'C:\\\\Users\\\\user\\\\Downloads' -Filter '*.zip' -ErrorAction SilentlyContinue | Select-Object FullName\")",
       "mcp__Claude_Preview__preview_start",
       "PowerShell($content = Get-Content 'C:\\\\Users\\\\user\\\\Desktop\\\\CelikSense_Upgrade_Claude_Code_Pack\\\\starter-code\\\\dashboard.html' -Raw -Encoding UTF8; $content | Select-String -Pattern 'View Plan' | ForEach-Object { $_.Line })",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git config *)"
     ]
   }
 }

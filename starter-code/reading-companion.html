@@ -53,7 +53,7 @@
       <a href="profile.html" class="btn btn-ghost btn-sm">👤 Profile</a>
       <a href="dashboard.html" class="btn btn-outline btn-sm">← Dashboard</a>
       <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
-      <button class="nav-hamburger" onclick="toggleNav()">☰</button>
+      <button class="nav-hamburger" onclick="toggleNav()" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navLinks">☰</button>
     </div>
   </div>
 </nav>
@@ -171,11 +171,11 @@
         <div class="form-group">
           <label class="form-label">Colour Overlay</label>
           <div class="color-swatches">
-            <div class="color-swatch active" style="background:#fffdf5;" onclick="setOverlay('none',this)" title="None"></div>
-            <div class="color-swatch" style="background:#fffde0;" onclick="setOverlay('overlay-yellow',this)" title="Yellow"></div>
-            <div class="color-swatch" style="background:#e0f0ff;" onclick="setOverlay('overlay-blue',this)" title="Blue"></div>
-            <div class="color-swatch" style="background:#e0f8e0;" onclick="setOverlay('overlay-green',this)" title="Green"></div>
-            <div class="color-swatch" style="background:#ffe0f0;" onclick="setOverlay('overlay-pink',this)" title="Pink"></div>
+            <button class="color-swatch active" style="background:#fffdf5;" onclick="setOverlay('none',this)" title="None" aria-label="No overlay" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"></button>
+            <button class="color-swatch" style="background:#fffde0;" onclick="setOverlay('overlay-yellow',this)" title="Yellow" aria-label="Yellow overlay" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"></button>
+            <button class="color-swatch" style="background:#e0f0ff;" onclick="setOverlay('overlay-blue',this)" title="Blue" aria-label="Blue overlay" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"></button>
+            <button class="color-swatch" style="background:#e0f8e0;" onclick="setOverlay('overlay-green',this)" title="Green" aria-label="Green overlay" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"></button>
+            <button class="color-swatch" style="background:#ffe0f0;" onclick="setOverlay('overlay-pink',this)" title="Pink" aria-label="Pink overlay" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"></button>
           </div>
         </div>
         <div class="form-group">
@@ -310,7 +310,7 @@ function extractVocab() {
   const el = document.getElementById('vocabWords');
   if (!words.length) { el.innerHTML='<p style="font-size:13px;color:var(--text-muted);">No vocabulary entries found.</p>'; return; }
   el.innerHTML = '<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Click a word to see its definition:</p>' +
-    words.map(w=>`<span class="vocab-word" onclick="showDef('${w}')">${w}</span>`).join('');
+    words.map(w=>`<span class="vocab-word" role="button" tabindex="0" onclick="showDef('${w}')" onkeydown="if(event.key==='Enter'||event.key===' ')showDef('${w}')">${w}</span>`).join('');
 }
 
 function showDef(word) {

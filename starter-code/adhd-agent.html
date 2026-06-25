@@ -50,7 +50,7 @@
       <a href="profile.html" class="btn btn-ghost btn-sm">👤 Profile</a>
       <a href="dashboard.html" class="btn btn-outline btn-sm">← Dashboard</a>
       <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
-      <button class="nav-hamburger" onclick="toggleNav()">☰</button>
+      <button class="nav-hamburger" onclick="toggleNav()" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navLinks">☰</button>
     </div>
   </div>
 </nav>
@@ -97,8 +97,9 @@
         </div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <div>
-            <div class="timer-display" id="timerDisplay">10:00</div>
+            <div class="timer-display" id="timerDisplay" role="timer" aria-live="off" aria-label="Focus timer">10:00</div>
             <div class="timer-label" id="timerLabel">Session Timer</div>
+          <div id="timerStatus" role="status" aria-live="polite" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></div>
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;margin-left:16px;">
             <button class="btn btn-success" id="startBtn" onclick="startSession()">▶ Start Session</button>
@@ -247,6 +248,10 @@ function startSession() {
   document.getElementById('startBtn').disabled = true;
   document.getElementById('pauseBtn').disabled = false;
 
+  var statusEl = document.getElementById('timerStatus');
+  var minutes = Math.ceil(timerSecs / 60);
+  if (statusEl) { statusEl.textContent = 'Focus session started. ' + minutes + ' minutes.'; }
+
   /* ── Analytics: start session ── */
   CS.analytics.startSession('adhd');
 
@@ -259,6 +264,9 @@ function startSession() {
       document.getElementById('startBtn').disabled = false;
       document.getElementById('pauseBtn').disabled = true;
       document.getElementById('breakBanner').classList.remove('hidden');
+
+      var statusEl = document.getElementById('timerStatus');
+      if (statusEl) { statusEl.textContent = 'Session complete. Time for a break.'; }
 
       /* ── Analytics: log focus + end session ── */
       const finalScore = simulateFocus();
@@ -278,6 +286,9 @@ function pauseSession() {
   document.getElementById('startBtn').disabled = false;
   document.getElementById('pauseBtn').disabled = true;
 
+  var statusEl = document.getElementById('timerStatus');
+  if (statusEl) { statusEl.textContent = 'Session paused.'; }
+
   /* ── Analytics: log partial focus on pause ── */
   CS.analytics.logFocus({ score: currentFocusScore, agent: 'adhd', partial: true });
 }
@@ -294,6 +305,9 @@ function stopSession() {
   updateTimerDisplay();
   document.getElementById('startBtn').disabled = false;
   document.getElementById('pauseBtn').disabled = true;
+
+  var statusEl = document.getElementById('timerStatus');
+  if (statusEl) { statusEl.textContent = 'Session stopped.'; }
 }
 
 function startBreak() {

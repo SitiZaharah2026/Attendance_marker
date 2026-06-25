@@ -1025,7 +1025,8 @@ const _lang = {
   set(code) {
     this._current = code;
     localStorage.setItem('cs_lang', code);
-    document.documentElement.setAttribute('lang', code === 'ms' ? 'ms' : 'en');
+    document.documentElement.lang = (code === 'ms') ? 'ms-MY' : 'en';
+    window.currentLang = code;
     /* Update all elements that have a data-i18n attribute */
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key  = el.getAttribute('data-i18n');

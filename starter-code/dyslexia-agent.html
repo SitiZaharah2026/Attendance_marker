@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dyslexia Adaptive Agent – CelikSense AI</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap" rel="stylesheet">
 <style>
 .dys-layout { display:grid; grid-template-columns:320px 1fr; gap:24px; }
 .reading-ruler { position:absolute; left:0; right:0; height:32px; background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); border-radius:4px; pointer-events:none; cursor:none; z-index:5; display:none; }
@@ -50,7 +52,7 @@
       <a href="profile.html" class="btn btn-ghost btn-sm">👤 Profile</a>
       <a href="dashboard.html" class="btn btn-outline btn-sm">← Dashboard</a>
       <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
-      <button class="nav-hamburger" onclick="toggleNav()">☰</button>
+      <button class="nav-hamburger" onclick="toggleNav()" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="navLinks">☰</button>
     </div>
   </div>
 </nav>
@@ -75,9 +77,9 @@
         <div class="panel-title">🔤 Font Mode</div>
         <div class="toggle-group">
           <button class="toggle-btn active" id="fontNormal" onclick="setFont('normal')">Normal</button>
-          <button class="toggle-btn" id="fontDys" onclick="setFont('dyslexic')">OpenDyslexic</button>
+          <button class="toggle-btn" id="fontDys" onclick="setFont('dyslexic')">Lexend / Dyslexic Font</button>
         </div>
-        <div style="font-size:11px;color:var(--text-dim);margin-top:8px;">OpenDyslexic font increases letter recognition for dyslexia readers.</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:8px;">Lexend is a dyslexia-friendly font designed to increase letter recognition and reduce visual stress.</div>
       </div>
 
       <!-- Font Size -->
@@ -87,7 +89,7 @@
           <span style="font-size:12px;color:var(--text-muted);">Size</span>
           <span class="range-value" id="sizeVal">16px</span>
         </div>
-        <input type="range" min="14" max="30" value="16" id="sizeRange" oninput="setFontSize(this.value)">
+        <input type="range" min="14" max="30" value="16" id="sizeRange" aria-label="Text size" oninput="setFontSize(this.value)">
         <div class="toggle-group" style="margin-top:10px;">
           <button class="toggle-btn" onclick="setFontSize(14);document.getElementById('sizeRange').value=14;">A-</button>
           <button class="toggle-btn active" onclick="setFontSize(16);document.getElementById('sizeRange').value=16;">Aa</button>
@@ -103,19 +105,19 @@
           <span style="font-size:12px;color:var(--text-muted);">Spacing</span>
           <span class="range-value" id="spacingVal">1.8</span>
         </div>
-        <input type="range" min="1.2" max="3.0" step="0.1" value="1.8" id="spacingRange" oninput="setSpacing(this.value)">
+        <input type="range" min="1.2" max="3.0" step="0.1" value="1.8" id="spacingRange" aria-label="Letter spacing" oninput="setSpacing(this.value)">
       </div>
 
       <!-- Colour Overlay -->
       <div class="control-panel" style="margin-bottom:16px;">
         <div class="panel-title">🎨 Colour Overlay</div>
         <div class="color-swatches">
-          <div class="color-swatch active" style="background:#fffdf5;" onclick="setOverlay('none',this)" title="None (White)"></div>
-          <div class="color-swatch" style="background:#fffde0;" onclick="setOverlay('overlay-yellow',this)" title="Yellow"></div>
-          <div class="color-swatch" style="background:#e0f0ff;" onclick="setOverlay('overlay-blue',this)" title="Blue"></div>
-          <div class="color-swatch" style="background:#e0f8e0;" onclick="setOverlay('overlay-green',this)" title="Green"></div>
-          <div class="color-swatch" style="background:#ffe0f0;" onclick="setOverlay('overlay-pink',this)" title="Pink"></div>
-          <div class="color-swatch" style="background:#f0f0f0;" onclick="setOverlay('overlay-grey',this)" title="Grey"></div>
+          <div class="color-swatch active" style="background:#fffdf5;" onclick="setOverlay('none',this)" title="None (White)" role="button" tabindex="0" aria-label="None (White) overlay" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"></div>
+          <div class="color-swatch" style="background:#fffde0;" onclick="setOverlay('overlay-yellow',this)" title="Yellow" role="button" tabindex="0" aria-label="Yellow overlay" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"></div>
+          <div class="color-swatch" style="background:#e0f0ff;" onclick="setOverlay('overlay-blue',this)" title="Blue" role="button" tabindex="0" aria-label="Blue overlay" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"></div>
+          <div class="color-swatch" style="background:#e0f8e0;" onclick="setOverlay('overlay-green',this)" title="Green" role="button" tabindex="0" aria-label="Green overlay" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"></div>
+          <div class="color-swatch" style="background:#ffe0f0;" onclick="setOverlay('overlay-pink',this)" title="Pink" role="button" tabindex="0" aria-label="Pink overlay" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"></div>
+          <div class="color-swatch" style="background:#f0f0f0;" onclick="setOverlay('overlay-grey',this)" title="Grey" role="button" tabindex="0" aria-label="Grey overlay" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"></div>
         </div>
         <div style="font-size:11px;color:var(--text-dim);margin-top:8px;">Colour overlays reduce visual stress and improve reading comfort.</div>
       </div>
@@ -144,7 +146,7 @@
             <span style="font-size:12px;color:var(--text-muted);">Speed</span>
             <span class="range-value" id="speedVal">0.9x</span>
           </div>
-          <input type="range" min="0.5" max="1.5" step="0.1" value="0.9" id="speedRange" oninput="setSpeed(this.value)">
+          <input type="range" min="0.5" max="1.5" step="0.1" value="0.9" id="speedRange" aria-label="Reading speed" oninput="setSpeed(this.value)">
         </div>
       </div>
 
@@ -194,7 +196,7 @@
       <!-- Mind Map -->
       <div class="control-panel">
         <div class="panel-title">🗺 Visual Mind Map</div>
-        <button class="btn btn-primary btn-sm" style="margin-bottom:14px;" onclick="generateMindMap()">🤖 Generate Mind Map</button>
+        <button class="btn btn-primary btn-sm" style="margin-bottom:14px;" onclick="generateMindMap()">🗺 Auto Mind Map (Pattern-based)</button>
         <div class="mindmap-canvas" id="mindmapCanvas">
           <div style="text-align:center;color:var(--text-muted);font-size:14px;">Load a text and click Generate Mind Map</div>
         </div>
@@ -224,7 +226,7 @@ function setFont(mode) {
   currentFont = mode;
   const el = document.getElementById('dysReadArea');
   if (mode === 'dyslexic') {
-    el.style.fontFamily = "'Comic Sans MS','Trebuchet MS',cursive";
+    el.style.fontFamily = "'Lexend','Comic Sans MS','Trebuchet MS',sans-serif";
     el.style.letterSpacing = '0.1em';
     el.style.wordSpacing = '0.2em';
     document.getElementById('fontDys').classList.add('active');
