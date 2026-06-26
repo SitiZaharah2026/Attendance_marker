@@ -1,11 +1,20 @@
 // CelikSense AI — Intelligent Offline Service Worker v2
 // Strategy: shell-first for static assets, network-first for dynamic content,
 //           IndexedDB messaging for user content (books, OCR, AI cache).
+//
+// GitHub Pages compatibility: self.location.pathname is /CelikSense_AI/sw.js
+// when deployed as a project page, so BASE_PATH strips that prefix from every
+// request URL before comparing against SHELL_FILES (which are bare filenames).
 
 const SW_VERSION    = 'cs-v2';
 const CACHE_SHELL   = SW_VERSION + '-shell';    // long-lived HTML/CSS/JS
 const CACHE_RUNTIME = SW_VERSION + '-runtime';  // dynamic pages + images
 const OFFLINE_URL   = 'offline.html';
+
+// Derive the base path once at SW startup.
+// Local dev:     self.location.pathname = '/sw.js'      → BASE_PATH = '/'
+// GitHub Pages:  self.location.pathname = '/CelikSense_AI/sw.js' → BASE_PATH = '/CelikSense_AI/'
+const BASE_PATH = self.location.pathname.replace(/sw\.js$/, '');
 
 // All files that must be pre-cached at install time.
 const SHELL_FILES = [
@@ -159,7 +168,11 @@ self.addEventListener('fetch', event => {
   // Skip non-same-origin requests (CDNs, Gemini API, etc.)
   if (url.origin !== self.location.origin) return;
 
-  const path = url.pathname.replace(/^\//, '') || 'index.html';
+  // Strip base path so '/CelikSense_AI/dashboard.html' → 'dashboard.html'
+  const relPath = url.pathname.startsWith(BASE_PATH)
+    ? url.pathname.slice(BASE_PATH.length)
+    : url.pathname.replace(/^\//, '');
+  const path = relPath || 'index.html';
   const isShell = SHELL_FILES.includes(path) || SHELL_FILES.includes(path + '.html');
 
   event.respondWith(

@@ -2,7 +2,8 @@
   "name": "CelikSense AI — Inclusive Learning Platform",
   "short_name": "CelikSense AI",
   "description": "Multi-sensory AI learning platform for Malaysian learners with disabilities. Works offline.",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#c4b8ff",
@@ -29,21 +30,21 @@
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "Open your learning dashboard",
-      "url": "/dashboard.html",
+      "url": "./dashboard.html",
       "icons": []
     },
     {
       "name": "Offline Library",
       "short_name": "My Library",
       "description": "Browse downloaded content",
-      "url": "/offline-library.html",
+      "url": "./offline-library.html",
       "icons": []
     },
     {
       "name": "Reading Companion",
       "short_name": "Read",
       "description": "Open Reading Companion",
-      "url": "/reading-companion.html",
+      "url": "./reading-companion.html",
       "icons": []
     }
   ],
