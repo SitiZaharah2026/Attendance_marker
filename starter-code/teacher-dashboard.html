@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Dashboard — CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ── Page background ── */
+body { background: linear-gradient(160deg,#c4f0e0 0%,#ddf4ff 40%,#c4b8ff 100%); min-height:100vh; }
+
+/* ── Hero header ── */
+.td-hero {
+  background: linear-gradient(135deg,rgba(16,185,129,0.12) 0%,rgba(6,182,212,0.08) 50%,rgba(99,102,241,0.08) 100%);
+  border: 1px solid rgba(16,185,129,0.25);
+  border-radius: 24px;
+  padding: 32px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+}
+.td-hero::before {
+  content:'';
+  position:absolute;
+  top:-40px;right:-40px;
+  width:200px;height:200px;
+  background:radial-gradient(circle,rgba(16,185,129,0.18),transparent 70%);
+  pointer-events:none;
+}
+.td-hero-title { font-size:26px; font-weight:900; letter-spacing:-0.02em; }
+.td-hero-sub { font-size:14px; color:#0f172a; margin-top:6px; }
+
+/* ── Section header ── */
+.section-title {
+  font-size:16px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:0.07em;
+  color:#0f172a;
+  margin-bottom:16px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* ── Summary metric cards ── */
+.metric-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px; }
+.metric-card {
+  background:#ffffff;
+  border:1px solid rgba(0,0,0,0.08);
+  border-radius:20px;
+  padding:22px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  position:relative;
+  overflow:hidden;
+  transition:all 0.25s ease;
+}
+.metric-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.3); }
+.metric-card::before {
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:3px;
+  background:var(--mc,linear-gradient(90deg,#10b981,#06b6d4));
+  border-radius:2px 2px 0 0;
+}
+.metric-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.09em; color:#475569; }
+.metric-value { font-size:34px; font-weight:900; background:linear-gradient(135deg,#10b981,#06b6d4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.metric-sub { font-size:12px; color:#64748b; }
+.metric-icon { font-size:28px; position:absolute; top:18px; right:18px; opacity:0.25; }
+
+/* ── Roster table ── */
+.table-wrap {
+  background:#ffffff;
+  border:1px solid rgba(0,0,0,0.08);
+  border-radius:20px;
+  overflow:auto;
+  margin-bottom:32px;
+}
+.roster-table { width:100%; border-collapse:collapse; font-size:14px; }
+.roster-table thead th {
+  padding:14px 16px;
+  text-align:left;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.07em;
+  color:#475569;
+  background:rgba(16,185,129,0.05);
+  border-bottom:1px solid rgba(0,0,0,0.07);
+  white-space:nowrap;
+}
+.roster-table tbody td {
+  padding:14px 16px;
+  border-bottom:1px solid rgba(0,0,0,0.05);
+  vertical-align:middle;
+}
+.roster-table tbody tr:last-child td { border-bottom:none; }
+.roster-table tbody tr:hover { background:rgba(16,185,129,0.04); }
+.student-name { font-weight:700; }
+.badge {
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:100px;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.05em;
+}
+.badge-green  { background:#d1fae5; color:#065f46; }
+.badge-amber  { background:#fef3c7; color:#92400e; }
+.badge-red    { background:#fee2e2; color:#991b1b; }
+.badge-blue   { background:#dbeafe; color:#1e40af; }
+.badge-purple { background:#ede9fe; color:#5b21b6; }
+
+/* ── Chart card ── */
+.chart-card {
+  background:#ffffff;
+  border:1px solid rgba(0,0,0,0.08);
+  border-radius:20px;
+  padding:28px;
+  margin-bottom:32px;
+}
+.chart-wrap { position:relative; height:260px; }
+
+/* ── Alerts ── */
+.alerts-card {
+  background:#ffffff;
+  border:1px solid rgba(0,0,0,0.08);
+  border-radius:20px;
+  padding:28px;
+  margin-bottom:32px;
+}
+.alert-item {
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  padding:16px 0;
+  border-bottom:1px solid rgba(0,0,0,0.06);
+}
+.alert-item:last-child { border-bottom:none; padding-bottom:0; }
+.alert-icon {
+  width:44px; height:44px;
+  border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px;
+  flex-shrink:0;
+}
+.alert-icon.warn { background:#fef3c7; }
+.alert-icon.danger { background:#fee2e2; }
+.alert-body { flex:1; }
+.alert-student { font-weight:700; font-size:14px; }
+.alert-msg { font-size:13px; color:#475569; margin-top:3px; }
+.alert-actions { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.btn-xs {
+  padding:5px 12px;
+  font-size:12px;
+  font-weight:700;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-primary-xs { background:linear-gradient(135deg,#10b981,#06b6d4); color:#fff; }
+.btn-primary-xs:hover { opacity:0.88; transform:translateY(-1px); }
+.btn-outline-xs { background:transparent; color:#10b981; border:1.5px solid #10b981; }
+.btn-outline-xs:hover { background:rgba(16,185,129,0.08); }
+
+/* ── Teacher actions ── */
+.actions-card {
+  background:#ffffff;
+  border:1px solid rgba(0,0,0,0.08);
+  border-radius:20px;
+  padding:28px;
+  margin-bottom:32px;
+}
+.actions-grid { display:flex; flex-wrap:wrap; gap:12px; }
+.btn-action {
+  padding:12px 20px;
+  font-size:14px;
+  font-weight:700;
+  border-radius:12px;
+  border:none;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  transition:all 0.25s;
+}
+.btn-action-green { background:linear-gradient(135deg,#10b981,#059669); color:#fff; }
+.btn-action-blue  { background:linear-gradient(135deg,#06b6d4,#0284c7); color:#fff; }
+.btn-action-purple{ background:linear-gradient(135deg,#8b5cf6,#6366f1); color:#fff; }
+.btn-action:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.15); }
+
+/* ── Footer note ── */
+.td-footer-note {
+  text-align:center;
+  font-size:13px;
+  color:#64748b;
+  background:rgba(255,255,255,0.6);
+  border-radius:12px;
+  padding:14px 20px;
+  margin-bottom:32px;
+}
+
+/* ── Add student btn ── */
+.add-student-wrap { display:flex; justify-content:flex-end; margin-bottom:10px; }
+.btn-add-student {
+  padding:9px 18px;
+  font-size:13px;
+  font-weight:700;
+  border-radius:10px;
+  border:none;
+  cursor:pointer;
+  background:linear-gradient(135deg,#10b981,#06b6d4);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  transition:all 0.2s;
+}
+.btn-add-student:hover { transform:translateY(-2px); box-shadow:0 4px 14px rgba(16,185,129,0.3); }
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .metric-grid { grid-template-columns:repeat(2,1fr); }
+  .roster-table { font-size:12px; }
+}
+@media(max-width:600px){
+  .metric-grid { grid-template-columns:1fr 1fr; }
+  .td-hero { padding:20px; }
+  .td-hero-title { font-size:20px; }
+}
+
+/* ── Lang toggle ── */
+.lang-toggle {
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+.lang-btn {
+  padding:6px 14px;
+  border-radius:8px;
+  border:1.5px solid rgba(16,185,129,0.4);
+  background:transparent;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  color:#065f46;
+  transition:all 0.2s;
+}
+.lang-btn.active, .lang-btn:hover { background:linear-gradient(135deg,#10b981,#06b6d4); color:#fff; border-color:transparent; }
+</style>
+</head>
+<body>
+
+<!-- Skip link -->
+<a class="skip-link" href="#main-content" data-i18n="skip_link">Skip to main content</a>
+
+<!-- Navigation -->
+<nav class="nav" role="navigation" aria-label="Main navigation">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo" aria-label="CelikSense AI home">
+      <span class="logo-icon" aria-hidden="true">🧠</span>
+      <span class="logo-text">CelikSense AI</span>
+    </a>
+    <ul class="nav-links" role="list">
+      <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+      <li><a href="dashboard.html" data-i18n="nav_dashboard">My Dashboard</a></li>
+      <li><a href="teacher-dashboard.html" class="active" aria-current="page" data-i18n="nav_teacher">Teacher Dashboard</a></li>
+      <li><a href="settings.html" data-i18n="nav_settings">Settings</a></li>
+    </ul>
+    <div class="lang-toggle" role="group" aria-label="Language selection">
+      <button class="lang-btn active" id="btn-en" onclick="setLang('en')" aria-pressed="true" aria-label="Switch to English">EN</button>
+      <button class="lang-btn" id="btn-ms" onclick="setLang('ms')" aria-pressed="false" aria-label="Tukar ke Bahasa Melayu">BM</button>
+    </div>
+  </div>
+</nav>
+
+<!-- Main content -->
+<main id="main-content" class="container" style="padding-top:24px;" tabindex="-1">
+
+  <!-- Hero -->
+  <header class="td-hero" role="banner">
+    <div>
+      <h1 class="td-hero-title" data-i18n="td_hero_title">Class Learning Overview</h1>
+      <p class="td-hero-sub" data-i18n="td_hero_sub">Monitor student progress, agent usage and early-warning signals across your class.</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <span style="font-size:13px;color:#0f172a;font-weight:600;" data-i18n="td_last_sync">Last synced: just now</span>
+      <button class="btn-action btn-action-green" style="padding:9px 16px;font-size:13px;" onclick="showToast('td_toast_refresh')" aria-label="Refresh dashboard data">
+        <span aria-hidden="true">🔄</span> <span data-i18n="td_refresh">Refresh</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 1. CLASS SUMMARY CARDS -->
+  <section aria-labelledby="summary-heading">
+    <h2 class="section-title" id="summary-heading">
+      <span aria-hidden="true">📊</span> <span data-i18n="td_summary_heading">Class Summary</span>
+    </h2>
+    <div class="metric-grid" role="list">
+
+      <article class="metric-card" role="listitem" style="--mc:linear-gradient(90deg,#10b981,#059669);" aria-label="Total Students">
+        <span class="metric-icon" aria-hidden="true">👥</span>
+        <div class="metric-label" data-i18n="td_total_students">Total Students</div>
+        <div class="metric-value" id="stat-total" aria-live="polite">12</div>
+        <div class="metric-sub" data-i18n="td_total_students_sub">in this class roster</div>
+      </article>
+
+      <article class="metric-card" role="listitem" style="--mc:linear-gradient(90deg,#06b6d4,#0284c7);" aria-label="Active This Week">
+        <span class="metric-icon" aria-hidden="true">⚡</span>
+        <div class="metric-label" data-i18n="td_active_week">Active This Week</div>
+        <div class="metric-value" id="stat-active" aria-live="polite">9</div>
+        <div class="metric-sub" data-i18n="td_active_week_sub">students used an agent</div>
+      </article>
+
+      <article class="metric-card" role="listitem" style="--mc:linear-gradient(90deg,#8b5cf6,#6366f1);" aria-label="Average Streak Days">
+        <span class="metric-icon" aria-hidden="true">🔥</span>
+        <div class="metric-label" data-i18n="td_avg_streak">Avg Streak Days</div>
+        <div class="metric-value" id="stat-streak" aria-live="polite">4.2</div>
+        <div class="metric-sub" data-i18n="td_avg_streak_sub">days average this month</div>
+      </article>
+
+      <article class="metric-card" role="listitem" style="--mc:linear-gradient(90deg,#f59e0b,#ef4444);" aria-label="Most Used Agent">
+        <span class="metric-icon" aria-hidden="true">🏆</span>
+        <div class="metric-label" data-i18n="td_top_agent">Agents Used Most</div>
+        <div class="metric-value" style="font-size:18px;padding-top:6px;" id="stat-top-agent" aria-live="polite">Reading Companion</div>
+        <div class="metric-sub" data-i18n="td_top_agent_sub">highest class engagement</div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- 2. STUDENT ROSTER TABLE -->
+  <section aria-labelledby="roster-heading">
+    <h2 class="section-title" id="roster-heading">
+      <span aria-hidden="true">📋</span> <span data-i18n="td_roster_heading">Student Roster</span>
+    </h2>
+    <div class="add-student-wrap">
+      <button class="btn-add-student" onclick="showToast('td_toast_add_student')" aria-label="Add a new student to the roster">
+        <span aria-hidden="true">➕</span> <span data-i18n="td_add_student">Add Student</span>
+      </button>
+    </div>
+    <div class="table-wrap" role="region" aria-label="Student roster table" tabindex="0">
+      <table class="roster-table" aria-describedby="roster-heading">
+        <thead>
+          <tr>
+            <th scope="col" data-i18n="td_col_name">Name</th>
+            <th scope="col" data-i18n="td_col_disability">Primary Profile</th>
+            <th scope="col" data-i18n="td_col_agent">Most Used Agent</th>
+            <th scope="col" data-i18n="td_col_sessions">Sessions / Week</th>
+            <th scope="col" data-i18n="td_col_streak">Streak</th>
+            <th scope="col" data-i18n="td_col_last">Last Active</th>
+            <th scope="col" data-i18n="td_col_status">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="student-name">Amirah binti Razali</span></td>
+            <td><span class="badge badge-blue" data-i18n="profile_dyslexia">Dyslexia</span></td>
+            <td>Reading Companion</td>
+            <td>7</td>
+            <td>🔥 8 <span data-i18n="td_days">days</span></td>
+            <td data-i18n="td_today">Today</td>
+            <td><span class="badge badge-green" data-i18n="status_on_track">On Track</span></td>
+          </tr>
+          <tr>
+            <td><span class="student-name">Haziq bin Kamarudin</span></td>
+            <td><span class="badge badge-purple" data-i18n="profile_adhd">ADHD</span></td>
+            <td>Focus Timer</td>
+            <td>2</td>
+            <td>🔥 1 <span data-i18n="td_days">days</span></td>
+            <td data-i18n="td_3days">3 days ago</td>
+            <td><span class="badge badge-red" data-i18n="status_at_risk">At Risk</span></td>
+          </tr>
+          <tr>
+            <td><span class="student-name">Nurul Izzah</span></td>
+            <td><span class="badge" style="background:#fce7f3;color:#9d174d;" data-i18n="profile_blind">Visual Impairment</span></td>
+            <td>Blind Audio Guide</td>
+            <td>6</td>
+            <td>🔥 6 <span data-i18n="td_days">days</span></td>
+            <td data-i18n="td_yesterday">Yesterday</td>
+            <td><span class="badge badge-green" data-i18n="status_on_track">On Track</span></td>
+          </tr>
+          <tr>
+            <td><span class="student-name">Danial Hakim</span></td>
+            <td><span class="badge badge-blue" data-i18n="profile_dyslexia">Dyslexia</span></td>
+            <td>OCR Agent</td>
+            <td>4</td>
+            <td>🔥 3 <span data-i18n="td_days">days</span></td>
+            <td data-i18n="td_2days">2 days ago</td>
+            <td><span class="badge badge-amber" data-i18n="status_needs_attention">Needs Attention</span></td>
+          </tr>
+          <tr>
+            <td><span class="student-name">Siti Nabilah</span></td>
+            <td><span class="badge" style="background:#ecfeff;color:#164e63;" data-i18n="profile_deaf">Deaf / HoH</span></td>
+            <td>Sign Language Agent</td>
+            <td>5</td>
+            <td>🔥 5 <span data-i18n="td_days">days</span></td>
+            <td data-i18n="td_today">Today</td>
+            <td><span class="badge badge-green" data-i18n="status_on_track">On Track</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. CLASS ACTIVITY CHART -->
+  <section aria-labelledby="chart-heading">
+    <h2 class="section-title" id="chart-heading">
+      <span aria-hidden="true">📈</span> <span data-i18n="td_chart_heading">Agent Usage Frequency — Class Overview</span>
+    </h2>
+    <div class="chart-card">
+      <div class="chart-wrap" role="img" aria-label="Bar chart showing agent usage frequency across the class">
+        <canvas id="agentChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. EARLY WARNING ALERTS -->
+  <section aria-labelledby="alerts-heading">
+    <h2 class="section-title" id="alerts-heading">
+      <span aria-hidden="true">⚠️</span> <span data-i18n="td_alerts_heading">Early Warning Alerts</span>
+    </h2>
+    <div class="alerts-card" role="list" aria-label="Early warning alerts">
+
+      <article class="alert-item" role="listitem" aria-label="Alert for Haziq bin Kamarudin">
+        <div class="alert-icon danger" aria-hidden="true">😴</div>
+        <div class="alert-body">
+          <div class="alert-student">Haziq bin Kamarudin</div>
+          <div class="alert-msg" data-i18n="td_alert_haziq">No activity for 3 days. Focus Timer sessions have stopped. May need a check-in.</div>
+          <div class="alert-actions">
+            <button class="btn-xs btn-primary-xs" onclick="showToast('td_toast_view_student')" aria-label="View Haziq's profile">
+              <span data-i18n="td_view_student">View Student</span>
+            </button>
+            <button class="btn-xs btn-outline-xs" onclick="showToast('td_toast_recommendation')" aria-label="Send recommendation for Haziq">
+              <span data-i18n="td_send_rec">Send Recommendation</span>
+            </button>
+          </div>
+        </div>
+        <div><span class="badge badge-red" data-i18n="td_alert_type_inactive">Inactive</span></div>
+      </article>
+
+      <article class="alert-item" role="listitem" aria-label="Alert for Danial Hakim">
+        <div class="alert-icon warn" aria-hidden="true">📉</div>
+        <div class="alert-body">
+          <div class="alert-student">Danial Hakim</div>
+          <div class="alert-msg" data-i18n="td_alert_danial">Quiz scores have dropped 2 weeks in a row. OCR comprehension accuracy at 58%.</div>
+          <div class="alert-actions">
+            <button class="btn-xs btn-primary-xs" onclick="showToast('td_toast_view_student')" aria-label="View Danial's profile">
+              <span data-i18n="td_view_student">View Student</span>
+            </button>
+            <button class="btn-xs btn-outline-xs" onclick="showToast('td_toast_recommendation')" aria-label="Send recommendation for Danial">
+              <span data-i18n="td_send_rec">Send Recommendation</span>
+            </button>
+          </div>
+        </div>
+        <div><span class="badge badge-amber" data-i18n="td_alert_type_score">Score Drop</span></div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- 5. TEACHER ACTIONS -->
+  <section aria-labelledby="actions-heading">
+    <h2 class="section-title" id="actions-heading">
+      <span aria-hidden="true">🛠️</span> <span data-i18n="td_actions_heading">Teacher Actions</span>
+    </h2>
+    <div class="actions-card">
+      <div class="actions-grid">
+        <button class="btn-action btn-action-green" onclick="showToast('td_toast_export')" aria-label="Export class report as PDF">
+          <span aria-hidden="true">📄</span> <span data-i18n="td_export">Export Report (PDF)</span>
+        </button>
+        <button class="btn-action btn-action-blue" onclick="showToast('td_toast_announce')" aria-label="Add a class announcement">
+          <span aria-hidden="true">📢</span> <span data-i18n="td_announce">Add Class Announcement</span>
+        </button>
+        <button class="btn-action btn-action-purple" onclick="showToast('td_toast_meeting')" aria-label="Schedule a parent meeting">
+          <span aria-hidden="true">📅</span> <span data-i18n="td_schedule_meeting">Schedule Parent Meeting</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer note -->
+  <p class="td-footer-note" role="note">
+    <span aria-hidden="true">💾</span>
+    <span data-i18n="td_footer_note">Data is stored locally. Connect a backend to sync across devices.</span>
+  </p>
+
+</main>
+
+<!-- Toast container -->
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<script src="shared.js"></script>
+<script>
+/* ── Bilingual strings for this page ── */
+const TD_STRINGS = {
+  en: {
+    skip_link: "Skip to main content",
+    nav_home: "Home",
+    nav_dashboard: "My Dashboard",
+    nav_teacher: "Teacher Dashboard",
+    nav_settings: "Settings",
+    td_hero_title: "Class Learning Overview",
+    td_hero_sub: "Monitor student progress, agent usage and early-warning signals across your class.",
+    td_last_sync: "Last synced: just now",
+    td_refresh: "Refresh",
+    td_summary_heading: "Class Summary",
+    td_total_students: "Total Students",
+    td_total_students_sub: "in this class roster",
+    td_active_week: "Active This Week",
+    td_active_week_sub: "students used an agent",
+    td_avg_streak: "Avg Streak Days",
+    td_avg_streak_sub: "days average this month",
+    td_top_agent: "Agents Used Most",
+    td_top_agent_sub: "highest class engagement",
+    td_roster_heading: "Student Roster",
+    td_add_student: "Add Student",
+    td_col_name: "Name",
+    td_col_disability: "Primary Profile",
+    td_col_agent: "Most Used Agent",
+    td_col_sessions: "Sessions / Week",
+    td_col_streak: "Streak",
+    td_col_last: "Last Active",
+    td_col_status: "Status",
+    profile_dyslexia: "Dyslexia",
+    profile_adhd: "ADHD",
+    profile_blind: "Visual Impairment",
+    profile_deaf: "Deaf / HoH",
+    td_days: "days",
+    td_today: "Today",
+    td_yesterday: "Yesterday",
+    td_2days: "2 days ago",
+    td_3days: "3 days ago",
+    status_on_track: "On Track",
+    status_needs_attention: "Needs Attention",
+    status_at_risk: "At Risk",
+    td_chart_heading: "Agent Usage Frequency — Class Overview",
+    td_alerts_heading: "Early Warning Alerts",
+    td_alert_haziq: "No activity for 3 days. Focus Timer sessions have stopped. May need a check-in.",
+    td_alert_danial: "Quiz scores have dropped 2 weeks in a row. OCR comprehension accuracy at 58%.",
+    td_view_student: "View Student",
+    td_send_rec: "Send Recommendation",
+    td_alert_type_inactive: "Inactive",
+    td_alert_type_score: "Score Drop",
+    td_actions_heading: "Teacher Actions",
+    td_export: "Export Report (PDF)",
+    td_announce: "Add Class Announcement",
+    td_schedule_meeting: "Schedule Parent Meeting",
+    td_footer_note: "Data is stored locally. Connect a backend to sync across devices.",
+    td_toast_refresh: "Dashboard refreshed.",
+    td_toast_add_student: "Add Student — coming soon.",
+    td_toast_view_student: "Student profile — coming soon.",
+    td_toast_recommendation: "Recommendation sent (demo).",
+    td_toast_export: "PDF export — coming soon.",
+    td_toast_announce: "Class announcement — coming soon.",
+    td_toast_meeting: "Parent meeting scheduler — coming soon.",
+  },
+  ms: {
+    skip_link: "Langkau ke kandungan utama",
+    nav_home: "Laman Utama",
+    nav_dashboard: "Papan Pemuka Saya",
+    nav_teacher: "Papan Pemuka Guru",
+    nav_settings: "Tetapan",
+    td_hero_title: "Gambaran Pembelajaran Kelas",
+    td_hero_sub: "Pantau perkembangan pelajar, penggunaan ejen dan isyarat amaran awal dalam kelas anda.",
+    td_last_sync: "Segerak terakhir: baru sahaja",
+    td_refresh: "Segar semula",
+    td_summary_heading: "Ringkasan Kelas",
+    td_total_students: "Jumlah Pelajar",
+    td_total_students_sub: "dalam senarai kelas ini",
+    td_active_week: "Aktif Minggu Ini",
+    td_active_week_sub: "pelajar guna ejen",
+    td_avg_streak: "Purata Hari Berturut",
+    td_avg_streak_sub: "purata hari bulan ini",
+    td_top_agent: "Ejen Paling Digunakan",
+    td_top_agent_sub: "penglibatan kelas tertinggi",
+    td_roster_heading: "Senarai Pelajar",
+    td_add_student: "Tambah Pelajar",
+    td_col_name: "Nama",
+    td_col_disability: "Profil Utama",
+    td_col_agent: "Ejen Paling Digunakan",
+    td_col_sessions: "Sesi / Minggu",
+    td_col_streak: "Berturut-turut",
+    td_col_last: "Aktif Terakhir",
+    td_col_status: "Status",
+    profile_dyslexia: "Disleksia",
+    profile_adhd: "ADHD",
+    profile_blind: "Cacat Penglihatan",
+    profile_deaf: "Pekak / HoH",
+    td_days: "hari",
+    td_today: "Hari ini",
+    td_yesterday: "Semalam",
+    td_2days: "2 hari lalu",
+    td_3days: "3 hari lalu",
+    status_on_track: "Dalam Landasan",
+    status_needs_attention: "Perlu Perhatian",
+    status_at_risk: "Berisiko",
+    td_chart_heading: "Kekerapan Penggunaan Ejen — Gambaran Kelas",
+    td_alerts_heading: "Amaran Awal",
+    td_alert_haziq: "Tiada aktiviti selama 3 hari. Sesi Pemasa Fokus telah berhenti. Mungkin perlu semak.",
+    td_alert_danial: "Markah kuiz merosot 2 minggu berturut-turut. Ketepatan OCR pada 58%.",
+    td_view_student: "Lihat Pelajar",
+    td_send_rec: "Hantar Cadangan",
+    td_alert_type_inactive: "Tidak Aktif",
+    td_alert_type_score: "Markah Merosot",
+    td_actions_heading: "Tindakan Guru",
+    td_export: "Eksport Laporan (PDF)",
+    td_announce: "Tambah Pengumuman Kelas",
+    td_schedule_meeting: "Jadualkan Mesyuarat Ibu Bapa",
+    td_footer_note: "Data disimpan secara setempat. Sambungkan pelayan untuk segerak merentas peranti.",
+    td_toast_refresh: "Papan pemuka disegar semula.",
+    td_toast_add_student: "Tambah Pelajar — akan datang.",
+    td_toast_view_student: "Profil pelajar — akan datang.",
+    td_toast_recommendation: "Cadangan dihantar (demo).",
+    td_toast_export: "Eksport PDF — akan datang.",
+    td_toast_announce: "Pengumuman kelas — akan datang.",
+    td_toast_meeting: "Penjadualan mesyuarat — akan datang.",
+  }
+};
+
+let currentLang = localStorage.getItem('cs_lang') || 'en';
+
+function t(key) {
+  return (TD_STRINGS[currentLang] && TD_STRINGS[currentLang][key]) || key;
+}
+
+function applyLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (val) el.textContent = val;
+  });
+  document.documentElement.lang = currentLang === 'ms' ? 'ms' : 'en';
+  document.getElementById('btn-en').classList.toggle('active', currentLang === 'en');
+  document.getElementById('btn-ms').classList.toggle('active', currentLang === 'ms');
+  document.getElementById('btn-en').setAttribute('aria-pressed', currentLang === 'en' ? 'true' : 'false');
+  document.getElementById('btn-ms').setAttribute('aria-pressed', currentLang === 'ms' ? 'true' : 'false');
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('cs_lang', lang);
+  applyLang();
+}
+
+/* ── Toast ── */
+function showToast(msgKey) {
+  const msg = t(msgKey) || msgKey;
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-show';
+  toast.setAttribute('role', 'status');
+  toast.setAttribute('aria-live', 'polite');
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => { toast.classList.remove('toast-show'); setTimeout(() => toast.remove(), 400); }, 3000);
+}
+
+/* ── Load localStorage stats ── */
+function loadStats() {
+  const roster = JSON.parse(localStorage.getItem('cs_class_roster') || 'null');
+  if (roster && Array.isArray(roster)) {
+    document.getElementById('stat-total').textContent = roster.length;
+  }
+}
+
+/* ── Chart.js ── */
+function buildChart() {
+  const ctx = document.getElementById('agentChart');
+  if (!ctx) return;
+  const labels = [
+    'Reading Companion', 'Focus Timer', 'Blind Audio', 'OCR Agent',
+    'Sign Language', 'Dyslexia Agent', 'AI Librarian', 'AI Teacher'
+  ];
+  const data = [18, 14, 12, 11, 9, 7, 5, 4];
+  const colors = [
+    'rgba(16,185,129,0.8)', 'rgba(99,102,241,0.8)', 'rgba(236,72,153,0.8)', 'rgba(6,182,212,0.8)',
+    'rgba(245,158,11,0.8)', 'rgba(139,92,246,0.8)', 'rgba(59,130,246,0.8)', 'rgba(239,68,68,0.8)'
+  ];
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: currentLang === 'ms' ? 'Sesi Digunakan' : 'Sessions Used',
+        data,
+        backgroundColor: colors,
+        borderColor: colors.map(c => c.replace('0.8', '1')),
+        borderWidth: 1.5,
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.parsed.y} ${currentLang === 'ms' ? 'sesi' : 'sessions'}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 11 }, maxRotation: 35, minRotation: 20 }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: { stepSize: 4 }
+        }
+      }
+    }
+  });
+}
+
+/* ── Init ── */
+document.addEventListener('DOMContentLoaded', () => {
+  applyLang();
+  loadStats();
+  buildChart();
+
+  // Mark active nav
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    if (a.href === window.location.href) {
+      a.classList.add('active');
+      a.setAttribute('aria-current', 'page');
+    }
+  });
+});
+</script>
+</body>
+</html>

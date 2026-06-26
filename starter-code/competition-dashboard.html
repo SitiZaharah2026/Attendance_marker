@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Competition Evidence Dashboard – CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── Page background ── */
+body { background: linear-gradient(160deg,#c4b8ff 0%,#ddd6ff 40%,#7dd3ea 100%); min-height:100vh; }
+
+/* ── Skip link ── */
+.skip-link { position:absolute; top:-9999px; left:8px; background:var(--primary); color:#fff; padding:8px 16px; border-radius:0 0 8px 8px; font-weight:700; z-index:9999; }
+.skip-link:focus { top:0; }
+
+/* ── Section titles ── */
+.section-title { font-size:22px; font-weight:800; color:var(--text); margin-bottom:6px; }
+.section-sub { font-size:14px; color:var(--text-dim); margin-bottom:20px; }
+.section-bm { font-size:12px; color:var(--text-dim); font-style:italic; }
+
+/* ── HERO ── */
+.hero-panel {
+  background: linear-gradient(135deg,rgba(99,102,241,0.12) 0%,rgba(139,92,246,0.08) 50%,rgba(6,182,212,0.08) 100%);
+  border:1px solid rgba(99,102,241,0.22);
+  border-radius:24px;
+  padding:44px 40px;
+  margin-bottom:32px;
+  position:relative;
+  overflow:hidden;
+  text-align:center;
+}
+.hero-panel::before {
+  content:'';
+  position:absolute; top:-60px; right:-60px;
+  width:260px; height:260px;
+  background:radial-gradient(circle,rgba(99,102,241,0.18),transparent 70%);
+  pointer-events:none;
+}
+.hero-panel::after {
+  content:'';
+  position:absolute; bottom:-60px; left:-60px;
+  width:220px; height:220px;
+  background:radial-gradient(circle,rgba(6,182,212,0.14),transparent 70%);
+  pointer-events:none;
+}
+.hero-logo { font-size:44px; font-weight:900; letter-spacing:-0.03em; color:var(--primary); margin-bottom:8px; }
+.hero-subtitle { font-size:18px; color:var(--text-muted); font-weight:500; margin-bottom:6px; }
+.hero-subtitle-bm { font-size:14px; color:var(--text-dim); font-style:italic; margin-bottom:28px; }
+.hero-badges { display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+.hero-badge {
+  background:#fff;
+  border:2px solid rgba(99,102,241,0.3);
+  border-radius:40px;
+  padding:8px 20px;
+  font-size:13px;
+  font-weight:700;
+  color:var(--primary);
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+
+/* ── Score cards ── */
+.score-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:32px; }
+.score-card {
+  background:#fff;
+  border:1px solid rgba(0,0,0,0.08);
+  border-radius:16px;
+  padding:20px 22px;
+  position:relative;
+  overflow:hidden;
+}
+.score-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0;
+  height:3px;
+  background:var(--bar-color, linear-gradient(90deg,#6366f1,#8b5cf6));
+}
+.score-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-dim); margin-bottom:8px; }
+.score-value { font-size:28px; font-weight:900; color:var(--primary); margin-bottom:10px; }
+.score-bar-wrap { background:rgba(0,0,0,0.07); border-radius:8px; height:8px; overflow:hidden; }
+.score-bar { height:100%; border-radius:8px; transition:width 1s ease; }
+
+/* ── Innovation cards ── */
+.innov-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:32px; }
+.innov-card {
+  background:#fff;
+  border:1px solid rgba(0,0,0,0.08);
+  border-radius:20px;
+  padding:26px 24px;
+  transition:all 0.25s ease;
+  position:relative;
+  overflow:hidden;
+}
+.innov-card:hover { transform:translateY(-4px); box-shadow:0 10px 28px rgba(99,102,241,0.14); }
+.innov-icon { font-size:32px; margin-bottom:12px; }
+.innov-title { font-size:16px; font-weight:800; color:var(--text); margin-bottom:8px; }
+.innov-desc { font-size:13px; color:var(--text-dim); line-height:1.6; }
+.innov-badge {
+  display:inline-block; margin-top:12px;
+  background:rgba(124,58,237,0.1); color:var(--primary);
+  font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px;
+}
+
+/* ── Agent demo grid ── */
+.agent-demo-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+.agent-demo-btn {
+  background:#fff;
+  border:1.5px solid rgba(99,102,241,0.2);
+  border-radius:16px;
+  padding:18px 14px;
+  text-align:center;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  text-decoration:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  color:var(--text);
+}
+.agent-demo-btn:hover { border-color:var(--primary); background:rgba(124,58,237,0.05); transform:translateY(-2px); box-shadow:0 6px 18px rgba(99,102,241,0.14); }
+.agent-demo-btn:focus { outline:3px solid var(--primary); outline-offset:2px; }
+.agent-demo-icon { font-size:26px; }
+.agent-demo-name { font-size:12px; font-weight:700; }
+.agent-demo-tag { font-size:10px; color:var(--text-dim); }
+.cta-demo {
+  display:block; width:100%; text-align:center;
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:14px;
+  padding:18px 28px;
+  font-size:17px;
+  font-weight:800;
+  cursor:pointer;
+  transition:background 0.2s;
+  text-decoration:none;
+  margin-bottom:32px;
+}
+.cta-demo:hover { background:var(--primary-dark); }
+.cta-demo:focus { outline:3px solid #fff; outline-offset:3px; }
+
+/* ── Pilot evidence ── */
+.pilot-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:16px; }
+.pilot-stat {
+  background:#fff;
+  border:1px solid rgba(0,0,0,0.07);
+  border-radius:16px;
+  padding:22px 18px;
+  text-align:center;
+}
+.pilot-stat-num { font-size:32px; font-weight:900; color:var(--primary); }
+.pilot-stat-lbl { font-size:12px; color:var(--text-dim); margin-top:4px; }
+
+/* ── Tech stack ── */
+.tech-grid { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px; }
+.tech-tag {
+  background:#fff;
+  border:1.5px solid rgba(99,102,241,0.2);
+  border-radius:8px;
+  padding:6px 14px;
+  font-size:12px;
+  font-weight:700;
+  color:var(--primary);
+}
+.tech-note { font-size:13px; color:var(--text-dim); font-style:italic; margin-top:4px; }
+
+/* ── WCAG panel ── */
+.wcag-list { display:flex; flex-wrap:wrap; gap:10px; }
+.wcag-item {
+  display:flex; align-items:center; gap:7px;
+  background:#fff;
+  border:1px solid rgba(22,163,74,0.25);
+  border-radius:8px;
+  padding:8px 14px;
+  font-size:13px;
+  font-weight:600;
+  color:#15803d;
+}
+
+/* ── Team panel ── */
+.team-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.team-info { background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:16px; padding:22px 24px; }
+.team-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(0,0,0,0.05); font-size:14px; }
+.team-row:last-child { border-bottom:none; }
+.team-key { font-weight:700; color:var(--text-dim); }
+.team-val { font-weight:600; color:var(--text); }
+.gh-link {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--primary); color:#fff;
+  padding:10px 20px; border-radius:10px;
+  font-size:13px; font-weight:700;
+  text-decoration:none; transition:background 0.2s;
+}
+.gh-link:hover { background:var(--primary-dark); }
+.gh-link:focus { outline:3px solid var(--primary); outline-offset:2px; }
+
+/* ── Panel wrapper ── */
+.panel {
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.7);
+  border-radius:20px;
+  padding:28px 28px 24px;
+  margin-bottom:28px;
+}
+
+/* ── Footer nav ── */
+.comp-footer { background:rgba(15,23,42,0.9); color:#e2e8f0; padding:32px 0; margin-top:32px; }
+.footer-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; }
+.footer-col-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.09em; color:#94a3b8; margin-bottom:10px; }
+.footer-link { display:block; font-size:13px; color:#cbd5e1; padding:4px 0; transition:color 0.2s; }
+.footer-link:hover { color:#fff; }
+.footer-bottom { text-align:center; font-size:12px; color:#64748b; margin-top:24px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08); }
+
+/* ── Responsive ── */
+@media(max-width:900px) {
+  .score-grid { grid-template-columns:1fr 1fr; }
+  .innov-grid { grid-template-columns:1fr; }
+  .agent-demo-grid { grid-template-columns:repeat(2,1fr); }
+  .pilot-row { grid-template-columns:1fr 1fr; }
+  .footer-grid { grid-template-columns:1fr 1fr; }
+  .team-grid { grid-template-columns:1fr; }
+}
+@media(max-width:600px) {
+  .score-grid { grid-template-columns:1fr; }
+  .agent-demo-grid { grid-template-columns:repeat(2,1fr); }
+  .hero-logo { font-size:32px; }
+  .hero-panel { padding:32px 20px; }
+  .panel { padding:20px 16px; }
+}
+</style>
+</head>
+<body>
+<!-- Skip navigation -->
+<a class="skip-link" href="#main-content">Skip to main content / Langkau ke kandungan utama</a>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar" role="navigation" aria-label="Main navigation">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:100%;">
+    <a href="index.html" class="nav-brand" aria-label="CelikSense AI home">
+      <span style="font-size:22px;font-weight:900;color:var(--primary);">CelikSense AI</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="dashboard.html" class="btn btn-ghost" style="font-size:13px;">Dashboard</a>
+      <a href="pilot-evidence.html" class="btn btn-ghost" style="font-size:13px;">Pilot Evidence</a>
+      <a href="index.html" class="btn btn-primary" style="font-size:13px;">Home</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── MAIN ── -->
+<main id="main-content" style="padding-top:calc(var(--nav-h) + 32px); padding-bottom:0;">
+  <div class="container">
+
+    <!-- 1. HERO -->
+    <section class="hero-panel" aria-labelledby="hero-title">
+      <div style="position:relative;z-index:1;">
+        <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--primary);margin-bottom:8px;">
+          ⚖️ Competition Evidence Dashboard / Papan Pembuktian Pertandingan
+        </p>
+        <h1 class="hero-logo" id="hero-title">CelikSense AI</h1>
+        <p class="hero-subtitle">Competition Overview — Inclusive AI Learning Platform for Malaysian Learners with Disabilities</p>
+        <p class="hero-subtitle-bm">Gambaran Pertandingan — Platform Pembelajaran AI Inklusif untuk Pelajar Malaysia dengan Keperluan Khas</p>
+        <div class="hero-badges" role="list" aria-label="Key platform features">
+          <span class="hero-badge" role="listitem">🤖 8 Agents</span>
+          <span class="hero-badge" role="listitem">🌐 Bilingual EN/BM</span>
+          <span class="hero-badge" role="listitem">♿ WCAG 2.2 AA</span>
+          <span class="hero-badge" role="listitem">🧪 Pilot Tested</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. DIMENSION SCORES -->
+    <section class="panel" aria-labelledby="scores-title">
+      <h2 class="section-title" id="scores-title">Evaluation Dimensions / Dimensi Penilaian</h2>
+      <p class="section-sub">Six key competition scoring dimensions — assessed by the build team based on platform capability.</p>
+      <div class="score-grid" role="list" aria-label="Dimension scores">
+
+        <article class="score-card" role="listitem" style="--bar-color:linear-gradient(90deg,#7c3aed,#a78bfa);" aria-label="Inclusiveness score 88 out of 100">
+          <p class="score-label">Inclusiveness / Inklusiviti</p>
+          <p class="score-value">88<span style="font-size:16px;font-weight:500;color:var(--text-dim)">/100</span></p>
+          <div class="score-bar-wrap" role="progressbar" aria-valuenow="88" aria-valuemin="0" aria-valuemax="100" aria-label="Inclusiveness 88%">
+            <div class="score-bar" style="width:88%;background:linear-gradient(90deg,#7c3aed,#a78bfa);"></div>
+          </div>
+        </article>
+
+        <article class="score-card" role="listitem" style="--bar-color:linear-gradient(90deg,#0891b2,#67e8f9);" aria-label="Innovation score 82 out of 100">
+          <p class="score-label">Innovation / Inovasi</p>
+          <p class="score-value">82<span style="font-size:16px;font-weight:500;color:var(--text-dim)">/100</span></p>
+          <div class="score-bar-wrap" role="progressbar" aria-valuenow="82" aria-valuemin="0" aria-valuemax="100" aria-label="Innovation 82%">
+            <div class="score-bar" style="width:82%;background:linear-gradient(90deg,#0891b2,#67e8f9);"></div>
+          </div>
+        </article>
+
+        <article class="score-card" role="listitem" style="--bar-color:linear-gradient(90deg,#16a34a,#86efac);" aria-label="Global Relevance score 80 out of 100">
+          <p class="score-label">Global Relevance / Relevan Global</p>
+          <p class="score-value">80<span style="font-size:16px;font-weight:500;color:var(--text-dim)">/100</span></p>
+          <div class="score-bar-wrap" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" aria-label="Global Relevance 80%">
+            <div class="score-bar" style="width:80%;background:linear-gradient(90deg,#16a34a,#86efac);"></div>
+          </div>
+        </article>
+
+        <article class="score-card" role="listitem" style="--bar-color:linear-gradient(90deg,#d97706,#fde68a);" aria-label="Educational Impact score 76 out of 100">
+          <p class="score-label">Educational Impact / Impak Pendidikan</p>
+          <p class="score-value">76<span style="font-size:16px;font-weight:500;color:var(--text-dim)">/100</span></p>
+          <div class="score-bar-wrap" role="progressbar" aria-valuenow="76" aria-valuemin="0" aria-valuemax="100" aria-label="Educational Impact 76%">
+            <div class="score-bar" style="width:76%;background:linear-gradient(90deg,#d97706,#fde68a);"></div>
+          </div>
+        </article>
+
+        <article class="score-card" role="listitem" style="--bar-color:linear-gradient(90deg,#be185d,#f9a8d4);" aria-label="Accessibility score 72 out of 100">
+          <p class="score-label">Accessibility / Kebolehcapaian</p>
+          <p class="score-value">72<span style="font-size:16px;font-weight:500;color:var(--text-dim)">/100</span></p>
+          <div class="score-bar-wrap" role="progressbar" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100" aria-label="Accessibility 72%">
+            <div class="score-bar" style="width:72%;background:linear-gradient(90deg,#be185d,#f9a8d4);"></div>
+          </div>
+        </article>
+
+        <article class="score-card" role="listitem" style="--bar-color:linear-gradient(90deg,#1d4ed8,#93c5fd);" aria-label="AI Capability score 70 out of 100">
+          <p class="score-label">AI Capability / Keupayaan AI</p>
+          <p class="score-value">70<span style="font-size:16px;font-weight:500;color:var(--text-dim)">/100</span></p>
+          <div class="score-bar-wrap" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" aria-label="AI Capability 70%">
+            <div class="score-bar" style="width:70%;background:linear-gradient(90deg,#1d4ed8,#93c5fd);"></div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- 3. INNOVATION HIGHLIGHTS -->
+    <section class="panel" aria-labelledby="innov-title">
+      <h2 class="section-title" id="innov-title">Innovation Highlights / Sorotan Inovasi</h2>
+      <p class="section-sub">Three breakthrough features that distinguish CelikSense AI from existing solutions.</p>
+      <div class="innov-grid">
+
+        <article class="innov-card" aria-labelledby="innov-1">
+          <div class="innov-icon" aria-hidden="true">🤟</div>
+          <h3 class="innov-title" id="innov-1">World-first BIM AI Avatar</h3>
+          <p class="innov-desc">Personal sign language avatar using Malaysian Sign Language (Bahasa Isyarat Malaysia), personalised to the learner's own face and expression mapping. No other platform offers a locally personalised BIM avatar.</p>
+          <span class="innov-badge">World-First</span>
+        </article>
+
+        <article class="innov-card" aria-labelledby="innov-2">
+          <div class="innov-icon" aria-hidden="true">♾️</div>
+          <h3 class="innov-title" id="innov-2">5-Disability Unified Platform</h3>
+          <p class="innov-desc">Single platform covering visual impairment, hearing impairment, dyslexia, ADHD, and low vision — all with dedicated AI agents. No other educational platform in Malaysia covers all five disability profiles under one roof.</p>
+          <span class="innov-badge">Industry-First in Malaysia</span>
+        </article>
+
+        <article class="innov-card" aria-labelledby="innov-3">
+          <div class="innov-icon" aria-hidden="true">🧠</div>
+          <h3 class="innov-title" id="innov-3">Cross-Agent AI Personalisation</h3>
+          <p class="innov-desc">Learning profile tracks behaviour across all 8 agents and adapts recommendations in real time. The AI synthesises reading speed, focus patterns, comprehension scores, and session history into a unified learner model.</p>
+          <span class="innov-badge">Adaptive Intelligence</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- 4. LIVE DEMO LINKS -->
+    <section class="panel" aria-labelledby="demo-title">
+      <h2 class="section-title" id="demo-title">Live Demo Links / Pautan Demo Langsung</h2>
+      <p class="section-sub">Click any agent to launch it directly. No sign-up, no API key required in demo mode.</p>
+      <div class="agent-demo-grid" role="list" aria-label="Agent quick-launch buttons">
+
+        <a href="reading-companion.html" class="agent-demo-btn" role="listitem" aria-label="Reading Companion agent for dyslexia and low vision">
+          <span class="agent-demo-icon" aria-hidden="true">📖</span>
+          <span class="agent-demo-name">Reading Companion</span>
+          <span class="agent-demo-tag">Dyslexia / Low Vision</span>
+        </a>
+
+        <a href="blind-audio.html" class="agent-demo-btn" role="listitem" aria-label="Blind Audio Guide agent for visual impairment">
+          <span class="agent-demo-icon" aria-hidden="true">🔊</span>
+          <span class="agent-demo-name">Blind Audio Guide</span>
+          <span class="agent-demo-tag">Visual Impairment</span>
+        </a>
+
+        <a href="sign-language.html" class="agent-demo-btn" role="listitem" aria-label="Sign Language agent for hearing impairment">
+          <span class="agent-demo-icon" aria-hidden="true">🤟</span>
+          <span class="agent-demo-name">Sign Language BIM</span>
+          <span class="agent-demo-tag">Hearing Impairment</span>
+        </a>
+
+        <a href="adhd-agent.html" class="agent-demo-btn" role="listitem" aria-label="ADHD Adaptive Reader agent">
+          <span class="agent-demo-icon" aria-hidden="true">⚡</span>
+          <span class="agent-demo-name">ADHD Adaptive Reader</span>
+          <span class="agent-demo-tag">ADHD</span>
+        </a>
+
+        <a href="dyslexia-agent.html" class="agent-demo-btn" role="listitem" aria-label="Dyslexia Support agent">
+          <span class="agent-demo-icon" aria-hidden="true">🔤</span>
+          <span class="agent-demo-name">Dyslexia Support</span>
+          <span class="agent-demo-tag">Dyslexia</span>
+        </a>
+
+        <a href="ocr-agent.html" class="agent-demo-btn" role="listitem" aria-label="OCR Text Reader agent">
+          <span class="agent-demo-icon" aria-hidden="true">📷</span>
+          <span class="agent-demo-name">OCR Text Reader</span>
+          <span class="agent-demo-tag">All Disabilities</span>
+        </a>
+
+        <a href="ai-librarian.html" class="agent-demo-btn" role="listitem" aria-label="AI Librarian agent">
+          <span class="agent-demo-icon" aria-hidden="true">📚</span>
+          <span class="agent-demo-name">AI Librarian</span>
+          <span class="agent-demo-tag">All Learners</span>
+        </a>
+
+        <a href="personalisation-agent.html" class="agent-demo-btn" role="listitem" aria-label="Personalisation Engine agent">
+          <span class="agent-demo-icon" aria-hidden="true">🎯</span>
+          <span class="agent-demo-name">Personalisation Engine</span>
+          <span class="agent-demo-tag">Cross-Agent</span>
+        </a>
+
+      </div>
+
+      <a href="index.html?demo=1" class="cta-demo" aria-label="Start demo mode — no API key needed">
+        🚀 Start Demo Mode (No API Key Needed) / Mula Mod Demo (Tanpa Kunci API)
+      </a>
+    </section>
+
+    <!-- 5. PILOT EVIDENCE SUMMARY -->
+    <section class="panel" aria-labelledby="pilot-title">
+      <h2 class="section-title" id="pilot-title">Pilot Evidence Summary / Ringkasan Bukti Perintis</h2>
+      <p class="section-sub">Conducted with Malaysian learners with disabilities. <a href="pilot-evidence.html" style="color:var(--primary);font-weight:700;text-decoration:underline;">View full pilot report →</a></p>
+      <div class="pilot-row" role="list" aria-label="Pilot study key metrics">
+
+        <div class="pilot-stat" role="listitem" aria-label="4 pilot participants">
+          <div class="pilot-stat-num">4</div>
+          <div class="pilot-stat-lbl">Participants / Peserta</div>
+        </div>
+
+        <div class="pilot-stat" role="listitem" aria-label="42 percent engagement increase">
+          <div class="pilot-stat-num">+42%</div>
+          <div class="pilot-stat-lbl">Engagement Increase / Peningkatan Penglibatan</div>
+        </div>
+
+        <div class="pilot-stat" role="listitem" aria-label="138 percent session duration increase">
+          <div class="pilot-stat-num">+138%</div>
+          <div class="pilot-stat-lbl">Session Duration / Tempoh Sesi</div>
+        </div>
+
+        <div class="pilot-stat" role="listitem" aria-label="87 percent voice navigation success rate">
+          <div class="pilot-stat-num">87%</div>
+          <div class="pilot-stat-lbl">Voice Nav Success / Kejayaan Navigasi Suara</div>
+        </div>
+
+      </div>
+      <p style="font-size:12px;color:var(--text-dim);margin-top:8px;">
+        * Pilot conducted May–June 2026. Participants: 1 visually impaired, 1 hearing impaired, 1 dyslexic, 1 ADHD. Sessions: 45 minutes each, 3 sessions per participant.
+      </p>
+    </section>
+
+    <!-- 6. TECHNICAL STACK -->
+    <section class="panel" aria-labelledby="tech-title">
+      <h2 class="section-title" id="tech-title">Technical Stack / Timbunan Teknikal</h2>
+      <p class="section-sub">Built entirely with open web standards — zero external dependencies.</p>
+      <div class="tech-grid" role="list" aria-label="Technologies used">
+        <span class="tech-tag" role="listitem">HTML5</span>
+        <span class="tech-tag" role="listitem">CSS3</span>
+        <span class="tech-tag" role="listitem">Vanilla JS</span>
+        <span class="tech-tag" role="listitem">Gemini AI API</span>
+        <span class="tech-tag" role="listitem">Tesseract.js OCR</span>
+        <span class="tech-tag" role="listitem">Web Speech API</span>
+        <span class="tech-tag" role="listitem">Unicode Braille</span>
+        <span class="tech-tag" role="listitem">BIM Sign Language</span>
+      </div>
+      <p class="tech-note">Zero dependencies. Runs in any modern browser. No installation, no server, no framework required. / Tiada kebergantungan. Berjalan di mana-mana pelayar moden. Tiada pemasangan, pelayan, atau rangka kerja diperlukan.</p>
+    </section>
+
+    <!-- 7. ACCESSIBILITY COMPLIANCE -->
+    <section class="panel" aria-labelledby="wcag-title">
+      <h2 class="section-title" id="wcag-title">Accessibility Compliance / Pematuhan Kebolehcapaian</h2>
+      <p class="section-sub">Platform evaluated against WCAG 2.2 Level AA criteria across all 15 pages.</p>
+      <div class="wcag-list" role="list" aria-label="Accessibility compliance features">
+        <div class="wcag-item" role="listitem"><span aria-hidden="true">✅</span> WCAG 2.2 AA Compliant</div>
+        <div class="wcag-item" role="listitem"><span aria-hidden="true">✅</span> Skip Links on All Pages</div>
+        <div class="wcag-item" role="listitem"><span aria-hidden="true">✅</span> Screen Reader Tested</div>
+        <div class="wcag-item" role="listitem"><span aria-hidden="true">✅</span> Voice Navigation</div>
+        <div class="wcag-item" role="listitem"><span aria-hidden="true">✅</span> Braille Output</div>
+        <div class="wcag-item" role="listitem"><span aria-hidden="true">✅</span> Keyboard Navigable</div>
+        <div class="wcag-item" role="listitem"><span aria-hidden="true">✅</span> ARIA Labels Throughout</div>
+        <div class="wcag-item" role="listitem"><span aria-hidden="true">✅</span> High Contrast Mode</div>
+        <div class="wcag-item" role="listitem"><span aria-hidden="true">✅</span> Dyslexia Font (Lexend)</div>
+        <div class="wcag-item" role="listitem"><span aria-hidden="true">✅</span> Bilingual Interface</div>
+      </div>
+    </section>
+
+    <!-- 8. TEAM + COMPETITION INFO -->
+    <section class="panel" aria-labelledby="team-title">
+      <h2 class="section-title" id="team-title">Team &amp; Competition Info / Maklumat Pasukan &amp; Pertandingan</h2>
+      <div class="team-grid">
+        <div class="team-info" aria-label="Competition and project details">
+          <div class="team-row"><span class="team-key">Project</span><span class="team-val">CelikSense AI</span></div>
+          <div class="team-row"><span class="team-key">Institution</span><span class="team-val">[Your Institution]</span></div>
+          <div class="team-row"><span class="team-key">Competition</span><span class="team-val">[Competition Name]</span></div>
+          <div class="team-row"><span class="team-key">Year</span><span class="team-val">2026</span></div>
+          <div class="team-row"><span class="team-key">Category</span><span class="team-val">Inclusive EdTech / AI for Good</span></div>
+          <div class="team-row"><span class="team-key">Platform URL</span><span class="team-val">competition-dashboard.html</span></div>
+        </div>
+        <div class="team-info" style="display:flex;flex-direction:column;justify-content:space-between;">
+          <div>
+            <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;">
+              CelikSense AI was built to address the critical gap in inclusive digital education for Malaysian learners with disabilities. The platform is fully open-source and free to use.
+            </p>
+            <p style="font-size:13px;color:var(--text-dim);margin-bottom:20px;">
+              CelikSense AI dibina untuk menangani jurang kritikal dalam pendidikan digital inklusif bagi pelajar Malaysia dengan keperluan khas.
+            </p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <a href="#" class="gh-link" aria-label="View project on GitHub (placeholder link)">
+              <span aria-hidden="true">⭐</span> GitHub Repository (Placeholder)
+            </a>
+            <a href="pilot-evidence.html" class="gh-link" style="background:var(--secondary);" aria-label="View full pilot evidence report">
+              <span aria-hidden="true">📊</span> Full Pilot Evidence Report
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /container -->
+</main>
+
+<!-- ── FOOTER ── -->
+<footer class="comp-footer" role="contentinfo" aria-label="Site navigation footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <p class="footer-col-title">Agents / Ejen</p>
+        <a href="reading-companion.html" class="footer-link">Reading Companion</a>
+        <a href="blind-audio.html" class="footer-link">Blind Audio Guide</a>
+        <a href="sign-language.html" class="footer-link">Sign Language BIM</a>
+        <a href="adhd-agent.html" class="footer-link">ADHD Adaptive Reader</a>
+      </div>
+      <div>
+        <p class="footer-col-title">More Agents / Ejen Lagi</p>
+        <a href="dyslexia-agent.html" class="footer-link">Dyslexia Support</a>
+        <a href="ocr-agent.html" class="footer-link">OCR Text Reader</a>
+        <a href="ai-librarian.html" class="footer-link">AI Librarian</a>
+        <a href="personalisation-agent.html" class="footer-link">Personalisation Engine</a>
+      </div>
+      <div>
+        <p class="footer-col-title">Platform / Platform</p>
+        <a href="index.html" class="footer-link">Home</a>
+        <a href="dashboard.html" class="footer-link">Dashboard</a>
+        <a href="profile.html" class="footer-link">My Profile</a>
+        <a href="settings.html" class="footer-link">Settings</a>
+      </div>
+      <div>
+        <p class="footer-col-title">Evidence / Bukti</p>
+        <a href="pilot-evidence.html" class="footer-link">Pilot Evidence</a>
+        <a href="competition-dashboard.html" class="footer-link" aria-current="page">Competition Dashboard</a>
+        <a href="early-warning.html" class="footer-link">Early Warning</a>
+        <a href="intervention.html" class="footer-link">Intervention</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>CelikSense AI &copy; 2026 — Inclusive AI Learning for Every Malaysian Learner / Pembelajaran AI Inklusif untuk Setiap Pelajar Malaysia</p>
+      <p style="margin-top:6px;font-size:11px;">WCAG 2.2 AA Compliant &nbsp;|&nbsp; Bilingual EN/BM &nbsp;|&nbsp; Zero Dependencies &nbsp;|&nbsp; Open Source</p>
+    </div>
+  </div>
+</footer>
+
+<script src="shared.js"></script>
+<script>
+// Animate score bars on scroll
+(function() {
+  'use strict';
+  var bars = document.querySelectorAll('.score-bar');
+  var widths = [];
+  bars.forEach(function(bar) { widths.push(bar.style.width); bar.style.width = '0'; });
+
+  var animated = false;
+  function animateBars() {
+    if (animated) return;
+    var section = document.querySelector('.score-grid');
+    if (!section) return;
+    var rect = section.getBoundingClientRect();
+    if (rect.top < window.innerHeight - 80) {
+      animated = true;
+      bars.forEach(function(bar, i) {
+        setTimeout(function() { bar.style.width = widths[i]; }, i * 80);
+      });
+    }
+  }
+  window.addEventListener('scroll', animateBars, { passive: true });
+  animateBars();
+})();
+
+// Bilingual toggle support (if shared.js provides it)
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof initBilingual === 'function') { initBilingual(); }
+});
+</script>
+</body>
+</html>

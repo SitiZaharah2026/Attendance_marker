@@ -626,6 +626,7 @@
 
     <div class="nav-actions">
       <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn" aria-label="Switch to Bahasa Melayu">BM</button>
+      <a href="competition-dashboard.html" class="btn btn-ghost btn-sm">Competition</a>
       <a href="profile.html" class="btn btn-ghost btn-sm" aria-label="View profile">👤 Profile</a>
       <a href="dashboard.html" class="btn btn-primary btn-sm" data-i18n="nav_signup">Sign Up</a>
       <a href="settings.html" class="btn btn-ghost btn-sm" aria-label="Settings">⚙️</a>
@@ -659,6 +660,7 @@
       <div class="hero-cta-row">
         <a href="dashboard.html" class="btn-hero-primary" data-i18n="hero_cta1">🚀 Get Started</a>
         <a href="#agents" class="btn-hero-outline" data-i18n="btn_explore_agents">✨ Explore Agents</a>
+        <a href="?demo=1" class="btn btn-primary btn-lg" style="background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#fff;">Try Demo — No API Key Needed</a>
       </div>
 
       <div class="hero-stat-row" role="list" aria-label="Platform statistics">
@@ -1030,6 +1032,7 @@
 </footer>
 
 <script src="shared.js"></script>
+<script src="demo-mode.js"></script>
 <script>
 /* ── Hero canvas: animated particle field ── */
 (function(){
@@ -1086,6 +1089,12 @@
 })();
 
 
+/* ── Demo mode auto-enable ── */
+if (new URLSearchParams(window.location.search).get('demo') === '1') {
+  localStorage.setItem('cs_demo_mode','1');
+}
+if (window.CS_DEMO) CS_DEMO.init();
+
 /* ── Scroll reveal ── */
 (function(){
   const obs = new IntersectionObserver(entries=>{
@@ -1109,5 +1118,12 @@ function toggleMarquee(){
   btn.setAttribute('aria-label',paused?'Pause scrolling animation':'Resume scrolling animation');
 }
 </script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      console.log('[SW] Registered:', reg.scope);
+    }).catch(function(e){ console.log('[SW] Registration failed:', e); });
+  }
+  </script>
 </body>
 </html>

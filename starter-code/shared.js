@@ -2009,3 +2009,144 @@ window.synth = window.speechSynthesis;
 window.currentLang = (function() {
   try { return localStorage.getItem('cs_lang') || 'en'; } catch(e) { return 'en'; }
 })();
+
+/* ============================================================
+   CS.db — Backend-ready data layer
+   Wraps all localStorage reads/writes with a structured API
+   that is 1:1 compatible with a future REST backend.
+   All keys: cs_sessions, cs_agent_counts, cs_feedback,
+             cs_class_roster (plus existing cs_user, etc.)
+============================================================ */
+window.CS.db = {
+
+  // Schema version for future migrations
+  SCHEMA_VERSION: 1,
+
+  // ── Student profile ────────────────────────────────────
+  getProfile: function() {
+    try {
+      var raw = localStorage.getItem('cs_user');
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      return {
+        name:          parsed.name          || parsed.displayName || '',
+        displayName:   parsed.displayName   || parsed.name        || '',
+        language:      parsed.language      || 'en',
+        onboarded:     parsed.onboarded     || false,
+        profile:       parsed.profile       || {},
+        accessibility: parsed.accessibility || {},
+        stats:         parsed.stats         || {},
+      };
+    } catch(e) { return null; }
+  },
+
+  saveProfile: function(data) {
+    try { localStorage.setItem('cs_user', JSON.stringify(data)); } catch(e) {}
+  },
+
+  // ── Learning sessions ──────────────────────────────────
+  logSession: function(agentName, durationMs, outcome) {
+    // outcome: { quizScore, wordsRead, focusMinutes, signsLearned }
+    var sessions;
+    try { sessions = JSON.parse(localStorage.getItem('cs_sessions') || '[]'); } catch(e) { sessions = []; }
+    sessions.push({
+      id:        Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      agentName: agentName || 'unknown',
+      durationMs: durationMs || 0,
+      outcome:   outcome   || {},
+      ts:        new Date().toISOString(),
+    });
+    // cap at 500 entries
+    if (sessions.length > 500) sessions = sessions.slice(-500);
+    try { localStorage.setItem('cs_sessions', JSON.stringify(sessions)); } catch(e) {}
+  },
+
+  getSessions: function(days) {
+    try {
+      var all = JSON.parse(localStorage.getItem('cs_sessions') || '[]');
+      if (!days) return all;
+      var cutoff = Date.now() - days * 86400000;
+      return all.filter(function(s) { return new Date(s.ts).getTime() > cutoff; });
+    } catch(e) { return []; }
+  },
+
+  // ── Agent usage ────────────────────────────────────────
+  trackAgent: function(agentName) {
+    var counts;
+    try { counts = JSON.parse(localStorage.getItem('cs_agent_counts') || '{}'); } catch(e) { counts = {}; }
+    counts[agentName] = (counts[agentName] || 0) + 1;
+    try { localStorage.setItem('cs_agent_counts', JSON.stringify(counts)); } catch(e) {}
+  },
+
+  getAgentCounts: function() {
+    try { return JSON.parse(localStorage.getItem('cs_agent_counts') || '{}'); } catch(e) { return {}; }
+  },
+
+  // ── Feedback ───────────────────────────────────────────
+  saveFeedback: function(formData) {
+    var feedback;
+    try { feedback = JSON.parse(localStorage.getItem('cs_feedback') || '[]'); } catch(e) { feedback = []; }
+    feedback.push(Object.assign({ ts: new Date().toISOString() }, formData || {}));
+    try { localStorage.setItem('cs_feedback', JSON.stringify(feedback)); } catch(e) {}
+  },
+
+  getFeedback: function() {
+    try { return JSON.parse(localStorage.getItem('cs_feedback') || '[]'); } catch(e) { return []; }
+  },
+
+  // ── Class roster (teacher use) ─────────────────────────
+  getClassRoster: function() {
+    try { return JSON.parse(localStorage.getItem('cs_class_roster') || '[]'); } catch(e) { return []; }
+  },
+
+  saveClassRoster: function(students) {
+    try { localStorage.setItem('cs_class_roster', JSON.stringify(students || [])); } catch(e) {}
+  },
+
+  addStudent: function(student) {
+    // student = { id, name, profile, agents }
+    var roster = this.getClassRoster();
+    roster.push(student);
+    this.saveClassRoster(roster);
+  },
+
+  // ── Export / Import ────────────────────────────────────
+  exportToJSON: function() {
+    return {
+      schemaVersion: this.SCHEMA_VERSION,
+      exportedAt:    new Date().toISOString(),
+      profile:       this.getProfile(),
+      sessions:      this.getSessions(),
+      agentCounts:   this.getAgentCounts(),
+      feedback:      this.getFeedback(),
+      roster:        this.getClassRoster(),
+    };
+  },
+
+  importFromJSON: function(json) {
+    var data;
+    try { data = typeof json === 'string' ? JSON.parse(json) : json; } catch(e) { console.error('[CS.db] importFromJSON: invalid JSON', e); return false; }
+    if (!data || data.schemaVersion !== this.SCHEMA_VERSION) {
+      console.warn('[CS.db] importFromJSON: schema version mismatch. Expected', this.SCHEMA_VERSION, 'got', data && data.schemaVersion);
+      return false;
+    }
+    try {
+      if (data.profile)     this.saveProfile(data.profile);
+      if (data.sessions)    localStorage.setItem('cs_sessions',     JSON.stringify(data.sessions));
+      if (data.agentCounts) localStorage.setItem('cs_agent_counts', JSON.stringify(data.agentCounts));
+      if (data.feedback)    localStorage.setItem('cs_feedback',     JSON.stringify(data.feedback));
+      if (data.roster)      localStorage.setItem('cs_class_roster', JSON.stringify(data.roster));
+      return true;
+    } catch(e) { console.error('[CS.db] importFromJSON error', e); return false; }
+  },
+
+  // ── Backend sync stub ──────────────────────────────────
+  // Currently logs to console. Replace this stub with a real fetch() call
+  // once a backend is configured.
+  syncToBackend: function() {
+    var payload = this.exportToJSON();
+    console.log('[CS.db] Backend sync ready. Payload size:', JSON.stringify(payload).length, 'bytes');
+    console.log('[CS.db] To enable: replace this stub with fetch(\'/api/sync\', {method:\'POST\',body:JSON.stringify(payload)})');
+    return Promise.resolve({ status: 'local_only', message: 'Backend not configured' });
+  },
+};

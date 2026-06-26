@@ -339,6 +339,24 @@ body { background: linear-gradient(160deg,#c4b8ff 0%,#ddd6ff 40%,#7dd3ea 100%); 
       <span class="agent-badge" style="background:linear-gradient(135deg,#f59e0b,#ef4444);" data-i18n="teacher_agent_badge">Virtual Teacher</span>
     </a>
 
+    <div class="agent-card" onclick="location.href='teacher-dashboard.html'">
+      <div class="agent-icon">Teacher</div>
+      <div class="agent-title" data-i18n="nav_teacher">Teacher Dashboard</div>
+      <div class="agent-desc">Class insights, student progress, early warnings</div>
+    </div>
+
+    <div class="agent-card" onclick="location.href='competition-dashboard.html'">
+      <div class="agent-icon">Judge</div>
+      <div class="agent-title">Competition Dashboard</div>
+      <div class="agent-desc">Innovation scores, pilot evidence, demo mode</div>
+    </div>
+
+    <div class="agent-card" onclick="location.href='pilot-evidence.html'">
+      <div class="agent-icon">Study</div>
+      <div class="agent-title">Pilot Evidence</div>
+      <div class="agent-desc">User validation results from real learners</div>
+    </div>
+
   </div>
 
   <!-- Recent Activity -->
@@ -431,8 +449,12 @@ body { background: linear-gradient(160deg,#c4b8ff 0%,#ddd6ff 40%,#7dd3ea 100%); 
 
 <script src="personalisation-system.js"></script>
 <script src="shared.js"></script>
+<script src="demo-mode.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+
+  /* ── Voice navigation context ── */
+  if(window.CS_DEMO) CS_DEMO.init();
 
   /* ── Voice navigation context ── */
   if (window.CS_VOICE && CS_VOICE.setPageContext) {
@@ -572,6 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}</script>
 </body>
 </html>
 

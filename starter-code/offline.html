@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="You are offline. CelikSense AI offline fallback page." />
+  <title>You are offline — CelikSense AI</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-bg:        #0f1117;
+      --color-surface:   #1a1d27;
+      --color-border:    #2e3348;
+      --color-primary:   #6c63ff;
+      --color-primary-h: #8b85ff;
+      --color-text:      #e2e8f0;
+      --color-muted:     #94a3b8;
+      --color-ok:        #34d399;
+      --color-warn:      #f87171;
+      --radius:          12px;
+      --font:            system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: var(--font);
+      font-size: 1rem;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      max-width: 560px;
+      width: 100%;
+      padding: 2.5rem 2rem;
+      text-align: center;
+    }
+
+    .icon {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      display: block;
+      line-height: 1;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      color: var(--color-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .section-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-muted);
+      margin-bottom: 0.6rem;
+      text-align: left;
+    }
+
+    ul {
+      list-style: none;
+      text-align: left;
+      margin-bottom: 1.25rem;
+    }
+
+    ul li {
+      padding: 0.35rem 0;
+      font-size: 0.93rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    ul li::before {
+      content: attr(data-icon);
+      flex-shrink: 0;
+      margin-top: 0.05rem;
+    }
+
+    .ok li::before  { color: var(--color-ok); }
+    .warn li::before { color: var(--color-warn); }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--color-border);
+      margin: 1.5rem 0;
+    }
+
+    .btn {
+      display: inline-block;
+      background: var(--color-primary);
+      color: #fff;
+      font-family: var(--font);
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.7rem 2rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      background: var(--color-primary-h);
+      outline: 3px solid var(--color-primary-h);
+      outline-offset: 3px;
+    }
+
+    .logo {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: var(--color-muted);
+      letter-spacing: 0.04em;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .btn { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="card" role="main">
+    <span class="icon" aria-hidden="true">📡</span>
+
+    <h1>You are offline</h1>
+    <p class="subtitle">
+      Tiada sambungan internet — No internet connection detected.<br />
+      Some features are still available from your device cache.
+    </p>
+
+    <p class="section-title" id="works-label">Works offline / Boleh digunakan tanpa internet</p>
+    <ul class="ok" aria-labelledby="works-label">
+      <li data-icon="✓">Previously visited pages — Halaman yang pernah dibuka</li>
+      <li data-icon="✓">Saved learning progress — Kemajuan pembelajaran tersimpan</li>
+      <li data-icon="✓">ADHD focus timer — Pemasa fokus ADHD</li>
+      <li data-icon="✓">Dyslexia reading tools — Alat bacaan disleksia</li>
+    </ul>
+
+    <p class="section-title" id="needs-label">Needs a connection / Memerlukan internet</p>
+    <ul class="warn" aria-labelledby="needs-label">
+      <li data-icon="✗">Gemini AI features — Ciri-ciri AI Gemini</li>
+      <li data-icon="✗">OCR camera scanning — Pengimbasan kamera OCR</li>
+      <li data-icon="✗">Voice synthesis (cloud) — Sintesis suara (awan)</li>
+    </ul>
+
+    <hr class="divider" />
+
+    <button class="btn" onclick="location.reload()" type="button"
+            aria-label="Try connecting again">
+      Try Again / Cuba Semula
+    </button>
+
+    <p class="logo">CelikSense AI — Empowering Every Learner</p>
+  </main>
+</body>
+</html>

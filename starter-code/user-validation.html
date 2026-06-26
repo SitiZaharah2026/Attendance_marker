@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Validation – CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── Page background ── */
+body { background: linear-gradient(160deg,#c4b8ff 0%,#ddd6ff 40%,#7dd3ea 100%); min-height:100vh; }
+
+/* ── Hero ── */
+.val-hero {
+  background: linear-gradient(135deg,rgba(99,102,241,0.13),rgba(6,182,212,0.10));
+  border: 1px solid rgba(99,102,241,0.22);
+  border-radius: 28px;
+  padding: 60px 48px 52px;
+  text-align: center;
+  margin-bottom: 48px;
+  position: relative;
+  overflow: hidden;
+}
+.val-hero::before {
+  content:'';
+  position:absolute;
+  top:-80px; left:50%; transform:translateX(-50%);
+  width:520px; height:520px;
+  background:radial-gradient(circle,rgba(99,102,241,0.11),transparent 68%);
+  pointer-events:none;
+}
+.hero-eyebrow {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 18px;
+  background:rgba(255,255,255,0.80);
+  border:1.5px solid rgba(99,102,241,0.35);
+  border-radius:30px;
+  font-size:11px;
+  font-weight:800;
+  color:#4f46e5;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  margin-bottom:24px;
+}
+.eyebrow-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:linear-gradient(135deg,#6366f1,#06b6d4);
+  box-shadow:0 0 8px rgba(99,102,241,0.75);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.42;} }
+.val-hero h1 {
+  font-size:clamp(30px,5vw,56px);
+  font-weight:900;
+  line-height:1.07;
+  letter-spacing:-0.03em;
+  margin-bottom:16px;
+  color:#0f172a;
+}
+.val-hero h1 span {
+  background:linear-gradient(135deg,#3730a3,#0369a1,#0891b2);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.val-hero p {
+  font-size:17px;
+  color:#374151;
+  max-width:640px;
+  margin:0 auto;
+  line-height:1.65;
+}
+
+/* ── Form wrapper ── */
+.form-wrapper {
+  background:#fff;
+  border:1px solid rgba(99,102,241,0.18);
+  border-radius:24px;
+  padding:40px 44px;
+  box-shadow:0 8px 32px rgba(99,102,241,0.09);
+  margin-bottom:40px;
+}
+@media(max-width:640px){ .form-wrapper{ padding:28px 20px; } }
+
+/* ── Section headers ── */
+.form-section {
+  margin-bottom:40px;
+}
+.form-section:last-of-type { margin-bottom:0; }
+.section-badge {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:4px 14px;
+  background:linear-gradient(135deg,rgba(99,102,241,0.10),rgba(6,182,212,0.08));
+  border:1px solid rgba(99,102,241,0.22);
+  border-radius:20px;
+  font-size:11px;
+  font-weight:800;
+  color:#4f46e5;
+  text-transform:uppercase;
+  letter-spacing:0.09em;
+  margin-bottom:16px;
+}
+.form-section h2 {
+  font-size:20px;
+  font-weight:800;
+  color:#0f172a;
+  margin-bottom:6px;
+  letter-spacing:-0.01em;
+}
+.form-section-sub {
+  font-size:13px;
+  color:#64748b;
+  margin-bottom:24px;
+}
+.section-divider {
+  border:none;
+  border-top:1.5px solid rgba(99,102,241,0.12);
+  margin:36px 0;
+}
+
+/* ── Form fields ── */
+.field-group {
+  margin-bottom:22px;
+}
+.field-label {
+  display:block;
+  font-size:14px;
+  font-weight:600;
+  color:#0f172a;
+  margin-bottom:10px;
+}
+.field-label .bm {
+  display:block;
+  font-size:12px;
+  font-weight:400;
+  color:#64748b;
+  margin-top:2px;
+}
+.radio-group, .checkbox-group {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+.radio-group label, .checkbox-group label {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 16px;
+  background:rgba(99,102,241,0.05);
+  border:1.5px solid rgba(99,102,241,0.18);
+  border-radius:10px;
+  font-size:13px;
+  font-weight:500;
+  color:#374151;
+  cursor:pointer;
+  transition:all 0.18s ease;
+}
+.radio-group label:hover, .checkbox-group label:hover {
+  background:rgba(99,102,241,0.12);
+  border-color:rgba(99,102,241,0.42);
+  color:#0f172a;
+}
+.radio-group input[type="radio"]:checked + span,
+.checkbox-group input[type="checkbox"]:checked + span {
+  color:#4f46e5;
+  font-weight:700;
+}
+.radio-group label:has(input:checked),
+.checkbox-group label:has(input:checked) {
+  background:rgba(99,102,241,0.13);
+  border-color:#6366f1;
+  color:#3730a3;
+  font-weight:700;
+}
+.radio-group input, .checkbox-group input {
+  width:16px; height:16px;
+  accent-color:#6366f1;
+  flex-shrink:0;
+}
+
+/* ── Agent checkbox grid ── */
+.agent-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(210px,1fr));
+  gap:12px;
+}
+.agent-grid label {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 16px;
+  background:rgba(99,102,241,0.05);
+  border:1.5px solid rgba(99,102,241,0.18);
+  border-radius:12px;
+  font-size:13px;
+  font-weight:500;
+  color:#374151;
+  cursor:pointer;
+  transition:all 0.18s ease;
+}
+.agent-grid label:hover {
+  background:rgba(99,102,241,0.12);
+  border-color:rgba(99,102,241,0.4);
+}
+.agent-grid label:has(input:checked) {
+  background:rgba(99,102,241,0.13);
+  border-color:#6366f1;
+  color:#3730a3;
+  font-weight:700;
+}
+.agent-grid input[type="checkbox"] {
+  width:16px; height:16px;
+  accent-color:#6366f1;
+  flex-shrink:0;
+}
+.agent-icon { font-size:18px; }
+
+/* ── Star rating ── */
+.rating-rows { display:flex; flex-direction:column; gap:16px; }
+.rating-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+}
+.rating-label-text {
+  font-size:14px;
+  font-weight:600;
+  color:#0f172a;
+  min-width:200px;
+}
+.rating-label-text .bm {
+  display:block;
+  font-size:11px;
+  font-weight:400;
+  color:#64748b;
+}
+.star-group {
+  display:flex;
+  flex-direction:row-reverse;
+  gap:4px;
+}
+.star-group input[type="radio"] {
+  display:none;
+}
+.star-group label {
+  font-size:28px;
+  color:#d1d5db;
+  cursor:pointer;
+  transition:color 0.12s ease, transform 0.12s ease;
+  line-height:1;
+}
+.star-group label:hover,
+.star-group label:hover ~ label,
+.star-group input[type="radio"]:checked ~ label {
+  color:#f59e0b;
+  transform:scale(1.15);
+}
+.star-group input[type="radio"]:checked + label {
+  color:#f59e0b;
+}
+
+/* ── Textarea ── */
+.form-textarea {
+  width:100%;
+  min-height:100px;
+  padding:14px 16px;
+  border:1.5px solid rgba(99,102,241,0.22);
+  border-radius:12px;
+  font-family:var(--font);
+  font-size:14px;
+  color:#0f172a;
+  background:#fafaf9;
+  resize:vertical;
+  transition:border-color 0.18s;
+  line-height:1.6;
+}
+.form-textarea:focus {
+  outline:none;
+  border-color:#6366f1;
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(99,102,241,0.10);
+}
+.form-textarea::placeholder { color:#94a3b8; }
+
+/* ── Consent ── */
+.consent-box {
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:18px 20px;
+  background:rgba(22,163,74,0.06);
+  border:1.5px solid rgba(22,163,74,0.28);
+  border-radius:12px;
+}
+.consent-box input[type="checkbox"] {
+  width:18px; height:18px;
+  accent-color:#16a34a;
+  flex-shrink:0;
+  margin-top:2px;
+}
+.consent-text {
+  font-size:13px;
+  color:#374151;
+  line-height:1.55;
+}
+.consent-text .bm {
+  display:block;
+  font-size:12px;
+  color:#64748b;
+  margin-top:4px;
+}
+
+/* ── Submit button ── */
+.submit-btn {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  width:100%;
+  padding:17px 32px;
+  background:linear-gradient(135deg,#6366f1,#0891b2);
+  color:#fff;
+  font-size:16px;
+  font-weight:700;
+  border:none;
+  border-radius:14px;
+  margin-top:32px;
+  transition:all 0.22s ease;
+  box-shadow:0 4px 18px rgba(99,102,241,0.28);
+  letter-spacing:0.01em;
+}
+.submit-btn:hover {
+  transform:translateY(-2px);
+  box-shadow:0 8px 28px rgba(99,102,241,0.38);
+}
+.submit-btn:active { transform:translateY(0); }
+.submit-btn:disabled { opacity:0.52; cursor:not-allowed; transform:none; }
+
+/* ── Thank you message ── */
+.thankyou-msg {
+  display:none;
+  text-align:center;
+  padding:56px 40px;
+  background:#fff;
+  border:1px solid rgba(22,163,74,0.28);
+  border-radius:24px;
+  margin-bottom:40px;
+  box-shadow:0 8px 32px rgba(22,163,74,0.08);
+}
+.thankyou-msg.visible { display:block; }
+.thankyou-icon { font-size:64px; margin-bottom:16px; }
+.thankyou-msg h2 {
+  font-size:28px;
+  font-weight:900;
+  color:#0f172a;
+  margin-bottom:10px;
+  letter-spacing:-0.02em;
+}
+.thankyou-msg p {
+  font-size:15px;
+  color:#374151;
+  max-width:500px;
+  margin:0 auto;
+  line-height:1.65;
+}
+
+/* ── Confetti ── */
+.confetti-container {
+  position:fixed;
+  top:0; left:0; right:0;
+  pointer-events:none;
+  z-index:9999;
+  overflow:hidden;
+  height:100vh;
+}
+.confetti-piece {
+  position:absolute;
+  top:-20px;
+  width:10px;
+  height:14px;
+  border-radius:2px;
+  animation:fall linear forwards;
+}
+@keyframes fall {
+  to { transform: translateY(110vh) rotate(720deg); opacity:0; }
+}
+
+/* ── Results summary ── */
+.results-section {
+  background:#fff;
+  border:1px solid rgba(99,102,241,0.18);
+  border-radius:24px;
+  padding:40px 44px;
+  box-shadow:0 8px 32px rgba(99,102,241,0.08);
+  margin-bottom:40px;
+}
+@media(max-width:640px){ .results-section{ padding:28px 20px; } }
+.results-header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:16px;
+  margin-bottom:32px;
+}
+.results-header h2 {
+  font-size:22px;
+  font-weight:800;
+  color:#0f172a;
+  letter-spacing:-0.01em;
+}
+.participants-badge {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 18px;
+  background:linear-gradient(135deg,rgba(99,102,241,0.10),rgba(6,182,212,0.08));
+  border:1px solid rgba(99,102,241,0.22);
+  border-radius:20px;
+  font-size:13px;
+  font-weight:700;
+  color:#4f46e5;
+}
+.results-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:28px;
+  margin-bottom:32px;
+}
+@media(max-width:760px){ .results-grid{ grid-template-columns:1fr; } }
+
+/* ── Average rating bars ── */
+.rating-summary { }
+.rating-summary h3 {
+  font-size:15px;
+  font-weight:700;
+  color:#0f172a;
+  margin-bottom:16px;
+  letter-spacing:-0.01em;
+}
+.rating-bar-row {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:12px;
+}
+.rating-bar-label {
+  font-size:12px;
+  color:#374151;
+  min-width:140px;
+  font-weight:500;
+}
+.rating-bar-track {
+  flex:1;
+  height:10px;
+  background:#f1f5f9;
+  border-radius:6px;
+  overflow:hidden;
+}
+.rating-bar-fill {
+  height:100%;
+  border-radius:6px;
+  background:linear-gradient(90deg,#6366f1,#06b6d4);
+  transition:width 1s ease;
+}
+.rating-bar-val {
+  font-size:12px;
+  font-weight:700;
+  color:#4f46e5;
+  min-width:28px;
+  text-align:right;
+}
+.star-display {
+  color:#f59e0b;
+  font-size:14px;
+  letter-spacing:1px;
+}
+
+/* ── Agent usage bars ── */
+.agent-usage h3 {
+  font-size:15px;
+  font-weight:700;
+  color:#0f172a;
+  margin-bottom:16px;
+}
+.usage-bar-row {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+.usage-agent-name {
+  font-size:12px;
+  color:#374151;
+  min-width:160px;
+  font-weight:500;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.usage-bar-track {
+  flex:1;
+  height:10px;
+  background:#f1f5f9;
+  border-radius:6px;
+  overflow:hidden;
+}
+.usage-bar-fill {
+  height:100%;
+  border-radius:6px;
+  background:linear-gradient(90deg,#7c3aed,#06b6d4);
+}
+.usage-count {
+  font-size:12px;
+  font-weight:700;
+  color:#7c3aed;
+  min-width:24px;
+  text-align:right;
+}
+
+/* ── Quotes ── */
+.quotes-section { margin-bottom:28px; }
+.quotes-section h3 {
+  font-size:15px;
+  font-weight:700;
+  color:#0f172a;
+  margin-bottom:16px;
+}
+.quotes-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:16px;
+}
+.quote-card {
+  background:linear-gradient(135deg,rgba(99,102,241,0.05),rgba(6,182,212,0.04));
+  border:1px solid rgba(99,102,241,0.16);
+  border-radius:14px;
+  padding:18px 20px;
+}
+.quote-text {
+  font-size:13px;
+  color:#374151;
+  line-height:1.6;
+  font-style:italic;
+  margin-bottom:10px;
+}
+.quote-text::before { content:'"'; }
+.quote-text::after  { content:'"'; }
+.quote-author {
+  font-size:11px;
+  font-weight:700;
+  color:#6366f1;
+  text-transform:uppercase;
+  letter-spacing:0.07em;
+}
+
+/* ── Export button ── */
+.export-btn {
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:13px 28px;
+  background:linear-gradient(135deg,#0f172a,#1e293b);
+  color:#fff;
+  font-size:14px;
+  font-weight:700;
+  border:none;
+  border-radius:12px;
+  transition:all 0.20s ease;
+  box-shadow:0 4px 14px rgba(15,23,42,0.22);
+}
+.export-btn:hover {
+  transform:translateY(-2px);
+  box-shadow:0 8px 22px rgba(15,23,42,0.30);
+}
+
+/* ── Toast ── */
+.toast {
+  position:fixed;
+  bottom:28px;
+  right:28px;
+  padding:14px 22px;
+  background:#0f172a;
+  color:#fff;
+  font-size:14px;
+  font-weight:600;
+  border-radius:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.22);
+  opacity:0;
+  transform:translateY(12px);
+  transition:all 0.28s ease;
+  z-index:9998;
+  max-width:300px;
+}
+.toast.show { opacity:1; transform:translateY(0); }
+
+/* ── Responsive ── */
+@media(max-width:900px) {
+  .rating-row { flex-direction:column; align-items:flex-start; gap:8px; }
+  .rating-label-text { min-width:auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" role="navigation" aria-label="Main navigation">
+  <div class="container nav-container">
+    <a href="index.html" class="nav-brand" aria-label="CelikSense AI home">
+      <div class="brand-icon" aria-hidden="true">CS</div>
+      <div>
+        <span class="brand-name">CelikSense AI</span>
+        <span class="brand-tagline" lang="ms">Platform Pembelajaran Inklusif</span>
+      </div>
+    </a>
+    <div class="nav-links" role="list">
+      <a href="dashboard.html" role="listitem">Dashboard</a>
+      <div class="nav-dropdown" role="listitem">
+        <button aria-haspopup="true" aria-expanded="false">Agents ▾</button>
+        <div class="dropdown-menu" role="menu">
+          <a href="dyslexia-agent.html" role="menuitem">Dyslexia Agent</a>
+          <a href="adhd-agent.html" role="menuitem">ADHD Agent</a>
+          <a href="blind-audio.html" role="menuitem">Blind Audio</a>
+          <a href="sign-language.html" role="menuitem">Sign Language</a>
+          <a href="ai-librarian.html" role="menuitem">AI Librarian</a>
+          <a href="ai-teacher-agent.html" role="menuitem">AI Teacher</a>
+          <a href="personalisation-agent.html" role="menuitem">Personalisation</a>
+          <a href="early-warning.html" role="menuitem">Early Warning</a>
+        </div>
+      </div>
+      <a href="pilot-evidence.html" role="listitem">Evidence</a>
+      <a href="user-validation.html" class="active" role="listitem">Validation</a>
+    </div>
+    <div class="nav-actions">
+      <button class="lang-toggle" id="langToggle" aria-label="Toggle language / Tukar bahasa">BM</button>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main id="main-content" style="padding-top:calc(var(--nav-h) + 32px); padding-bottom:64px;">
+  <div class="container" style="max-width:860px;">
+
+    <!-- HERO -->
+    <section class="val-hero" aria-labelledby="hero-title">
+      <div class="hero-eyebrow">
+        <span class="eyebrow-dot" aria-hidden="true"></span>
+        <span data-en="User Validation" data-bm="Pengesahan Pengguna">User Validation</span>
+      </div>
+      <h1 id="hero-title">
+        <span data-en="Share Your" data-bm="Kongsikan">Share Your</span>
+        <span data-en=" Experience" data-bm=" Pengalaman Anda"> Experience</span>
+      </h1>
+      <p data-en="Your feedback helps us build better inclusive learning tools for every learner."
+         data-bm="Maklum balas anda membantu kami membina alat pembelajaran inklusif yang lebih baik untuk setiap pelajar.">
+        Your feedback helps us build better inclusive learning tools for every learner.
+      </p>
+    </section>
+
+    <!-- FEEDBACK FORM -->
+    <div class="form-wrapper" id="formWrapper">
+      <form id="feedbackForm" novalidate aria-label="User feedback form">
+
+        <!-- SECTION A: About You -->
+        <div class="form-section">
+          <div class="section-badge" aria-hidden="true">
+            <span>A</span>
+            <span data-en="About You" data-bm="Tentang Anda">About You</span>
+          </div>
+          <h2 data-en="About You" data-bm="Tentang Anda">About You</h2>
+          <p class="form-section-sub" data-en="Help us understand who is using CelikSense AI." data-bm="Bantu kami memahami siapa yang menggunakan CelikSense AI.">Help us understand who is using CelikSense AI.</p>
+
+          <!-- Role -->
+          <div class="field-group" role="group" aria-labelledby="role-label">
+            <span class="field-label" id="role-label">
+              <span data-en="Your role" data-bm="Peranan anda">Your role</span>
+              <span class="bm" data-en="Select the option that best describes you." data-bm="Pilih pilihan yang paling menggambarkan anda.">Select the option that best describes you.</span>
+            </span>
+            <div class="radio-group">
+              <label><input type="radio" name="role" value="Student" required> <span data-en="Student" data-bm="Pelajar">Student</span></label>
+              <label><input type="radio" name="role" value="Teacher"> <span data-en="Teacher" data-bm="Guru">Teacher</span></label>
+              <label><input type="radio" name="role" value="Parent"> <span data-en="Parent" data-bm="Ibu Bapa">Parent</span></label>
+              <label><input type="radio" name="role" value="Researcher"> <span data-en="Researcher" data-bm="Penyelidik">Researcher</span></label>
+            </div>
+          </div>
+
+          <!-- Disability profile (students only) -->
+          <div class="field-group" id="disabilityGroup" role="group" aria-labelledby="disability-label" style="display:none;">
+            <span class="field-label" id="disability-label">
+              <span data-en="Disability profile (if applicable)" data-bm="Profil ketidakupayaan (jika berkaitan)">Disability profile (if applicable)</span>
+              <span class="bm" data-en="Select all that apply. This information is optional." data-bm="Pilih semua yang berkenaan. Maklumat ini adalah pilihan.">Select all that apply. This information is optional.</span>
+            </span>
+            <div class="checkbox-group">
+              <label><input type="checkbox" name="disability" value="Dyslexia"> <span data-en="Dyslexia" data-bm="Disleksia">Dyslexia</span></label>
+              <label><input type="checkbox" name="disability" value="ADHD"> <span>ADHD</span></label>
+              <label><input type="checkbox" name="disability" value="Visual impairment"> <span data-en="Visual impairment" data-bm="Masalah penglihatan">Visual impairment</span></label>
+              <label><input type="checkbox" name="disability" value="Hearing impairment"> <span data-en="Hearing impairment" data-bm="Masalah pendengaran">Hearing impairment</span></label>
+              <label><input type="checkbox" name="disability" value="Other"> <span data-en="Other" data-bm="Lain-lain">Other</span></label>
+              <label><input type="checkbox" name="disability" value="Prefer not to say"> <span data-en="Prefer not to say" data-bm="Tidak mahu menyatakan">Prefer not to say</span></label>
+            </div>
+          </div>
+
+          <!-- Age group -->
+          <div class="field-group" role="group" aria-labelledby="age-label">
+            <span class="field-label" id="age-label">
+              <span data-en="Age group" data-bm="Kumpulan umur">Age group</span>
+            </span>
+            <div class="radio-group">
+              <label><input type="radio" name="age" value="Under 12" required> <span data-en="Under 12" data-bm="Bawah 12">Under 12</span></label>
+              <label><input type="radio" name="age" value="12-17"> <span>12–17</span></label>
+              <label><input type="radio" name="age" value="18-25"> <span>18–25</span></label>
+              <label><input type="radio" name="age" value="25+"> <span>25+</span></label>
+            </div>
+          </div>
+
+          <!-- First time -->
+          <div class="field-group" role="group" aria-labelledby="firsttime-label">
+            <span class="field-label" id="firsttime-label">
+              <span data-en="First time using CelikSense AI?" data-bm="Pertama kali menggunakan CelikSense AI?">First time using CelikSense AI?</span>
+            </span>
+            <div class="radio-group">
+              <label><input type="radio" name="firstTime" value="Yes" required> <span data-en="Yes" data-bm="Ya">Yes</span></label>
+              <label><input type="radio" name="firstTime" value="No"> <span data-en="No" data-bm="Tidak">No</span></label>
+            </div>
+          </div>
+        </div>
+
+        <hr class="section-divider" aria-hidden="true">
+
+        <!-- SECTION B: Agents tried -->
+        <div class="form-section">
+          <div class="section-badge" aria-hidden="true">
+            <span>B</span>
+            <span data-en="Agents Tried" data-bm="Ejen Dicuba">Agents Tried</span>
+          </div>
+          <h2 data-en="Which agents did you try?" data-bm="Ejen mana yang anda cuba?">Which agents did you try?</h2>
+          <p class="form-section-sub" data-en="Select all that apply." data-bm="Pilih semua yang berkenaan.">Select all that apply.</p>
+
+          <div class="agent-grid" role="group" aria-label="Agent selection">
+            <label><input type="checkbox" name="agents" value="Dyslexia Agent"> <span class="agent-icon" aria-hidden="true">📖</span> <span data-en="Dyslexia Agent" data-bm="Ejen Disleksia">Dyslexia Agent</span></label>
+            <label><input type="checkbox" name="agents" value="ADHD Agent"> <span class="agent-icon" aria-hidden="true">🎯</span> <span data-en="ADHD Agent" data-bm="Ejen ADHD">ADHD Agent</span></label>
+            <label><input type="checkbox" name="agents" value="Blind Audio Guide"> <span class="agent-icon" aria-hidden="true">🎧</span> <span data-en="Blind Audio Guide" data-bm="Panduan Audio Buta">Blind Audio Guide</span></label>
+            <label><input type="checkbox" name="agents" value="Sign Language Agent"> <span class="agent-icon" aria-hidden="true">🤟</span> <span data-en="Sign Language Agent" data-bm="Ejen Bahasa Isyarat">Sign Language Agent</span></label>
+            <label><input type="checkbox" name="agents" value="AI Librarian"> <span class="agent-icon" aria-hidden="true">📚</span> <span data-en="AI Librarian" data-bm="Pustakawan AI">AI Librarian</span></label>
+            <label><input type="checkbox" name="agents" value="AI Teacher Agent"> <span class="agent-icon" aria-hidden="true">👩‍🏫</span> <span data-en="AI Teacher Agent" data-bm="Ejen Guru AI">AI Teacher Agent</span></label>
+            <label><input type="checkbox" name="agents" value="Personalisation Agent"> <span class="agent-icon" aria-hidden="true">✨</span> <span data-en="Personalisation Agent" data-bm="Ejen Peribadikan">Personalisation Agent</span></label>
+            <label><input type="checkbox" name="agents" value="Early Warning System"> <span class="agent-icon" aria-hidden="true">🔔</span> <span data-en="Early Warning System" data-bm="Sistem Amaran Awal">Early Warning System</span></label>
+          </div>
+        </div>
+
+        <hr class="section-divider" aria-hidden="true">
+
+        <!-- SECTION C: Ratings -->
+        <div class="form-section">
+          <div class="section-badge" aria-hidden="true">
+            <span>C</span>
+            <span data-en="Ratings" data-bm="Penilaian">Ratings</span>
+          </div>
+          <h2 data-en="Rate your experience" data-bm="Nilaikan pengalaman anda">Rate your experience</h2>
+          <p class="form-section-sub" data-en="1 star = poor, 5 stars = excellent." data-bm="1 bintang = lemah, 5 bintang = cemerlang.">1 star = poor, 5 stars = excellent.</p>
+
+          <div class="rating-rows">
+
+            <!-- Overall experience -->
+            <div class="rating-row">
+              <div class="rating-label-text">
+                <span data-en="Overall experience" data-bm="Pengalaman keseluruhan">Overall experience</span>
+              </div>
+              <div class="star-group" role="group" aria-label="Overall experience rating out of 5">
+                <input type="radio" id="overall5" name="ratingOverall" value="5"><label for="overall5" aria-label="5 stars">★</label>
+                <input type="radio" id="overall4" name="ratingOverall" value="4"><label for="overall4" aria-label="4 stars">★</label>
+                <input type="radio" id="overall3" name="ratingOverall" value="3"><label for="overall3" aria-label="3 stars">★</label>
+                <input type="radio" id="overall2" name="ratingOverall" value="2"><label for="overall2" aria-label="2 stars">★</label>
+                <input type="radio" id="overall1" name="ratingOverall" value="1"><label for="overall1" aria-label="1 star">★</label>
+              </div>
+            </div>
+
+            <!-- Ease of use -->
+            <div class="rating-row">
+              <div class="rating-label-text">
+                <span data-en="Ease of use" data-bm="Kemudahan penggunaan">Ease of use</span>
+              </div>
+              <div class="star-group" role="group" aria-label="Ease of use rating out of 5">
+                <input type="radio" id="ease5" name="ratingEase" value="5"><label for="ease5" aria-label="5 stars">★</label>
+                <input type="radio" id="ease4" name="ratingEase" value="4"><label for="ease4" aria-label="4 stars">★</label>
+                <input type="radio" id="ease3" name="ratingEase" value="3"><label for="ease3" aria-label="3 stars">★</label>
+                <input type="radio" id="ease2" name="ratingEase" value="2"><label for="ease2" aria-label="2 stars">★</label>
+                <input type="radio" id="ease1" name="ratingEase" value="1"><label for="ease1" aria-label="1 star">★</label>
+              </div>
+            </div>
+
+            <!-- Helped me learn -->
+            <div class="rating-row">
+              <div class="rating-label-text">
+                <span data-en="Helped me learn" data-bm="Membantu saya belajar">Helped me learn</span>
+              </div>
+              <div class="star-group" role="group" aria-label="Helped me learn rating out of 5">
+                <input type="radio" id="learn5" name="ratingLearn" value="5"><label for="learn5" aria-label="5 stars">★</label>
+                <input type="radio" id="learn4" name="ratingLearn" value="4"><label for="learn4" aria-label="4 stars">★</label>
+                <input type="radio" id="learn3" name="ratingLearn" value="3"><label for="learn3" aria-label="3 stars">★</label>
+                <input type="radio" id="learn2" name="ratingLearn" value="2"><label for="learn2" aria-label="2 stars">★</label>
+                <input type="radio" id="learn1" name="ratingLearn" value="1"><label for="learn1" aria-label="1 star">★</label>
+              </div>
+            </div>
+
+            <!-- Would recommend -->
+            <div class="rating-row">
+              <div class="rating-label-text">
+                <span data-en="Would recommend to others" data-bm="Akan syor kepada orang lain">Would recommend to others</span>
+              </div>
+              <div class="star-group" role="group" aria-label="Would recommend rating out of 5">
+                <input type="radio" id="rec5" name="ratingRecommend" value="5"><label for="rec5" aria-label="5 stars">★</label>
+                <input type="radio" id="rec4" name="ratingRecommend" value="4"><label for="rec4" aria-label="4 stars">★</label>
+                <input type="radio" id="rec3" name="ratingRecommend" value="3"><label for="rec3" aria-label="3 stars">★</label>
+                <input type="radio" id="rec2" name="ratingRecommend" value="2"><label for="rec2" aria-label="2 stars">★</label>
+                <input type="radio" id="rec1" name="ratingRecommend" value="1"><label for="rec1" aria-label="1 star">★</label>
+              </div>
+            </div>
+
+            <!-- Accessibility -->
+            <div class="rating-row">
+              <div class="rating-label-text">
+                <span data-en="Accessibility for my needs" data-bm="Aksesibiliti untuk keperluan saya">Accessibility for my needs</span>
+              </div>
+              <div class="star-group" role="group" aria-label="Accessibility rating out of 5">
+                <input type="radio" id="access5" name="ratingAccess" value="5"><label for="access5" aria-label="5 stars">★</label>
+                <input type="radio" id="access4" name="ratingAccess" value="4"><label for="access4" aria-label="4 stars">★</label>
+                <input type="radio" id="access3" name="ratingAccess" value="3"><label for="access3" aria-label="3 stars">★</label>
+                <input type="radio" id="access2" name="ratingAccess" value="2"><label for="access2" aria-label="2 stars">★</label>
+                <input type="radio" id="access1" name="ratingAccess" value="1"><label for="access1" aria-label="1 star">★</label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <hr class="section-divider" aria-hidden="true">
+
+        <!-- SECTION D: Open feedback -->
+        <div class="form-section">
+          <div class="section-badge" aria-hidden="true">
+            <span>D</span>
+            <span data-en="Open Feedback" data-bm="Maklum Balas Terbuka">Open Feedback</span>
+          </div>
+          <h2 data-en="Tell us more" data-bm="Ceritakan lebih lanjut">Tell us more</h2>
+          <p class="form-section-sub" data-en="Your words matter — these quotes may feature in our competition evidence." data-bm="Kata-kata anda penting — petikan ini mungkin ditampilkan dalam bukti pertandingan kami.">Your words matter — these quotes may feature in our competition evidence.</p>
+
+          <div class="field-group">
+            <label class="field-label" for="feedbackBest">
+              <span data-en="What worked best?" data-bm="Apa yang paling berkesan?">What worked best?</span>
+            </label>
+            <textarea id="feedbackBest" name="feedbackBest" class="form-textarea"
+              placeholder="e.g. The dyslexia font made reading so much easier…"
+              aria-describedby="feedbackBest-hint"></textarea>
+            <span id="feedbackBest-hint" style="font-size:11px;color:#94a3b8;" data-en="Optional — max 500 characters." data-bm="Pilihan — maksimum 500 aksara.">Optional — max 500 characters.</span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="feedbackDiff">
+              <span data-en="What was most difficult?" data-bm="Apa yang paling sukar?">What was most difficult?</span>
+            </label>
+            <textarea id="feedbackDiff" name="feedbackDiff" class="form-textarea"
+              placeholder="e.g. I found the navigation a bit confusing at first…"
+              aria-describedby="feedbackDiff-hint"></textarea>
+            <span id="feedbackDiff-hint" style="font-size:11px;color:#94a3b8;" data-en="Optional — max 500 characters." data-bm="Pilihan — maksimum 500 aksara.">Optional — max 500 characters.</span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="feedbackAdd">
+              <span data-en="What would you add or improve?" data-bm="Apa yang anda akan tambah atau perbaiki?">What would you add or improve?</span>
+            </label>
+            <textarea id="feedbackAdd" name="feedbackAdd" class="form-textarea"
+              placeholder="e.g. A dark mode option would be great…"
+              aria-describedby="feedbackAdd-hint"></textarea>
+            <span id="feedbackAdd-hint" style="font-size:11px;color:#94a3b8;" data-en="Optional — max 500 characters." data-bm="Pilihan — maksimum 500 aksara.">Optional — max 500 characters.</span>
+          </div>
+        </div>
+
+        <hr class="section-divider" aria-hidden="true">
+
+        <!-- SECTION E: Consent -->
+        <div class="form-section">
+          <div class="section-badge" aria-hidden="true">
+            <span>E</span>
+            <span data-en="Consent" data-bm="Persetujuan">Consent</span>
+          </div>
+          <h2 data-en="Consent" data-bm="Persetujuan">Consent</h2>
+          <p class="form-section-sub" data-en="Your feedback will be kept anonymous at all times." data-bm="Maklum balas anda akan kekal tanpa nama pada setiap masa.">Your feedback will be kept anonymous at all times.</p>
+
+          <div class="consent-box">
+            <input type="checkbox" id="consentCheck" name="consent" required
+              aria-required="true"
+              aria-describedby="consent-desc">
+            <label for="consentCheck" class="consent-text" id="consent-desc">
+              <span data-en="I consent to my anonymous feedback being used for research and competition evidence. No personally identifiable information will be collected."
+                    data-bm="Saya bersetuju bahawa maklum balas tanpa nama saya boleh digunakan untuk penyelidikan dan bukti pertandingan. Tiada maklumat yang boleh dikenal pasti secara peribadi akan dikumpul.">
+                I consent to my anonymous feedback being used for research and competition evidence. No personally identifiable information will be collected.
+              </span>
+            </label>
+          </div>
+
+          <div id="formError" role="alert" aria-live="polite" style="display:none;margin-top:12px;padding:12px 16px;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.25);border-radius:10px;font-size:13px;color:#dc2626;font-weight:600;"></div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <span aria-hidden="true">✉</span>
+          <span data-en="Submit Feedback" data-bm="Hantar Maklum Balas">Submit Feedback</span>
+        </button>
+
+      </form>
+    </div>
+
+    <!-- THANK YOU MESSAGE -->
+    <div class="thankyou-msg" id="thankyouMsg" aria-live="polite" role="status">
+      <div class="thankyou-icon" aria-hidden="true">🎉</div>
+      <h2 data-en="Thank you!" data-bm="Terima kasih!">Thank you!</h2>
+      <p data-en="Your feedback has been saved. It will help make CelikSense AI better for all learners."
+         data-bm="Maklum balas anda telah disimpan. Ia akan membantu menjadikan CelikSense AI lebih baik untuk semua pelajar.">
+        Your feedback has been saved. It will help make CelikSense AI better for all learners.
+      </p>
+    </div>
+
+    <!-- RESULTS SUMMARY -->
+    <section class="results-section" aria-labelledby="results-title">
+      <div class="results-header">
+        <div>
+          <div class="section-badge" aria-hidden="true">
+            <span>📊</span>
+            <span data-en="Live Results" data-bm="Keputusan Langsung">Live Results</span>
+          </div>
+          <h2 id="results-title" data-en="Feedback Summary" data-bm="Ringkasan Maklum Balas">Feedback Summary</h2>
+        </div>
+        <div class="participants-badge" id="participantCount" aria-live="polite">
+          <span aria-hidden="true">👥</span>
+          <span id="countText" data-en="Feedback received from 4 participants" data-bm="Maklum balas diterima daripada 4 peserta">Feedback received from 4 participants</span>
+        </div>
+      </div>
+
+      <div class="results-grid">
+
+        <!-- Average Ratings -->
+        <div class="rating-summary" aria-labelledby="avg-ratings-title">
+          <h3 id="avg-ratings-title" data-en="Average Ratings" data-bm="Penilaian Purata">Average Ratings</h3>
+
+          <div class="rating-bar-row">
+            <span class="rating-bar-label" data-en="Overall" data-bm="Keseluruhan">Overall</span>
+            <div class="rating-bar-track" role="progressbar" aria-valuenow="94" aria-valuemin="0" aria-valuemax="100" aria-label="Overall average 4.7 out of 5">
+              <div class="rating-bar-fill" id="barOverall" style="width:94%"></div>
+            </div>
+            <span class="rating-bar-val" id="valOverall">4.7 <span class="star-display">★</span></span>
+          </div>
+
+          <div class="rating-bar-row">
+            <span class="rating-bar-label" data-en="Ease of use" data-bm="Kemudahan">Ease of use</span>
+            <div class="rating-bar-track" role="progressbar" aria-valuenow="86" aria-valuemin="0" aria-valuemax="100" aria-label="Ease of use average 4.3 out of 5">
+              <div class="rating-bar-fill" id="barEase" style="width:86%"></div>
+            </div>
+            <span class="rating-bar-val" id="valEase">4.3 <span class="star-display">★</span></span>
+          </div>
+
+          <div class="rating-bar-row">
+            <span class="rating-bar-label" data-en="Helped me learn" data-bm="Bantu belajar">Helped me learn</span>
+            <div class="rating-bar-track" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100" aria-label="Helped me learn average 4.5 out of 5">
+              <div class="rating-bar-fill" id="barLearn" style="width:90%"></div>
+            </div>
+            <span class="rating-bar-val" id="valLearn">4.5 <span class="star-display">★</span></span>
+          </div>
+
+          <div class="rating-bar-row">
+            <span class="rating-bar-label" data-en="Recommend" data-bm="Syor">Recommend</span>
+            <div class="rating-bar-track" role="progressbar" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100" aria-label="Recommend average 4.6 out of 5">
+              <div class="rating-bar-fill" id="barRec" style="width:92%"></div>
+            </div>
+            <span class="rating-bar-val" id="valRec">4.6 <span class="star-display">★</span></span>
+          </div>
+
+          <div class="rating-bar-row">
+            <span class="rating-bar-label" data-en="Accessibility" data-bm="Aksesibiliti">Accessibility</span>
+            <div class="rating-bar-track" role="progressbar" aria-valuenow="96" aria-valuemin="0" aria-valuemax="100" aria-label="Accessibility average 4.8 out of 5">
+              <div class="rating-bar-fill" id="barAccess" style="width:96%"></div>
+            </div>
+            <span class="rating-bar-val" id="valAccess">4.8 <span class="star-display">★</span></span>
+          </div>
+        </div>
+
+        <!-- Most Used Agents -->
+        <div class="agent-usage" aria-labelledby="agent-usage-title">
+          <h3 id="agent-usage-title" data-en="Most Used Agents" data-bm="Ejen Paling Digunakan">Most Used Agents</h3>
+          <div id="agentUsageChart" aria-label="Bar chart of agent usage">
+            <!-- populated by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Key Quotes -->
+      <div class="quotes-section" aria-labelledby="quotes-title">
+        <h3 id="quotes-title" data-en="Participant Quotes" data-bm="Petikan Peserta">Participant Quotes</h3>
+        <div class="quotes-grid" id="quotesGrid">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <!-- Export -->
+      <div style="text-align:center;margin-top:24px;">
+        <button class="export-btn" id="exportBtn" aria-label="Download evidence PDF (coming soon)">
+          <span aria-hidden="true">⬇</span>
+          <span data-en="Download Evidence PDF" data-bm="Muat Turun PDF Bukti">Download Evidence PDF</span>
+        </button>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- Confetti container -->
+<div class="confetti-container" id="confettiContainer" aria-hidden="true"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ── Language ── */
+  var lang = localStorage.getItem('cs_lang') || 'en';
+  function applyLang(l){
+    lang = l;
+    localStorage.setItem('cs_lang', l);
+    document.documentElement.setAttribute('lang', l === 'bm' ? 'ms' : 'en');
+    document.querySelectorAll('[data-en]').forEach(function(el){
+      el.textContent = el.getAttribute('data-'+l) || el.getAttribute('data-en');
+    });
+    document.getElementById('langToggle').textContent = l === 'bm' ? 'EN' : 'BM';
+  }
+  document.getElementById('langToggle').addEventListener('click', function(){
+    applyLang(lang === 'en' ? 'bm' : 'en');
+  });
+  applyLang(lang);
+
+  /* ── Show disability group only when Student selected ── */
+  document.querySelectorAll('input[name="role"]').forEach(function(r){
+    r.addEventListener('change', function(){
+      var dg = document.getElementById('disabilityGroup');
+      dg.style.display = r.value === 'Student' && r.checked ? 'block' : dg.style.display;
+      if(r.value !== 'Student') dg.style.display = 'none';
+      if(r.value === 'Student' && r.checked) dg.style.display = 'block';
+    });
+  });
+
+  /* ── Demo / pilot data ── */
+  var pilotData = [
+    {
+      role:'Student', age:'12-17', firstTime:'Yes',
+      agents:['Dyslexia Agent','ADHD Agent','AI Librarian'],
+      ratingOverall:5, ratingEase:4, ratingLearn:5, ratingRecommend:5, ratingAccess:5,
+      feedbackBest:'The dyslexia font made reading so much easier. I could finally read a full page without losing my place.',
+      feedbackDiff:'I was confused about where to start at first.',
+      feedbackAdd:'More colour themes would be nice.'
+    },
+    {
+      role:'Teacher', age:'25+', firstTime:'No',
+      agents:['AI Teacher Agent','Early Warning System','Personalisation Agent'],
+      ratingOverall:5, ratingEase:5, ratingLearn:4, ratingRecommend:5, ratingAccess:5,
+      feedbackBest:'The Early Warning System flagged a student I had missed. It is incredibly useful for busy classrooms.',
+      feedbackDiff:'Setting up the teacher dashboard took a little time.',
+      feedbackAdd:'Integration with our school LMS would be fantastic.'
+    },
+    {
+      role:'Parent', age:'25+', firstTime:'Yes',
+      agents:['Dyslexia Agent','Blind Audio Guide'],
+      ratingOverall:4, ratingEase:4, ratingLearn:5, ratingRecommend:4, ratingAccess:5,
+      feedbackBest:'My child with dyslexia was engaged for 40 minutes — that never happens.',
+      feedbackDiff:'Some buttons were a little small on the tablet.',
+      feedbackAdd:'A parent progress report would be very helpful.'
+    },
+    {
+      role:'Researcher', age:'25+', firstTime:'Yes',
+      agents:['Personalisation Agent','Sign Language Agent','AI Librarian'],
+      ratingOverall:5, ratingEase:4, ratingLearn:4, ratingRecommend:5, ratingAccess:4,
+      feedbackBest:'The personalisation agent adapts remarkably well. The sign language integration is ahead of other platforms I have reviewed.',
+      feedbackDiff:'More detailed analytics would strengthen the evidence base.',
+      feedbackAdd:'Exportable data in CSV or JSON for external analysis.'
+    }
+  ];
+
+  /* ── Load from localStorage, seed with pilot if empty ── */
+  function loadFeedback(){
+    var raw = localStorage.getItem('cs_feedback');
+    var arr = raw ? JSON.parse(raw) : [];
+    if(arr.length === 0){
+      arr = pilotData.slice();
+      localStorage.setItem('cs_feedback', JSON.stringify(arr));
+    }
+    return arr;
+  }
+
+  /* ── Compute averages ── */
+  function computeAverages(arr){
+    var keys = ['ratingOverall','ratingEase','ratingLearn','ratingRecommend','ratingAccess'];
+    var sums = {}; keys.forEach(function(k){ sums[k]=0; });
+    arr.forEach(function(d){ keys.forEach(function(k){ sums[k]+= (parseInt(d[k])||0); }); });
+    var avgs = {};
+    keys.forEach(function(k){ avgs[k] = arr.length ? (sums[k]/arr.length) : 0; });
+    return avgs;
+  }
+
+  /* ── Compute agent usage ── */
+  function computeAgentUsage(arr){
+    var counts = {};
+    arr.forEach(function(d){
+      (d.agents||[]).forEach(function(a){ counts[a] = (counts[a]||0)+1; });
+    });
+    return Object.entries(counts).sort(function(a,b){ return b[1]-a[1]; });
+  }
+
+  /* ── Render results ── */
+  function renderResults(){
+    var data = loadFeedback();
+    var n = data.length;
+
+    /* participant count */
+    var countEl = document.getElementById('countText');
+    countEl.setAttribute('data-en', 'Feedback received from '+n+' participant'+(n!==1?'s':''));
+    countEl.setAttribute('data-bm', 'Maklum balas diterima daripada '+n+' peserta');
+    countEl.textContent = (lang==='bm')
+      ? 'Maklum balas diterima daripada '+n+' peserta'
+      : 'Feedback received from '+n+' participant'+(n!==1?'s':'');
+
+    /* ratings */
+    var avgs = computeAverages(data);
+    var map = {
+      ratingOverall:  {bar:'barOverall', val:'valOverall'},
+      ratingEase:     {bar:'barEase',    val:'valEase'},
+      ratingLearn:    {bar:'barLearn',   val:'valLearn'},
+      ratingRecommend:{bar:'barRec',     val:'valRec'},
+      ratingAccess:   {bar:'barAccess',  val:'valAccess'}
+    };
+    Object.keys(map).forEach(function(k){
+      var avg = avgs[k];
+      var pct = (avg/5)*100;
+      var barEl = document.getElementById(map[k].bar);
+      var valEl = document.getElementById(map[k].val);
+      if(barEl) barEl.style.width = pct.toFixed(0)+'%';
+      if(valEl) valEl.innerHTML = avg.toFixed(1)+' <span class="star-display">★</span>';
+    });
+
+    /* agent usage */
+    var usage = computeAgentUsage(data);
+    var maxCount = usage.length ? usage[0][1] : 1;
+    var chartEl = document.getElementById('agentUsageChart');
+    if(chartEl){
+      chartEl.innerHTML = usage.slice(0,8).map(function(pair){
+        var agentName = pair[0]; var count = pair[1];
+        var pct = Math.round((count/maxCount)*100);
+        return '<div class="usage-bar-row">'
+          +'<span class="usage-agent-name">'+agentName+'</span>'
+          +'<div class="usage-bar-track" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100" aria-label="'+agentName+' used by '+count+' participants">'
+          +'<div class="usage-bar-fill" style="width:'+pct+'%"></div>'
+          +'</div>'
+          +'<span class="usage-count">'+count+'</span>'
+          +'</div>';
+      }).join('');
+    }
+
+    /* quotes */
+    var quotesEl = document.getElementById('quotesGrid');
+    if(quotesEl){
+      var quotes = [];
+      data.forEach(function(d){
+        if(d.feedbackBest && d.feedbackBest.trim()) quotes.push({text:d.feedbackBest, author:d.role+(d.age?' · '+d.age:'')});
+      });
+      quotesEl.innerHTML = quotes.slice(0,6).map(function(q){
+        return '<article class="quote-card">'
+          +'<p class="quote-text">'+escapeHtml(q.text)+'</p>'
+          +'<span class="quote-author">'+escapeHtml(q.author)+'</span>'
+          +'</article>';
+      }).join('');
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ── Form submission ── */
+  document.getElementById('feedbackForm').addEventListener('submit', function(e){
+    e.preventDefault();
+
+    var errEl = document.getElementById('formError');
+    errEl.style.display = 'none';
+
+    /* basic validation */
+    var errors = [];
+    if(!document.querySelector('input[name="role"]:checked'))
+      errors.push(lang==='bm' ? 'Sila pilih peranan anda.' : 'Please select your role.');
+    if(!document.querySelector('input[name="age"]:checked'))
+      errors.push(lang==='bm' ? 'Sila pilih kumpulan umur anda.' : 'Please select your age group.');
+    if(!document.querySelector('input[name="firstTime"]:checked'))
+      errors.push(lang==='bm' ? 'Sila jawab sama ada ini kali pertama.' : 'Please answer if this is your first time.');
+    if(!document.getElementById('consentCheck').checked)
+      errors.push(lang==='bm' ? 'Sila berikan persetujuan anda untuk meneruskan.' : 'Please provide your consent to continue.');
+
+    if(errors.length){
+      errEl.innerHTML = errors.map(function(e){ return '• '+e; }).join('<br>');
+      errEl.style.display = 'block';
+      errEl.scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+
+    /* collect data */
+    var form = e.target;
+    var entry = {
+      timestamp: new Date().toISOString(),
+      role: (document.querySelector('input[name="role"]:checked')||{}).value || '',
+      disability: Array.from(document.querySelectorAll('input[name="disability"]:checked')).map(function(i){return i.value;}),
+      age: (document.querySelector('input[name="age"]:checked')||{}).value || '',
+      firstTime: (document.querySelector('input[name="firstTime"]:checked')||{}).value || '',
+      agents: Array.from(document.querySelectorAll('input[name="agents"]:checked')).map(function(i){return i.value;}),
+      ratingOverall: (document.querySelector('input[name="ratingOverall"]:checked')||{}).value || 0,
+      ratingEase: (document.querySelector('input[name="ratingEase"]:checked')||{}).value || 0,
+      ratingLearn: (document.querySelector('input[name="ratingLearn"]:checked')||{}).value || 0,
+      ratingRecommend: (document.querySelector('input[name="ratingRecommend"]:checked')||{}).value || 0,
+      ratingAccess: (document.querySelector('input[name="ratingAccess"]:checked')||{}).value || 0,
+      feedbackBest: document.getElementById('feedbackBest').value.slice(0,500),
+      feedbackDiff: document.getElementById('feedbackDiff').value.slice(0,500),
+      feedbackAdd:  document.getElementById('feedbackAdd').value.slice(0,500)
+    };
+
+    /* save to localStorage */
+    var arr = loadFeedback();
+    arr.push(entry);
+    localStorage.setItem('cs_feedback', JSON.stringify(arr));
+
+    /* show thank you */
+    document.getElementById('formWrapper').style.display = 'none';
+    var ty = document.getElementById('thankyouMsg');
+    ty.classList.add('visible');
+    ty.scrollIntoView({behavior:'smooth', block:'center'});
+
+    /* re-apply lang to new elements */
+    applyLang(lang);
+
+    /* confetti */
+    launchConfetti();
+
+    /* re-render results */
+    renderResults();
+  });
+
+  /* ── Confetti ── */
+  function launchConfetti(){
+    var container = document.getElementById('confettiContainer');
+    var colors = ['#6366f1','#06b6d4','#f59e0b','#ec4899','#10b981','#f97316'];
+    container.innerHTML = '';
+    for(var i=0; i<80; i++){
+      var piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random()*100+'vw';
+      piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+      piece.style.width = (Math.random()*8+6)+'px';
+      piece.style.height = (Math.random()*10+8)+'px';
+      piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      piece.style.animationDuration = (Math.random()*2+2)+'s';
+      piece.style.animationDelay = (Math.random()*1.5)+'s';
+      container.appendChild(piece);
+    }
+    setTimeout(function(){ container.innerHTML = ''; }, 5000);
+  }
+
+  /* ── Export button ── */
+  document.getElementById('exportBtn').addEventListener('click', function(){
+    showToast(lang==='bm' ? 'Eksport PDF akan tersedia tidak lama lagi!' : 'PDF export coming soon!');
+  });
+
+  /* ── Toast helper ── */
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 3200);
+  }
+
+  /* ── Init ── */
+  renderResults();
+
+})();
+</script>
+</body>
+</html>
