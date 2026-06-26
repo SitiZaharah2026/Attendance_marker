@@ -292,8 +292,8 @@ window.CS_BRAILLE = (function () {
 
   function copyToClipboard(text) {
     function speak(msg) {
-      if (window.CS && typeof window.CS.tts === 'function') {
-        window.CS.tts(msg);
+      if (window.CS && window.CS.tts && window.CS.tts.speak) {
+        window.CS.tts.speak(msg);
       }
     }
 

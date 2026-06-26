@@ -47,6 +47,11 @@
     'personalisation'
   ];
 
+  function _localDateStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
   function CS_PERSONALISE() {}
 
   CS_PERSONALISE.prototype.getProfile = function () {
@@ -149,9 +154,9 @@
     var hour = new Date().getHours();
     var profile = this.getProfile();
 
-    if (hour >= 6 && hour <= 11) {
+    if (hour >= 6 && hour < 12) {
       profile.preferredTimeOfDay = 'morning';
-    } else if (hour >= 12 && hour <= 16) {
+    } else if (hour >= 12 && hour < 17) {
       profile.preferredTimeOfDay = 'afternoon';
     } else if (hour >= 17 && hour <= 20) {
       profile.preferredTimeOfDay = 'evening';
@@ -186,13 +191,13 @@
     profile.sessionCount = newCount;
     profile.totalReadingMinutes = (profile.totalReadingMinutes || 0) + durationMinutes;
 
-    var today = new Date().toISOString().slice(0, 10);
+    var today = _localDateStr();
     var lastActive = profile.lastActive || '';
 
     if (lastActive === today) {
       // same day, streak unchanged
     } else {
-      var yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      var yesterday = (function () { var d = new Date(Date.now() - 86400000); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }());
       if (lastActive === yesterday) {
         profile.streak = (profile.streak || 0) + 1;
       } else {

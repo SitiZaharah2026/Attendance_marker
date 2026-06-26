@@ -23,9 +23,11 @@
 .form-check input[type=checkbox] { width:18px; height:18px; cursor:pointer; accent-color:var(--primary); }
 .form-check label { font-size:14px; cursor:pointer; }
 @media(max-width:768px){ .warn-layout{grid-template-columns:1fr;} }
+.skip-link:focus { left: 8px !important; }
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;top:8px;z-index:9999;padding:8px 16px;background:#6366f1;color:#fff;border-radius:4px;font-size:14px;text-decoration:none;font-family:sans-serif;">Skip to main content</a>
 
 <nav class="navbar">
   <div class="container nav-container">
@@ -60,7 +62,7 @@
   </div>
 </nav>
 
-<div class="page-header">
+<main class="page-header" id="main-content">
   <div class="container">
   <div class="page-header-card">
     <div class="page-badge">⚠️</div>
@@ -68,7 +70,7 @@
     <p class="page-subtitle">Learner performance monitoring and risk assessment. Identify at-risk learners early and trigger timely interventions.</p>
   </div>
   </div>
-</div>
+</main>
 
 <div class="container" style="padding-bottom:60px;">
   <div class="warn-layout">

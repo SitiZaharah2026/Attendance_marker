@@ -212,6 +212,7 @@
   color: var(--text-muted);
   margin: 0;
 }
+.skip-link:focus { left: 8px !important; }
 </style>
 </head>
 <body>
@@ -255,7 +256,7 @@
   </div>
 </nav>
 
-<div style="padding-top:var(--nav-h);" id="main-content">
+<main style="padding-top:var(--nav-h);" id="main-content">
 <div class="container" style="padding-top:32px;padding-bottom:60px;">
 
   <div class="settings-header">
@@ -634,7 +635,7 @@
   </div><!-- /settings-layout -->
 
 </div>
-</div>
+</main>
 
 <script src="shared.js"></script>
 <script>
@@ -942,7 +943,9 @@ function clearProfile() {
 
 function clearEverything() {
   if (!confirm('Reset ALL data? This will clear your API key, profile, accessibility settings, and learning data.')) return;
-  var keys = ['gemini_api_key','cs_user','cs_analytics','cs_a11y','cs_lang','cs_prefs'];
+  var keys = ['gemini_api_key','cs_user','cs_analytics','cs_a11y','cs_lang','cs_prefs',
+              'teacher_input_text','teacher_last_explanation','cs_last_risk',
+              'ocrExtractedText','signLangText','cs_agent_history'];
   keys.forEach(function(k) { try { localStorage.removeItem(k); } catch(e) {} });
   CS.toast('All data cleared. Reloading...', 'info');
   setTimeout(function() { location.reload(); }, 1200);

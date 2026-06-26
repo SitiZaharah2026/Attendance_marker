@@ -1053,7 +1053,8 @@ const _lang = {
   resolveCommand(transcript) {
     const clean = (transcript || '').toLowerCase().trim();
     for (const [phrase, action] of Object.entries(CS_VOICE_COMMANDS)) {
-      if (clean.includes(phrase)) return action;
+      var re = new RegExp('(^|\\s)' + phrase.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '(\\s|$)','i');
+      if (re.test(clean)) return action;
     }
     return null;
   },
@@ -1313,11 +1314,14 @@ const _tts = (() => {
   let _ready    = false;
   let _queued   = null;
 
-  function _load() {
-    const v = synth ? synth.getVoices() : [];
-    if (v.length) { _voices = v; _ready = true; if (_queued) { _queued(); _queued = null; } }
+  var _loadVoices = function() {
+    var v = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    if (v && v.length > 0) { _voices = v; _ready = true; if (_queued) { _queued(); _queued = null; } }
+  };
+  _loadVoices();
+  if (window.speechSynthesis && 'onvoiceschanged' in window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = _loadVoices;
   }
-  if (synth) { _load(); synth.addEventListener('voiceschanged', _load); }
 
   function _pick(lang) {
     return _voices.find(v => v.lang.startsWith(lang)) ||
@@ -1414,6 +1418,7 @@ const _voice = (() => {
     };
 
     _rec.onresult = function(e) {
+      if (!e.results || !e.results.length || !e.results[0][0]) return;
       const transcript = e.results[0][0].transcript;
       _updateBar('Heard: "' + transcript + '"', false);
       const action = _lang.resolveCommand(transcript);
@@ -1507,17 +1512,32 @@ const _groq = (() => {
   }
 
   /* Robust JSON extractor — handles fences, whitespace, wrapped text */
-  function _extractJSON(raw) {
-    if (!raw) throw new Error('Empty response');
-    var cleaned = raw.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
-    try { return JSON.parse(cleaned); } catch(e) {}
-    var obj = cleaned.match(/\{[\s\S]*\}/);
-    var arr = cleaned.match(/\[[\s\S]*\]/);
-    var best = (obj && arr)
-      ? (cleaned.indexOf(obj[0]) < cleaned.indexOf(arr[0]) ? obj[0] : arr[0])
-      : (obj ? obj[0] : (arr ? arr[0] : null));
-    if (best) return JSON.parse(best);
-    throw new Error('Cannot find JSON in response');
+  function _extractJSON(text) {
+    if (!text) return null;
+    var codeBlock = text.match(/```(?:json)?[\s\S]*?```/);
+    if (codeBlock) {
+      var inner = codeBlock[0].replace(/```(?:json)?/,'').replace(/```/,'').trim();
+      try { return JSON.parse(inner); } catch(e) {}
+    }
+    var start = -1;
+    var openChar = '', closeChar = '';
+    var bi = text.indexOf('{'), ai = text.indexOf('[');
+    if (bi === -1 && ai === -1) return null;
+    if (bi === -1) { start = ai; openChar='['; closeChar=']'; }
+    else if (ai === -1) { start = bi; openChar='{'; closeChar='}'; }
+    else if (ai < bi) { start = ai; openChar='['; closeChar=']'; }
+    else { start = bi; openChar='{'; closeChar='}'; }
+    var depth = 0, inStr = false, esc = false;
+    for (var i = start; i < text.length; i++) {
+      var c = text[i];
+      if (esc) { esc=false; continue; }
+      if (c==='\\' && inStr) { esc=true; continue; }
+      if (c==='"') { inStr=!inStr; continue; }
+      if (inStr) continue;
+      if (c===openChar) depth++;
+      else if (c===closeChar) { depth--; if(depth===0){ try{ return JSON.parse(text.slice(start,i+1)); }catch(e){ return null; } } }
+    }
+    return null;
   }
 
   async function _call(prompt) {
@@ -1646,7 +1666,7 @@ const _a11y = {
     /* Font family */
     const fonts = {
       system:    '',
-      dyslexic:  '"OpenDyslexic", "Comic Sans MS", sans-serif',
+      dyslexic:  'Lexend, "Comic Sans MS", sans-serif',
       arial:     'Arial, sans-serif',
       verdana:   'Verdana, sans-serif',
     };
@@ -1735,9 +1755,10 @@ const _a11y = {
 ============================================================ */
 function _toast(title, type, msg) {
   type = type || 'success';
-  var container = document.getElementById('cs-toasts');
+  var container = document.querySelector('.cs-toast-container');
   if (!container) {
-    container           = document.createElement('div');
+    container = document.createElement('div');
+    container.className = 'cs-toast-container';
     container.id        = 'cs-toasts';
     container.setAttribute('role', 'status');
     container.setAttribute('aria-live', 'polite');
@@ -1773,7 +1794,7 @@ const _nav = {
   init() {
     var path = location.pathname;
     var page = path.split('/').pop() || 'index.html';
-    document.querySelectorAll('.nav-link, [data-nav-link]').forEach(function(a) {
+    document.querySelectorAll('.nav-links a, [data-nav-link]').forEach(function(a) {
       var href = (a.getAttribute('href') || '').split('/').pop();
       a.classList.toggle('active', href === page);
       if (href === page) a.setAttribute('aria-current', 'page');
@@ -1856,6 +1877,7 @@ window.CS = {
   tts:       _tts,
   voice:     _voice,
   gemini:    _groq,
+  // groq: legacy alias only — this calls Gemini, NOT the Groq API (api.groq.com)
   groq:      _groq,  /* legacy alias — use CS.gemini going forward */
   a11y:      _a11y,
   nav:       _nav,
@@ -1873,6 +1895,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
   /* Mark active nav link */
   _nav.init();
+
+  /* BUG-024 — keyboard support for Agents nav dropdown */
+  (function() {
+    var dropBtn = document.querySelector('.nav-dropdown > button[aria-haspopup]');
+    if (!dropBtn) return;
+
+    dropBtn.addEventListener('keydown', function(e) {
+      var menu = this.closest('.nav-dropdown').querySelector('.dropdown-menu');
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        var isOpen = menu.style.display === 'flex' || menu.classList.contains('open');
+        if (isOpen) {
+          menu.style.display = 'none'; menu.classList.remove('open');
+          this.setAttribute('aria-expanded', 'false');
+        } else {
+          menu.style.display = 'flex'; menu.style.flexDirection = 'column';
+          menu.classList.add('open');
+          this.setAttribute('aria-expanded', 'true');
+          var first = menu.querySelector('a, button');
+          if (first) first.focus();
+        }
+      }
+      if (e.key === 'Escape') {
+        menu.style.display = 'none'; menu.classList.remove('open');
+        this.setAttribute('aria-expanded', 'false'); this.focus();
+      }
+    });
+
+    var menu = dropBtn.closest('.nav-dropdown').querySelector('.dropdown-menu');
+    if (menu) {
+      menu.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          this.style.display = 'none'; this.classList.remove('open');
+          dropBtn.setAttribute('aria-expanded', 'false'); dropBtn.focus();
+        }
+      });
+    }
+  })();
 
   /* Language toggle buttons */
   document.addEventListener('click', function(e) {
@@ -1935,6 +1995,11 @@ window.toggleLanguage = function() {
 window.toggleNav = function() {
   var links = document.getElementById('navLinks');
   if (links) links.classList.toggle('active');
+  var hamburger = document.querySelector('.nav-hamburger[aria-expanded]');
+  if (hamburger) {
+    var isOpen = document.querySelector('.nav-links') && document.querySelector('.nav-links').classList.contains('open');
+    hamburger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  }
 };
 
 /** Expose the browser speech synthesis object as a global (used by blind-audio.html). */

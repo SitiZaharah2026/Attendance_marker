@@ -625,9 +625,9 @@
     </div>
     <div class="ca-label">Gender Presentation</div>
     <div class="ca-btn-row">
-      <button class="ca-gender-btn" data-gender="feminine">Feminine</button>
-      <button class="ca-gender-btn selected" data-gender="neutral">Neutral</button>
-      <button class="ca-gender-btn" data-gender="masculine">Masculine</button>
+      <button class="ca-gender-btn" data-gender="feminine" aria-pressed="false">Feminine</button>
+      <button class="ca-gender-btn selected" data-gender="neutral" aria-pressed="false">Neutral</button>
+      <button class="ca-gender-btn" data-gender="masculine" aria-pressed="false">Masculine</button>
     </div>
     <div class="ca-label">What should I call you?</div>
     <input type="text" class="ca-input" id="ca-name-input" placeholder="Enter your name..." maxlength="40"/>
@@ -697,14 +697,16 @@
 
     function goToStep2(img) {
       capturedImage = img;
-      CS_AVATAR.stopWebcam();
 
       if (img) {
-        // Analyse image
+        // Analyse image — must happen before stream is stopped
         const colors = CS_AVATAR.analyseImageColors(img);
         const features = CS_AVATAR.detectFaceFeatures(img);
         Object.assign(currentCustomizations, colors, features);
       }
+
+      // Capture is complete; now safe to stop the webcam stream
+      CS_AVATAR.stopWebcam();
 
       // Show webcam preview with captured image
       const previewBox = document.getElementById('avatarWebcamPreview');
@@ -734,7 +736,7 @@
       // Guard: remove any existing video element and stop its stream before creating a new one
       const existing = document.getElementById('ca-webcam-video');
       if (existing) {
-        if (existing.srcObject) { existing.srcObject.getTracks().forEach(function (t) { t.stop(); }); }
+        if (existing.srcObject) { existing.srcObject.getTracks().forEach(function (t) { t.stop(); }); existing.srcObject = null; }
         existing.remove();
       }
 
@@ -813,11 +815,22 @@
     // Gender buttons
     backdrop.querySelectorAll('.ca-gender-btn').forEach(function (btn) {
       btn.onclick = function () {
-        backdrop.querySelectorAll('.ca-gender-btn').forEach(function (b) { b.classList.remove('selected'); });
+        backdrop.querySelectorAll('.ca-gender-btn').forEach(function (b) {
+          b.classList.remove('selected');
+          b.setAttribute('aria-pressed', 'false');
+        });
         btn.classList.add('selected');
+        btn.setAttribute('aria-pressed', 'true');
         currentCustomizations.gender = btn.dataset.gender;
         refreshPreview();
       };
+    });
+
+    // Sync gender button active state to currentCustomizations.gender on init
+    document.querySelectorAll('[data-gender]').forEach(function (btn) {
+      var isActive = btn.dataset.gender === (currentCustomizations.gender || 'neutral');
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
 
     // Name input

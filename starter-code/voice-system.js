@@ -71,13 +71,22 @@
     r.lang = 'en-US';
     r.maxAlternatives = 3;
     r.onresult = function (event) {
-      var results = [];
-      for (var i = 0; i < event.results[event.results.length - 1].length; i++) {
-        results.push(event.results[event.results.length - 1][i].transcript.trim().toLowerCase());
+      var lastResult = event.results[event.results.length - 1];
+      var bestTranscript = '', bestConf = 0;
+      for (var i = 0; i < lastResult.length; i++) {
+        if (lastResult[i].confidence >= bestConf) {
+          bestConf = lastResult[i].confidence;
+          bestTranscript = lastResult[i].transcript;
+        }
+      }
+      bestTranscript = bestTranscript.trim().toLowerCase();
+      var allAlts = [];
+      for (var j = 0; j < lastResult.length; j++) {
+        allAlts.push(lastResult[j].transcript.trim().toLowerCase());
       }
       isListening = false;
       recognitionActive = false;
-      handleCommand(results[0], results);
+      handleCommand(bestTranscript, allAlts);
     };
     r.onerror = function (event) {
       isListening = false;
@@ -334,11 +343,14 @@
         return;
       }
       recognition = initRecognition();
-      document.addEventListener('visibilitychange', function () {
-        if (!document.hidden && !synth.speaking && !loginFlowActive) {
-          setTimeout(startListening, 1000);
-        }
-      });
+      if (!window._csVoiceVisBound) {
+        window._csVoiceVisBound = true;
+        document.addEventListener('visibilitychange', function () {
+          if (!document.hidden && !synth.speaking && !loginFlowActive) {
+            setTimeout(startListening, 1000);
+          }
+        });
+      }
     },
 
     setPageContext: function (pageName, instructions) {
@@ -505,14 +517,17 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       })
-        .then(function (res) { return res.json(); })
-        .then(function (data) {
-          var text = '';
-          try {
-            text = data.candidates[0].content.parts[0].text;
-          } catch (e) {
-            text = 'Could not extract text from image.';
+        .then(function (response) {
+          if (!response.ok) {
+            return response.json().catch(function () { return {}; }).then(function (err) {
+              throw new Error('Gemini ' + response.status + ': ' + (err.error && err.error.message || 'Unknown'));
+            });
           }
+          return response.json();
+        })
+        .then(function (data) {
+          var text = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
+          if (!text) throw new Error('No text in response');
           var event = new CustomEvent('cs_voice_ocr_result', { detail: { text: text } });
           window.dispatchEvent(event);
           speak(text);

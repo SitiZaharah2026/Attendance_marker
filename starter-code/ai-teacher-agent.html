@@ -41,9 +41,11 @@
     body.adhd-teacher-mode *:focus{outline:3px solid #7c3aed!important;outline-offset:2px;}
     body.blind-teacher-mode button:focus,body.blind-teacher-mode a:focus{outline:3px solid #f59e0b!important;outline-offset:3px;}
     .saved-toast{position:fixed;bottom:24px;right:24px;background:#10b981;color:#fff;padding:10px 22px;border-radius:12px;font-weight:700;font-size:14px;z-index:9999;animation:fadeIn .3s ease;}
-  </style>
+  .skip-link:focus { left: 8px !important; }
+</style>
 </head>
 <body>
+<a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;top:8px;z-index:9999;padding:8px 16px;background:#6366f1;color:#fff;border-radius:4px;font-size:14px;text-decoration:none;font-family:sans-serif;">Skip to main content</a>
 
 <!-- NAV -->
 <nav class="nav" role="navigation" aria-label="Main Navigation">
@@ -82,7 +84,7 @@
 </div>
 
 <!-- MAIN LAYOUT -->
-<main style="max-width:1100px;margin:0 auto;padding:20px 16px;display:grid;grid-template-columns:1fr 1fr;gap:20px;" id="teacherMain">
+<main id="main-content" style="max-width:1100px;margin:0 auto;padding:20px 16px;display:grid;grid-template-columns:1fr 1fr;gap:20px;" id="teacherMain">
 
   <!-- LEFT COLUMN -->
   <div style="display:flex;flex-direction:column;gap:20px;">
@@ -467,11 +469,13 @@ function renderQuiz(type, content) {
       });
       html += '<div class="quiz-block">';
       html += '<div class="quiz-question">Q' + (qi+1) + ': ' + escapeHtml(qText) + '</div>';
+      html += '<div role="radiogroup" aria-label="Answer options">';
       options.forEach(function(opt) {
         var letter = opt[0].toUpperCase();
         var isCorrect = (letter === answer);
-        html += '<button class="quiz-option" onclick="checkMCQ(this,' + isCorrect + ')" data-correct="' + isCorrect + '">' + escapeHtml(opt) + '</button>';
+        html += '<button class="quiz-option" role="radio" tabindex="0" aria-checked="false" onclick="selectOption(this);checkMCQ(this,' + isCorrect + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();selectOption(this);checkMCQ(this,' + isCorrect + ');}" data-correct="' + isCorrect + '">' + escapeHtml(opt) + '</button>';
       });
+      html += '</div>';
       html += '</div>';
     });
   } else if (type === 'tf') {
@@ -486,9 +490,9 @@ function renderQuiz(type, content) {
       }
       html += '<div class="quiz-block">';
       html += '<div class="quiz-question">' + escapeHtml(stmtText) + '</div>';
-      html += '<div style="display:flex;gap:8px;margin-top:6px;">';
-      html += '<button class="quiz-option" style="width:auto;padding:8px 20px;" onclick="checkTF(this,\'true\',\'' + correctAnswer + '\')">✅ True</button>';
-      html += '<button class="quiz-option" style="width:auto;padding:8px 20px;" onclick="checkTF(this,\'false\',\'' + correctAnswer + '\')">❌ False</button>';
+      html += '<div role="radiogroup" aria-label="Answer options" style="display:flex;gap:8px;margin-top:6px;">';
+      html += '<button class="quiz-option" role="radio" tabindex="0" aria-checked="false" style="width:auto;padding:8px 20px;" onclick="selectOption(this);checkTF(this,\'true\',\'' + correctAnswer + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();selectOption(this);checkTF(this,\'true\',\'' + correctAnswer + '\');}">✅ True</button>';
+      html += '<button class="quiz-option" role="radio" tabindex="0" aria-checked="false" style="width:auto;padding:8px 20px;" onclick="selectOption(this);checkTF(this,\'false\',\'' + correctAnswer + '\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();selectOption(this);checkTF(this,\'false\',\'' + correctAnswer + '\');}">❌ False</button>';
       html += '</div></div>';
     });
   } else if (type === 'short') {
@@ -512,6 +516,14 @@ function renderQuiz(type, content) {
   if (!html) html = '<p style="color:#94a3b8;font-style:italic;font-size:13px;">Could not generate quiz. Please try again.</p>';
   output.innerHTML = html;
   document.getElementById('quizScore').style.display = 'none';
+}
+
+function selectOption(sel) {
+  var group = sel.closest('[role="radiogroup"]');
+  if (group) {
+    group.querySelectorAll('.quiz-option').forEach(function(o) { o.setAttribute('aria-checked', 'false'); });
+  }
+  sel.setAttribute('aria-checked', 'true');
 }
 
 function checkMCQ(btn, isCorrect) {

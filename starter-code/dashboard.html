@@ -118,9 +118,11 @@ body { background: linear-gradient(160deg,#c4b8ff 0%,#ddd6ff 40%,#7dd3ea 100%); 
 /* ── Responsive ── */
 @media(max-width:768px){ .widget-grid{grid-template-columns:repeat(2,1fr);} }
 @media(max-width:480px){ .widget-grid{grid-template-columns:1fr;} }
+.skip-link:focus { left: 8px !important; }
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;top:8px;z-index:9999;padding:8px 16px;background:#6366f1;color:#fff;border-radius:4px;font-size:14px;text-decoration:none;font-family:sans-serif;">Skip to main content</a>
 
 <nav class="navbar">
   <div class="container nav-container">
@@ -159,7 +161,7 @@ body { background: linear-gradient(160deg,#c4b8ff 0%,#ddd6ff 40%,#7dd3ea 100%); 
   </div>
 </nav>
 
-<div style="padding-top:var(--nav-h);">
+<main style="padding-top:var(--nav-h);" id="main-content">
 <div class="container" style="padding-top:32px;padding-bottom:60px;">
 
   <!-- Welcome Header -->
@@ -380,7 +382,7 @@ body { background: linear-gradient(160deg,#c4b8ff 0%,#ddd6ff 40%,#7dd3ea 100%); 
   </div>
 
 </div>
-</div>
+</main>
 
 <footer class="footer">
   <div class="container">

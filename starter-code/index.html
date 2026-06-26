@@ -587,10 +587,13 @@
 }
 @media(prefers-reduced-motion: reduce){
   .hero-orb-marquee-row * { animation: none !important; }
+  [class*="marquee"] * { animation: none !important; }
 }
+.skip-link:focus { left: 8px !important; }
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;top:8px;z-index:9999;padding:8px 16px;background:#6366f1;color:#fff;border-radius:4px;font-size:14px;text-decoration:none;font-family:sans-serif;">Skip to main content</a>
 
 <!-- ════ NAVBAR ════ -->
 <nav class="navbar" role="navigation" aria-label="Main navigation">
@@ -635,7 +638,7 @@
 <section class="hero" aria-labelledby="hero-heading">
   <canvas id="heroCanvas" aria-hidden="true"></canvas>
 
-  <div class="hero-inner container">
+  <main class="hero-inner container" id="main-content">
     <!-- Left copy -->
     <div class="hero-left">
       <div class="hero-eyebrow" role="doc-subtitle">
@@ -700,7 +703,8 @@
         <div class="orb-name" data-i18n="a4_name">Dyslexia Agent</div>
         <div class="orb-tag" data-i18n="orb_read_easier">Read Easier</div>
       </a>
-      <div class="hero-orb-marquee-row" aria-hidden="true">
+      <div class="hero-orb-marquee-row" aria-hidden="true" style="position:relative;">
+        <button id="marqueePauseBtn" onclick="toggleMarquee()" aria-label="Pause scrolling animation" style="position:absolute;right:16px;top:8px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;z-index:10;">Pause</button>
         <div class="hero-orb-marquee-inner">
           <span class="marquee-line1" data-i18n="hero_tagline">Ilmu Tanpa Sempadan, Kecerdasan Tanpa Had</span>
           <span class="marquee-line2">Knowledge Without Barrier, Intelligence Without Limits</span>
@@ -728,7 +732,7 @@
         <div class="orb-tag" data-i18n="orb_plan">Plan</div>
       </a>
     </div>
-  </div>
+  </main>
 
   <!-- Scroll hint -->
   <div style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;z-index:2;opacity:0.5;">
@@ -1095,6 +1099,15 @@ document.getElementById('hamburger').addEventListener('click',function(){
   const expanded = this.getAttribute('aria-expanded')==='true';
   this.setAttribute('aria-expanded', String(!expanded));
 });
+function toggleMarquee(){
+  var rows=document.querySelectorAll('[class*="marquee"]');
+  var btn=document.getElementById('marqueePauseBtn');
+  var paused=btn.dataset.paused==='1';
+  rows.forEach(function(r){ r.style.animationPlayState=paused?'running':'paused'; });
+  btn.dataset.paused=paused?'0':'1';
+  btn.textContent=paused?'Pause':'Resume';
+  btn.setAttribute('aria-label',paused?'Pause scrolling animation':'Resume scrolling animation');
+}
 </script>
 </body>
 </html>
