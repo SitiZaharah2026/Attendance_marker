@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Language Dictionary – CelikSense AI</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+:root {
+  --sd-bg:       #f8fafc;
+  --sd-card:     #ffffff;
+  --sd-border:   #e2e8f0;
+  --sd-primary:  #4f46e5;
+  --sd-plight:   #6366f1;
+  --sd-teal:     #0891b2;
+  --sd-green:    #059669;
+  --sd-amber:    #d97706;
+  --sd-red:      #dc2626;
+  --sd-text:     #0f172a;
+  --sd-muted:    #64748b;
+  --sd-dim:      #94a3b8;
+  --radius:      14px;
+  --shadow:      0 1px 4px rgba(0,0,0,.08), 0 6px 20px rgba(0,0,0,.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--sd-bg);
+  color: var(--sd-text);
+  min-height: 100vh;
+  font-size: 16px;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────── */
+.sd-hero {
+  background: linear-gradient(135deg, #1e1b4b 0%, #4f46e5 50%, #0891b2 100%);
+  padding: 56px 24px 44px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.sd-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 70% 25%, rgba(255,255,255,.08) 0%, transparent 55%);
+  pointer-events: none;
+}
+.sd-hero-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.25);
+  color: #e0e7ff;
+  font-size: 11px; font-weight: 800; letter-spacing: 2.5px;
+  text-transform: uppercase; padding: 5px 16px;
+  border-radius: 999px; margin-bottom: 18px;
+}
+.sd-hero h1 {
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-bottom: 8px;
+}
+.sd-hero-sub {
+  font-size: clamp(14px, 2.5vw, 18px);
+  color: rgba(255,255,255,.78); font-weight: 400; margin-bottom: 24px;
+}
+.sd-lang-btn {
+  background: rgba(255,255,255,.18);
+  border: 1px solid rgba(255,255,255,.3);
+  color: #fff; font-size: 13px; font-weight: 700;
+  padding: 8px 20px; border-radius: 8px;
+  cursor: pointer; transition: background .2s; letter-spacing: .5px;
+}
+.sd-lang-btn:hover { background: rgba(255,255,255,.28); }
+
+/* ── Prototype disclaimer ─────────────────────────────────────────────── */
+.sd-disclaimer {
+  background: #fffbeb; border-bottom: 1px solid #fde68a;
+  padding: 11px 24px; font-size: 13px; color: #92400e;
+  text-align: center; line-height: 1.5;
+}
+.sd-disclaimer strong { color: #78350f; }
+
+/* ── Container ────────────────────────────────────────────────────────── */
+.sd-container {
+  max-width: 960px; margin: 0 auto;
+  padding: 36px 20px 72px;
+  display: flex; flex-direction: column; gap: 28px;
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────── */
+.sd-card {
+  background: var(--sd-card);
+  border: 1px solid var(--sd-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.sd-card-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 18px 22px; border-bottom: 1px solid var(--sd-border);
+}
+.sd-card-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.sd-card-title {
+  font-size: 15px; font-weight: 800; color: var(--sd-text); flex: 1;
+}
+.sd-card-body { padding: 22px; }
+
+/* ── Search ───────────────────────────────────────────────────────────── */
+.sd-search-wrap {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.sd-search-input {
+  flex: 1; min-width: 220px;
+  padding: 15px 18px;
+  border: 2px solid var(--sd-border);
+  border-radius: 12px;
+  font-size: 18px; font-weight: 500;
+  color: var(--sd-text); background: #f8fafc;
+  outline: none; transition: border-color .2s;
+  font-family: inherit;
+}
+.sd-search-input:focus { border-color: var(--sd-plight); background: #fff; }
+.sd-search-input::placeholder { color: var(--sd-dim); font-size: 15px; }
+.sd-search-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--sd-primary); color: #fff;
+  font-size: 15px; font-weight: 700;
+  padding: 15px 28px; border-radius: 12px; border: none;
+  cursor: pointer; transition: all .2s; white-space: nowrap;
+  letter-spacing: .2px;
+}
+.sd-search-btn:hover { background: #4338ca; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(79,70,229,.3); }
+.sd-search-btn:focus-visible { outline: 3px solid #6366f1; outline-offset: 2px; }
+
+/* ── Browse chips ─────────────────────────────────────────────────────── */
+.sd-browse-row {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;
+}
+.sd-browse-chip {
+  background: #f1f5f9; border: 1px solid #e2e8f0;
+  color: #475569; font-size: 13px; font-weight: 600;
+  padding: 7px 14px; border-radius: 20px; cursor: pointer;
+  transition: all .15s;
+}
+.sd-browse-chip:hover { background: #eef2ff; border-color: #c7d2fe; color: var(--sd-primary); }
+.sd-browse-chip:focus-visible { outline: 3px solid #6366f1; outline-offset: 2px; }
+
+/* ── Result card ──────────────────────────────────────────────────────── */
+.sd-result {
+  background: linear-gradient(135deg, #f0f4ff 0%, #f0fdfa 100%);
+  border: 1.5px solid #c7d2fe;
+  border-radius: var(--radius);
+  padding: 28px 26px;
+  display: none;
+}
+.sd-result.visible { display: block; }
+.sd-result-header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  margin-bottom: 22px;
+}
+.sd-result-word {
+  font-size: clamp(26px, 5vw, 38px);
+  font-weight: 900; color: var(--sd-primary);
+  letter-spacing: -0.5px; line-height: 1.1;
+}
+.sd-result-word-bm {
+  font-size: 17px; font-weight: 600; color: var(--sd-teal); margin-top: 4px;
+}
+.sd-result-cat {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--sd-primary); color: #fff;
+  font-size: 11px; font-weight: 800; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 5px 12px; border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* ── Info grid ────────────────────────────────────────────────────────── */
+.sd-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px; margin-bottom: 20px;
+}
+@media (max-width: 600px) { .sd-info-grid { grid-template-columns: 1fr; } }
+.sd-info-block {
+  background: rgba(255,255,255,.75);
+  border: 1px solid rgba(99,102,241,.15);
+  border-radius: 10px; padding: 14px 16px;
+}
+.sd-info-label {
+  font-size: 10px; font-weight: 800; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--sd-plight); margin-bottom: 6px;
+}
+.sd-info-value {
+  font-size: 15px; line-height: 1.55; color: #1e293b; font-weight: 500;
+}
+
+/* ── Visual cue panel ─────────────────────────────────────────────────── */
+.sd-visual-panel {
+  background: #0f172a; border-radius: 12px;
+  padding: 24px; text-align: center; margin-bottom: 20px;
+}
+.sd-visual-emoji { font-size: 72px; line-height: 1; margin-bottom: 12px; }
+.sd-visual-desc {
+  font-size: 15px; color: rgba(255,255,255,.7);
+  line-height: 1.6; max-width: 480px; margin: 0 auto;
+}
+.sd-visual-tip {
+  margin-top: 12px;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(99,102,241,.2); border: 1px solid rgba(99,102,241,.35);
+  color: #a5b4fc; font-size: 12px; font-weight: 700;
+  padding: 5px 14px; border-radius: 20px;
+}
+
+/* ── Fingerspelling ───────────────────────────────────────────────────── */
+.sd-finger-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+.sd-finger-letter {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: #fff; border: 1.5px solid #e2e8f0;
+  border-radius: 8px; padding: 10px 10px 7px;
+  min-width: 46px; text-align: center;
+  transition: border-color .15s, transform .15s;
+  cursor: default;
+}
+.sd-finger-letter:hover { border-color: #6366f1; transform: translateY(-2px); }
+.sd-finger-hand { font-size: 26px; line-height: 1; }
+.sd-finger-char { font-size: 13px; font-weight: 800; color: var(--sd-primary); }
+
+/* ── Example sentence ─────────────────────────────────────────────────── */
+.sd-example {
+  background: #fff; border: 1px solid #e2e8f0;
+  border-left: 4px solid var(--sd-primary);
+  border-radius: 0 10px 10px 0;
+  padding: 14px 16px; font-size: 15px;
+  line-height: 1.65; color: #1e293b; font-style: italic;
+}
+.sd-example-bm {
+  font-style: normal; color: var(--sd-teal);
+  font-size: 13px; font-weight: 600; margin-top: 6px;
+}
+
+/* ── Not-found state ──────────────────────────────────────────────────── */
+.sd-notfound {
+  background: #fff5f5; border: 1.5px dashed #fca5a5;
+  border-radius: var(--radius); padding: 32px 24px;
+  text-align: center; display: none;
+}
+.sd-notfound.visible { display: block; }
+.sd-notfound-icon { font-size: 44px; margin-bottom: 14px; }
+.sd-notfound-msg { font-size: 16px; line-height: 1.6; color: #7f1d1d; font-weight: 600; margin-bottom: 6px; }
+.sd-notfound-msg-bm { font-size: 14px; color: #991b1b; margin-bottom: 20px; }
+.sd-request-form { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.sd-request-input {
+  padding: 11px 16px; border: 2px solid #fca5a5;
+  border-radius: 8px; font-size: 14px; min-width: 200px;
+  background: #fff; outline: none; font-family: inherit;
+}
+.sd-request-input:focus { border-color: var(--sd-red); }
+.sd-request-btn {
+  background: var(--sd-red); color: #fff;
+  font-size: 13px; font-weight: 700;
+  padding: 11px 22px; border: none; border-radius: 8px;
+  cursor: pointer; transition: background .2s;
+}
+.sd-request-btn:hover { background: #b91c1c; }
+
+/* ── Requested words ──────────────────────────────────────────────────── */
+.sd-requested-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.sd-requested-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #fdf4ff; border: 1px solid #e9d5ff;
+  color: #7c3aed; font-size: 13px; font-weight: 600;
+  padding: 6px 12px; border-radius: 20px;
+}
+.sd-requested-chip button {
+  background: none; border: none; cursor: pointer;
+  color: #a78bfa; font-size: 14px; line-height: 1;
+  padding: 0 0 0 2px; font-weight: 900;
+}
+.sd-requested-chip button:hover { color: #7c3aed; }
+.sd-empty-msg { font-size: 13px; color: var(--sd-dim); }
+
+/* ── Toast ────────────────────────────────────────────────────────────── */
+.sd-toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  background: #1e293b; color: #fff;
+  font-size: 14px; font-weight: 600;
+  padding: 12px 24px; border-radius: 10px;
+  z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,.3);
+  opacity: 0; transition: opacity .25s;
+  pointer-events: none;
+}
+.sd-toast.show { opacity: 1; }
+
+/* ── Related links ────────────────────────────────────────────────────── */
+.sd-related { display: flex; gap: 10px; flex-wrap: wrap; }
+.sd-related-link {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #f1f5f9; border: 1px solid #e2e8f0;
+  color: #475569; font-size: 13px; font-weight: 600;
+  padding: 9px 16px; border-radius: 8px; text-decoration: none;
+  transition: all .15s;
+}
+.sd-related-link:hover { background: #eef2ff; border-color: #c7d2fe; color: var(--sd-primary); }
+
+/* ── High-contrast mode ───────────────────────────────────────────────── */
+@media (prefers-contrast: high) {
+  .sd-search-input, .sd-search-btn, .sd-result { border-width: 2px; }
+  .sd-info-value { font-size: 17px; }
+}
+
+@media (max-width: 600px) {
+  .sd-search-btn { width: 100%; justify-content: center; }
+}
+</style>
+<script src="shared.js" defer></script>
+</head>
+<body>
+<a href="#main" class="skip-link" style="position:absolute;left:-9999px;top:8px;z-index:9999;padding:8px 16px;background:#4f46e5;color:#fff;border-radius:4px;font-size:14px;text-decoration:none;" tabindex="0">Skip to main content</a>
+
+<!-- Nav injected by shared.js -->
+
+<main id="main" style="padding-top:var(--nav-h,60px);">
+
+  <!-- Hero -->
+  <div class="sd-hero" role="banner">
+    <div class="sd-hero-badge">&#128214; <span id="heroBadge">Sign Language Dictionary</span></div>
+    <h1 id="heroTitle">Sign Language Dictionary</h1>
+    <p class="sd-hero-sub" id="heroSub">Kamus Bahasa Isyarat</p>
+    <button class="sd-lang-btn" onclick="toggleLang()" id="langBtn" aria-label="Toggle language">&#127760; BM / EN</button>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="sd-disclaimer" role="note" aria-label="Prototype notice">
+    <strong id="disclaimerLabel">Prototype Learning Aid:</strong>
+    <span id="disclaimerText"> This dictionary is a prototype learning aid. For formal communication, please refer to certified Bahasa Isyarat Malaysia resources or qualified interpreters.</span>
+  </div>
+
+  <div class="sd-container" id="main-content">
+
+    <!-- ── Search ─────────────────────────────────────────────────────── -->
+    <div class="sd-card" role="search" aria-label="Sign language word search">
+      <div class="sd-card-header">
+        <div class="sd-card-icon" style="background:#eef2ff;">&#128269;</div>
+        <div class="sd-card-title" id="searchTitle">Search a Word</div>
+      </div>
+      <div class="sd-card-body">
+        <div class="sd-search-wrap">
+          <input id="sdSearchInput" class="sd-search-input" type="search"
+            placeholder="Enter a word / Masukkan perkataan"
+            aria-label="Enter a word to search" autocomplete="off"
+            onkeydown="if(event.key==='Enter')doSearch()" />
+          <button class="sd-search-btn" onclick="doSearch()" id="searchBtn"
+            aria-label="Search sign language">
+            <span>&#128400;</span>
+            <span id="searchBtnLabel">Search Sign</span>
+          </button>
+        </div>
+        <div class="sd-browse-row" role="group" aria-label="Browse sample words" id="browseChips"></div>
+      </div>
+    </div>
+
+    <!-- ── Result ─────────────────────────────────────────────────────── -->
+    <div id="sdResult" class="sd-result" role="region" aria-live="polite" aria-label="Dictionary result">
+      <!-- filled dynamically -->
+    </div>
+
+    <!-- ── Not found ──────────────────────────────────────────────────── -->
+    <div id="sdNotFound" class="sd-notfound" role="region" aria-live="polite">
+      <div class="sd-notfound-icon">&#128400;</div>
+      <div class="sd-notfound-msg" id="nfMsg">Sign not available yet. You may use fingerspelling or request this word to be added.</div>
+      <div class="sd-notfound-msg-bm" id="nfMsgBm">Isyarat belum tersedia. Anda boleh menggunakan ejaan jari atau mencadangkan perkataan ini untuk ditambah.</div>
+      <div class="sd-request-form">
+        <input id="sdRequestInput" class="sd-request-input" type="text"
+          placeholder="Word / Perkataan" aria-label="Request a new sign word" />
+        <button class="sd-request-btn" onclick="requestWord()" id="requestBtn">
+          &#43; <span id="requestBtnLabel">Request New Sign</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Requested words ────────────────────────────────────────────── -->
+    <div class="sd-card" id="requestedSection">
+      <div class="sd-card-header">
+        <div class="sd-card-icon" style="background:#fdf4ff;">&#128203;</div>
+        <div class="sd-card-title" id="requestedTitle">Requested Words</div>
+      </div>
+      <div class="sd-card-body" id="requestedListWrap">
+        <div class="sd-empty-msg" id="requestedEmpty">No words requested yet.</div>
+        <div class="sd-requested-list" id="requestedList"></div>
+      </div>
+    </div>
+
+    <!-- ── Related links ──────────────────────────────────────────────── -->
+    <div class="sd-card">
+      <div class="sd-card-header">
+        <div class="sd-card-icon" style="background:#f0fdf4;">&#128279;</div>
+        <div class="sd-card-title" id="relatedTitle">Related Tools</div>
+      </div>
+      <div class="sd-card-body">
+        <div class="sd-related">
+          <a href="sign-language.html" class="sd-related-link" aria-label="Open Visual Communication Agent">&#129304; <span id="linkVCA">Visual Communication Agent</span></a>
+          <a href="reading-companion.html" class="sd-related-link" aria-label="Open Reading Companion">&#128214; <span id="linkRC">Reading Companion</span></a>
+          <a href="dashboard.html" class="sd-related-link" aria-label="Back to dashboard">&#127968; <span id="linkDash">Dashboard</span></a>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /sd-container -->
+</main>
+
+<div id="sdToast" class="sd-toast" role="alert" aria-live="assertive"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// SIGN LANGUAGE DICTIONARY
+// CelikSense AI — Prototype Learning Aid
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── Dictionary data ────────────────────────────────────────────────────────
+var DICTIONARY = [
+  {
+    word: 'book', wordBm: 'buku',
+    category: 'Education', categoryBm: 'Pendidikan',
+    meaning: 'A written or printed work consisting of pages.',
+    meaningBm: 'Hasil tulisan atau cetakan yang terdiri daripada halaman-halaman.',
+    visualCue: '📖',
+    visualDesc: 'Hold both hands flat, palms facing up. Bring them together as if opening a book, then spread them apart.',
+    visualDescBm: 'Pegang kedua-dua tangan rata, tapak tangan menghadap ke atas. Bawa bersama seolah-olah membuka buku, kemudian buka luas.',
+    handTip: 'Open-book gesture',
+    handTipBm: 'Isyarat buka buku',
+    exampleEn: 'She reads a book every day.',
+    exampleBm: 'Dia membaca sebuah buku setiap hari.',
+  },
+  {
+    word: 'school', wordBm: 'sekolah',
+    category: 'Education', categoryBm: 'Pendidikan',
+    meaning: 'An institution for educating children.',
+    meaningBm: 'Institusi untuk mendidik kanak-kanak.',
+    visualCue: '🏫',
+    visualDesc: 'Clap both hands together twice with a flat "B" handshape (like a teacher clapping for attention).',
+    visualDescBm: 'Tepuk kedua-dua tangan bersama dua kali dengan bentuk tangan "B" rata (seperti guru menepuk untuk perhatian).',
+    handTip: 'Flat clap twice',
+    handTipBm: 'Tepuk rata dua kali',
+    exampleEn: 'The children go to school every morning.',
+    exampleBm: 'Kanak-kanak pergi ke sekolah setiap pagi.',
+  },
+  {
+    word: 'teacher', wordBm: 'guru',
+    category: 'People', categoryBm: 'Orang',
+    meaning: 'A person who teaches, especially in a school.',
+    meaningBm: 'Seseorang yang mengajar, terutamanya di sekolah.',
+    visualCue: '👩‍🏫',
+    visualDesc: 'Place both "5" handshapes near your temples, then bring them forward and down — as if projecting knowledge from your mind outward.',
+    visualDescBm: 'Letakkan kedua-dua bentuk tangan "5" berhampiran pelipis, kemudian bawa ke hadapan dan ke bawah — seolah-olah memancarkan ilmu dari fikiran ke luar.',
+    handTip: 'Project from temples',
+    handTipBm: 'Pancarkan dari pelipis',
+    exampleEn: 'The teacher explains the lesson clearly.',
+    exampleBm: 'Guru menerangkan pelajaran dengan jelas.',
+  },
+  {
+    word: 'student', wordBm: 'murid',
+    category: 'People', categoryBm: 'Orang',
+    meaning: 'A person who is studying at a school or university.',
+    meaningBm: 'Seseorang yang belajar di sekolah atau universiti.',
+    visualCue: '🧑‍🎓',
+    visualDesc: 'Hold a flat "B" hand on your palm (like holding a book), then tap your forehead with the index finger — combining "book" with "mind".',
+    visualDescBm: 'Pegang tangan "B" rata di atas tapak tangan (seperti memegang buku), kemudian ketuk dahi dengan jari telunjuk — gabungkan "buku" dengan "minda".',
+    handTip: 'Book + mind gesture',
+    handTipBm: 'Isyarat buku + minda',
+    exampleEn: 'The student listens carefully in class.',
+    exampleBm: 'Murid mendengar dengan teliti di dalam kelas.',
+  },
+  {
+    word: 'learn', wordBm: 'belajar',
+    category: 'Action', categoryBm: 'Tindakan',
+    meaning: 'To gain knowledge or skill through study or experience.',
+    meaningBm: 'Memperoleh pengetahuan atau kemahiran melalui kajian atau pengalaman.',
+    visualCue: '📚',
+    visualDesc: 'Cup your non-dominant hand (like a book). With your dominant hand, bring fingers together and touch the palm, then lift — like taking knowledge from a page.',
+    visualDescBm: 'Cekungkan tangan bukan dominan (seperti buku). Dengan tangan dominan, bawa jari bersama dan sentuh tapak tangan, kemudian angkat — seperti mengambil ilmu dari halaman.',
+    handTip: 'Lift knowledge from palm',
+    handTipBm: 'Angkat ilmu dari tapak tangan',
+    exampleEn: 'We learn something new every day.',
+    exampleBm: 'Kita belajar sesuatu yang baru setiap hari.',
+  },
+  {
+    word: 'read', wordBm: 'baca',
+    category: 'Action', categoryBm: 'Tindakan',
+    meaning: 'To look at and understand written words.',
+    meaningBm: 'Melihat dan memahami perkataan yang ditulis.',
+    visualCue: '👁️',
+    visualDesc: 'Hold your non-dominant hand flat (the "page"). Use your dominant "V" handshape and move your two fingers down the palm — like eyes scanning lines of text.',
+    visualDescBm: 'Pegang tangan bukan dominan anda rata (sebagai "halaman"). Gunakan bentuk tangan "V" dominan dan gerakkan dua jari ke bawah tapak tangan — seperti mata mengimbas baris teks.',
+    handTip: 'V-hand scans the flat palm',
+    handTipBm: 'Tangan-V mengimbas tapak tangan rata',
+    exampleEn: 'Please read the first paragraph.',
+    exampleBm: 'Sila baca perenggan pertama.',
+  },
+  {
+    word: 'plant', wordBm: 'tumbuhan',
+    category: 'Nature', categoryBm: 'Alam Semula Jadi',
+    meaning: 'A living organism that grows in soil and has leaves.',
+    meaningBm: 'Organisma hidup yang tumbuh di dalam tanah dan mempunyai daun.',
+    visualCue: '🌱',
+    visualDesc: 'Start with your dominant hand in a closed fist near the wrist of your non-dominant hand. Open your fingers upward — like a seedling sprouting from the ground.',
+    visualDescBm: 'Mulakan dengan tangan dominan mengepal berhampiran pergelangan tangan bukan dominan. Buka jari ke atas — seperti anak benih tumbuh dari tanah.',
+    handTip: 'Fist blooms upward',
+    handTipBm: 'Pengepal mekar ke atas',
+    exampleEn: 'We water the plant every morning.',
+    exampleBm: 'Kami menyiram tumbuhan setiap pagi.',
+  },
+  {
+    word: 'water', wordBm: 'air',
+    category: 'Nature', categoryBm: 'Alam Semula Jadi',
+    meaning: 'A clear liquid that fills oceans, rivers, and lakes.',
+    meaningBm: 'Cecair jernih yang memenuhi lautan, sungai, dan tasik.',
+    visualCue: '💧',
+    visualDesc: 'Make a "W" handshape (3 fingers up) with your dominant hand. Tap your chin twice with the index finger side of the W.',
+    visualDescBm: 'Buat bentuk tangan "W" (3 jari ke atas) dengan tangan dominan. Ketuk dagu dua kali dengan sisi jari telunjuk W.',
+    handTip: 'W-hand taps chin twice',
+    handTipBm: 'Tangan-W ketuk dagu dua kali',
+    exampleEn: 'Drink plenty of water each day.',
+    exampleBm: 'Minum banyak air setiap hari.',
+  },
+  {
+    word: 'sun', wordBm: 'matahari',
+    category: 'Nature', categoryBm: 'Alam Semula Jadi',
+    meaning: 'The star at the centre of our solar system that gives light and warmth.',
+    meaningBm: 'Bintang di pusat sistem suria kita yang memberi cahaya dan kehangatan.',
+    visualCue: '☀️',
+    visualDesc: 'Point your index finger up and draw a circle in the air above your head. Then open your hand with fingers spread wide — showing rays of sunlight expanding outward.',
+    visualDescBm: 'Tunjukkan jari telunjuk ke atas dan lukis bulatan di udara di atas kepala. Kemudian buka tangan dengan jari merebak luas — menunjukkan sinar matahari yang memancar keluar.',
+    handTip: 'Circle above head, then spread fingers',
+    handTipBm: 'Bulatan di atas kepala, kemudian rebakkan jari',
+    exampleEn: 'The sun rises in the east every morning.',
+    exampleBm: 'Matahari terbit di timur setiap pagi.',
+  },
+  {
+    word: 'friend', wordBm: 'kawan',
+    category: 'People', categoryBm: 'Orang',
+    meaning: 'A person you like and enjoy spending time with.',
+    meaningBm: 'Seseorang yang anda suka dan gemar meluangkan masa bersama.',
+    visualCue: '🤝',
+    visualDesc: 'Hook your index fingers together (like links in a chain), then swap which finger is on top — interlocking both directions to show mutual connection.',
+    visualDescBm: 'Kaitkan jari telunjuk bersama (seperti rantai), kemudian tukar jari yang berada di atas — saling berkait kedua-dua arah untuk menunjukkan hubungan bersama.',
+    handTip: 'Interlock index fingers both ways',
+    handTipBm: 'Saling kait jari telunjuk dua arah',
+    exampleEn: 'She is my best friend at school.',
+    exampleBm: 'Dia ialah kawan baik saya di sekolah.',
+  }
+];
+
+// Fingerspelling map (ASL-inspired visual cues for letters)
+var FINGER_HANDS = {
+  A:'✊',B:'🖐',C:'🤏',D:'☝️',E:'🤞',F:'👌',G:'👉',H:'🤙',I:'🤙',J:'🤙',
+  K:'✌️',L:'👆',M:'✊',N:'✊',O:'👌',P:'✌️',Q:'✌️',R:'✌️',S:'✊',T:'✊',
+  U:'✌️',V:'✌️',W:'🖖',X:'☝️',Y:'🤙',Z:'☝️'
+};
+
+// ── State ──────────────────────────────────────────────────────────────────
+var sdLang       = localStorage.getItem('cs_lang') || 'ms';
+var sdRequested  = JSON.parse(localStorage.getItem('sd_requested') || '[]');
+var sdLastSearch = '';
+
+// ── i18n ──────────────────────────────────────────────────────────────────
+var LABELS = {
+  en: {
+    heroBadge:       'Sign Language Dictionary',
+    heroTitle:       'Sign Language Dictionary',
+    heroSub:         'Kamus Bahasa Isyarat',
+    langBtn:         '🌐 BM / EN',
+    disclaimerLabel: 'Prototype Learning Aid:',
+    disclaimerText:  ' This dictionary is a prototype learning aid. For formal communication, please refer to certified Bahasa Isyarat Malaysia resources or qualified interpreters.',
+    searchTitle:     'Search a Word',
+    searchBtn:       'Search Sign',
+    searchPH:        'Enter a word / Masukkan perkataan',
+    nfMsg:           'Sign not available yet. You may use fingerspelling or request this word to be added.',
+    nfMsgBm:         'Isyarat belum tersedia. Anda boleh menggunakan ejaan jari atau mencadangkan perkataan ini untuk ditambah.',
+    requestBtn:      'Request New Sign',
+    requestedTitle:  'Requested Words',
+    requestedEmpty:  'No words requested yet.',
+    relatedTitle:    'Related Tools',
+    linkVCA:         'Visual Communication Agent',
+    linkRC:          'Reading Companion',
+    linkDash:        'Dashboard',
+    sectionMeaning:  'MEANING',
+    sectionVisual:   'HAND GESTURE',
+    sectionFinger:   'FINGERSPELLING',
+    sectionExample:  'EXAMPLE SENTENCE',
+    browseLabel:     'Browse:',
+    toastRequested:  'Word requested and saved!',
+    toastDuplicate:  'Already requested.',
+    toastEmpty:      'Please enter a word first.',
+    catLabel:        'CATEGORY'
+  },
+  ms: {
+    heroBadge:       'Kamus Bahasa Isyarat',
+    heroTitle:       'Kamus Bahasa Isyarat',
+    heroSub:         'Sign Language Dictionary',
+    langBtn:         '🌐 EN / BM',
+    disclaimerLabel: 'Alat Pembelajaran Prototaip:',
+    disclaimerText:  ' Kamus ini ialah alat pembelajaran prototaip. Untuk komunikasi rasmi, sila rujuk sumber Bahasa Isyarat Malaysia yang bertauliah atau jurubahasa yang berkelayakan.',
+    searchTitle:     'Cari Perkataan',
+    searchBtn:       'Cari Isyarat',
+    searchPH:        'Masukkan perkataan / Enter a word',
+    nfMsg:           'Isyarat belum tersedia. Anda boleh menggunakan ejaan jari atau mencadangkan perkataan ini untuk ditambah.',
+    nfMsgBm:         'Sign not available yet. You may use fingerspelling or request this word to be added.',
+    requestBtn:      'Cadang Isyarat Baharu',
+    requestedTitle:  'Perkataan Dicadangkan',
+    requestedEmpty:  'Tiada perkataan dicadangkan lagi.',
+    relatedTitle:    'Alat Berkaitan',
+    linkVCA:         'Agen Komunikasi Visual',
+    linkRC:          'Teman Membaca',
+    linkDash:        'Papan Pemuka',
+    sectionMeaning:  'MAKNA',
+    sectionVisual:   'GERAKAN TANGAN',
+    sectionFinger:   'EJAAN JARI',
+    sectionExample:  'CONTOH AYAT',
+    browseLabel:     'Semak Imbas:',
+    toastRequested:  'Perkataan dicadangkan dan disimpan!',
+    toastDuplicate:  'Sudah dicadangkan.',
+    toastEmpty:      'Sila masukkan perkataan dahulu.',
+    catLabel:        'KATEGORI'
+  }
+};
+
+function L(key) { return (LABELS[sdLang] && LABELS[sdLang][key]) || LABELS.en[key] || key; }
+
+// ── Language toggle ────────────────────────────────────────────────────────
+function toggleLang() {
+  sdLang = sdLang === 'ms' ? 'en' : 'ms';
+  localStorage.setItem('cs_lang', sdLang);
+  applyLang();
+  if (sdLastSearch) doSearch();
+}
+
+function applyLang() {
+  var map = {
+    heroBadge:'heroBadge', heroTitle:'heroTitle', heroSub:'heroSub',
+    langBtn:'langBtn', disclaimerLabel:'disclaimerLabel', disclaimerText:'disclaimerText',
+    searchTitle:'searchTitle', searchBtnLabel:'searchBtn',
+    nfMsg:'nfMsg', nfMsgBm:'nfMsgBm',
+    requestBtnLabel:'requestBtn', requestedTitle:'requestedTitle',
+    requestedEmpty:'requestedEmpty', relatedTitle:'relatedTitle',
+    linkVCA:'linkVCA', linkRC:'linkRC', linkDash:'linkDash'
+  };
+  Object.keys(map).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = L(map[id]);
+  });
+  var input = document.getElementById('sdSearchInput');
+  if (input) input.placeholder = L('searchPH');
+  document.documentElement.lang = sdLang === 'ms' ? 'ms' : 'en';
+  buildBrowseChips();
+  renderRequested();
+}
+
+// ── Build browse chips ─────────────────────────────────────────────────────
+function buildBrowseChips() {
+  var wrap = document.getElementById('browseChips');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  DICTIONARY.forEach(function(entry) {
+    var chip = document.createElement('button');
+    chip.className = 'sd-browse-chip';
+    chip.textContent = sdLang === 'ms' ? (entry.wordBm + ' / ' + entry.word) : (entry.word + ' / ' + entry.wordBm);
+    chip.setAttribute('aria-label', 'Browse: ' + entry.word);
+    chip.onclick = function() {
+      document.getElementById('sdSearchInput').value = entry.word;
+      doSearch();
+    };
+    wrap.appendChild(chip);
+  });
+}
+
+// ── Search ─────────────────────────────────────────────────────────────────
+function doSearch() {
+  var q = document.getElementById('sdSearchInput').value.trim().toLowerCase();
+  if (!q) { showToast(L('toastEmpty')); return; }
+  sdLastSearch = q;
+
+  var entry = DICTIONARY.find(function(e) {
+    return e.word.toLowerCase() === q ||
+           e.wordBm.toLowerCase() === q ||
+           e.word.toLowerCase().startsWith(q) ||
+           e.wordBm.toLowerCase().startsWith(q);
+  });
+
+  document.getElementById('sdResult').classList.remove('visible');
+  document.getElementById('sdNotFound').classList.remove('visible');
+
+  if (entry) {
+    renderResult(entry);
+    document.getElementById('sdResult').classList.add('visible');
+    document.getElementById('sdResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Pre-fill request input with searched word
+    document.getElementById('sdRequestInput').value = q;
+  } else {
+    document.getElementById('sdNotFound').classList.add('visible');
+    document.getElementById('sdRequestInput').value = q;
+    document.getElementById('sdNotFound').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function renderResult(e) {
+  var isMs = sdLang === 'ms';
+  var word = isMs ? e.wordBm : e.word;
+  var wordAlt = isMs ? e.word : e.wordBm;
+  var cat = isMs ? e.categoryBm : e.category;
+  var meaning = isMs ? e.meaningBm : e.meaning;
+  var visualDesc = isMs ? e.visualDescBm : e.visualDesc;
+  var handTip = isMs ? e.handTipBm : e.handTip;
+  var example = isMs ? e.exampleBm : e.exampleEn;
+  var exampleAlt = isMs ? e.exampleEn : e.exampleBm;
+
+  // Fingerspelling
+  var wordForSpelling = e.word.toUpperCase().replace(/[^A-Z]/g, '');
+  var fingerHtml = '';
+  for (var i = 0; i < wordForSpelling.length; i++) {
+    var ch = wordForSpelling[i];
+    var hand = FINGER_HANDS[ch] || '✋';
+    fingerHtml += '<div class="sd-finger-letter" role="img" aria-label="Letter ' + ch + '">' +
+      '<span class="sd-finger-hand">' + hand + '</span>' +
+      '<span class="sd-finger-char">' + ch + '</span></div>';
+  }
+
+  document.getElementById('sdResult').innerHTML =
+    '<div class="sd-result-header">' +
+      '<div>' +
+        '<div class="sd-result-word" lang="' + (isMs?'ms':'en') + '">' + esc(word) + '</div>' +
+        '<div class="sd-result-word-bm" lang="' + (isMs?'en':'ms') + '">' + esc(wordAlt) + '</div>' +
+      '</div>' +
+      '<span class="sd-result-cat" aria-label="' + L('catLabel') + ': ' + esc(cat) + '">' + L('catLabel') + ': ' + esc(cat) + '</span>' +
+    '</div>' +
+
+    '<div class="sd-info-grid">' +
+      '<div class="sd-info-block">' +
+        '<div class="sd-info-label">' + L('sectionMeaning') + '</div>' +
+        '<div class="sd-info-value" lang="' + (isMs?'ms':'en') + '">' + esc(meaning) + '</div>' +
+      '</div>' +
+      '<div class="sd-info-block">' +
+        '<div class="sd-info-label">' + L('sectionVisual') + '</div>' +
+        '<div class="sd-info-value">' + esc(handTip) + '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="sd-visual-panel" aria-label="Visual cue for ' + esc(word) + '">' +
+      '<div class="sd-visual-emoji" aria-hidden="true">' + e.visualCue + '</div>' +
+      '<div class="sd-visual-desc">' + esc(visualDesc) + '</div>' +
+      '<div class="sd-visual-tip">&#128400; ' + (isMs ? 'Panduan gerakan asas' : 'Basic gesture guide') + '</div>' +
+    '</div>' +
+
+    '<div class="sd-info-block" style="margin-bottom:16px;">' +
+      '<div class="sd-info-label">' + L('sectionFinger') + '</div>' +
+      '<div class="sd-finger-wrap" style="margin-top:8px;" aria-label="Fingerspelling of ' + esc(e.word) + '">' +
+        fingerHtml +
+      '</div>' +
+    '</div>' +
+
+    '<div class="sd-info-block">' +
+      '<div class="sd-info-label">' + L('sectionExample') + '</div>' +
+      '<div class="sd-example">' +
+        '<div lang="' + (isMs?'ms':'en') + '">' + esc(example) + '</div>' +
+        '<div class="sd-example-bm" lang="' + (isMs?'en':'ms') + '">' + esc(exampleAlt) + '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+// ── Request new word ───────────────────────────────────────────────────────
+function requestWord() {
+  var val = document.getElementById('sdRequestInput').value.trim();
+  if (!val) { showToast(L('toastEmpty')); return; }
+  var lower = val.toLowerCase();
+  if (sdRequested.indexOf(lower) !== -1) { showToast(L('toastDuplicate')); return; }
+  sdRequested.push(lower);
+  localStorage.setItem('sd_requested', JSON.stringify(sdRequested));
+  renderRequested();
+  showToast(L('toastRequested'));
+  document.getElementById('sdRequestInput').value = '';
+}
+
+function removeRequested(word) {
+  sdRequested = sdRequested.filter(function(w) { return w !== word; });
+  localStorage.setItem('sd_requested', JSON.stringify(sdRequested));
+  renderRequested();
+}
+
+function renderRequested() {
+  var list  = document.getElementById('requestedList');
+  var empty = document.getElementById('requestedEmpty');
+  if (!list) return;
+  list.innerHTML = '';
+  if (!sdRequested.length) {
+    empty.textContent = L('requestedEmpty');
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  sdRequested.forEach(function(w) {
+    var chip = document.createElement('div');
+    chip.className = 'sd-requested-chip';
+    chip.setAttribute('role', 'listitem');
+    chip.innerHTML = '&#128203; ' + esc(w) +
+      '<button onclick="removeRequested(\'' + w.replace(/'/g,"&#39;") + '\')" ' +
+      'aria-label="Remove ' + esc(w) + ' from requests" title="Remove">&#10005;</button>';
+    list.appendChild(chip);
+  });
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+var _toastTimer = null;
+function showToast(msg) {
+  var el = document.getElementById('sdToast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function() { el.classList.remove('show'); }, 3000);
+}
+
+// ── Escape ─────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  sdLang = localStorage.getItem('cs_lang') || 'ms';
+  applyLang();
+
+  // Auto-search if a word was passed via URL hash
+  var hash = window.location.hash.replace('#', '').trim();
+  if (hash) {
+    document.getElementById('sdSearchInput').value = decodeURIComponent(hash);
+    doSearch();
+  }
+});
+</script>
+</body>
+</html>
