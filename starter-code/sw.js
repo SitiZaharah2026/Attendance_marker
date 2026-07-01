@@ -6,7 +6,7 @@
 // when deployed as a project page, so BASE_PATH strips that prefix from every
 // request URL before comparing against SHELL_FILES (which are bare filenames).
 
-const SW_VERSION    = 'cs-v2';
+const SW_VERSION    = 'cs-v3';
 const CACHE_SHELL   = SW_VERSION + '-shell';    // long-lived HTML/CSS/JS
 const CACHE_RUNTIME = SW_VERSION + '-runtime';  // dynamic pages + images
 const OFFLINE_URL   = 'offline.html';
