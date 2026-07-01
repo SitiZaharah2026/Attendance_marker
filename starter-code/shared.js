@@ -252,7 +252,7 @@ const CS_LANG = {
     stat_agents:'AI Agents', stat_learner_types:'Learner Types', stat_languages:'Languages', stat_accessible:'Accessible',
     /* Orb tags */
     orb_discover:'DISCOVER', orb_read:'READ', orb_focus:'FOCUS', orb_read_easier:'READ EASIER',
-    orb_listen:'LISTEN', orb_sign:'SIGN', orb_monitor:'MONITOR', orb_plan:'PLAN',
+    orb_listen:'LISTEN', orb_sign:'DEAF SUPPORT', orb_monitor:'MONITOR', orb_plan:'PLAN',
     /* How It Works */
     how_title:'How It Works',
     how_desc:'Three steps from signup to a fully personalised, accessible learning experience.',
@@ -288,8 +288,8 @@ const CS_LANG = {
     a4_desc: 'Dyslexia-friendly fonts, colour overlays, reading ruler, and visual mind maps.',
     a5_name: 'Blind Audio Agent',
     a5_desc: 'Full audio navigation and text-to-speech for blind and low-vision learners.',
-    a6_name: 'Sign Language Agent',
-    a6_desc: 'MSL/BIM visual sign cards, alphabet guide, and common phrases for deaf learners.',
+    a6_name: 'Visual Communication Agent',
+    a6_desc: 'Deaf-friendly reading support with large captions, visual keywords, mind map and comic sequence.',
     a7_name: 'Early Warning Agent',
     a7_desc: 'Performance monitoring that flags at-risk learners and triggers timely educator alerts.',
     a8_name: 'Intervention Agent',
@@ -847,7 +847,7 @@ const CS_LANG = {
     stat_agents:'Ejen AI', stat_learner_types:'Jenis Pelajar', stat_languages:'Bahasa', stat_accessible:'Aksesibel',
     /* Tag orb */
     orb_discover:'TEMUI', orb_read:'BACA', orb_focus:'FOKUS', orb_read_easier:'BACA MUDAH',
-    orb_listen:'DENGAR', orb_sign:'ISYARAT', orb_monitor:'PANTAU', orb_plan:'RANCANG',
+    orb_listen:'DENGAR', orb_sign:'SOKONG OKU', orb_monitor:'PANTAU', orb_plan:'RANCANG',
     /* Cara Ia Berfungsi */
     how_title:'Cara Ia Berfungsi',
     how_desc:'Tiga langkah dari pendaftaran hingga pengalaman pembelajaran peribadi yang aksesibel sepenuhnya.',
@@ -883,8 +883,8 @@ const CS_LANG = {
     a4_desc: 'Fon mesra disleksia, lapisan warna, pembaris bacaan, dan peta minda visual.',
     a5_name: 'Ejen Audio Buta',
     a5_desc: 'Navigasi audio penuh dan teks-ke-suara untuk pelajar buta dan penglihatan terhad.',
-    a6_name: 'Ejen Bahasa Isyarat',
-    a6_desc: 'Kad isyarat visual MSL/BIM, panduan abjad, dan frasa umum untuk pelajar pekak.',
+    a6_name: 'Agen Komunikasi Visual',
+    a6_desc: 'Sokongan bacaan mesra OKU pendengaran dengan kapsyen besar, kata kunci visual, peta minda dan jujukan komik.',
     a7_name: 'Ejen Amaran Awal',
     a7_desc: 'Pemantauan prestasi yang mengenal pasti pelajar berisiko dan mencetuskan amaran tepat waktu.',
     a8_name: 'Ejen Intervensi',
