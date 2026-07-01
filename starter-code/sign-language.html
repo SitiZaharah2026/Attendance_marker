@@ -253,33 +253,207 @@
     justify-content: center;
   }
 
-  /* ── When user HAS avatar: photo head + animated body below ── */
-  body.has-avatar .stage-avatar-wrapper {
-    order: 1;
-    margin: 16px 0 0;
+  /* ══════════════════════════════════════════
+     PROFESSIONAL AVATAR STAGE — asp-* classes
+     ══════════════════════════════════════════ */
+  .avatar-stage-pro {
+    display: flex;
+    gap: 10px;
+    background: #0f172a;
+    border: 1.5px solid rgba(99,102,241,.3);
+    border-radius: 18px;
+    padding: 14px;
+    min-height: 340px;
     position: relative;
-    z-index: 3;
   }
-  body.has-avatar #stageAvatarImg {
-    width: 200px !important;
-    height: 200px !important;
-    border: 4px solid rgba(99,102,241,.7) !important;
-    box-shadow: 0 0 50px rgba(99,102,241,.5), 0 0 0 8px rgba(99,102,241,.15) !important;
-    object-fit: cover !important;
+
+  /* Left panel */
+  .asp-left {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 130px;
+    flex-shrink: 0;
   }
-  /* Body/arms slide up to connect with photo circle */
-  body.has-avatar #bimAvatarContainer {
-    order: 2;
-    min-height: 0;
-    margin-top: -28px;
+  .asp-bim-badge {
+    background: rgba(99,102,241,.2);
+    border: 1px solid rgba(99,102,241,.4);
+    color: #a5b4fc;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 7px 10px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .asp-tips-card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 10px;
+    padding: 10px;
+    flex: 1;
+  }
+  .asp-tips-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #f8fafc;
+    margin-bottom: 8px;
+  }
+  .asp-tips-list {
+    list-style: none;
+    margin: 0; padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .asp-tips-list li {
+    font-size: 11px;
+    color: #94a3b8;
+  }
+  .asp-change-btn {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.12);
+    color: #cbd5e1;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 8px 10px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .asp-change-btn:hover { background: rgba(99,102,241,.2); color: #a5b4fc; }
+
+  /* Center panel */
+  .asp-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     position: relative;
-    z-index: 2;
+    min-width: 0;
   }
-  body.has-avatar #bim-avatar {
-    display: block !important;
+  .asp-photo-frame {
+    flex: 1;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #1e293b;
+    border: 2px solid rgba(99,102,241,.35);
+    box-shadow: 0 0 30px rgba(99,102,241,.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 240px;
+    position: relative;
   }
-  body.has-avatar #bim-pose-label {
-    display: none;
+  .asp-no-avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+  }
+
+  /* Right panel */
+  .asp-right {
+    display: flex;
+    flex-direction: column;
+    width: 140px;
+    flex-shrink: 0;
+  }
+  .asp-info-card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 10px;
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+  }
+  .asp-info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+  }
+  .asp-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+  .asp-dot-green { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+  .asp-icon { font-size: 13px; line-height: 1.4; }
+  .asp-info-label {
+    font-size: 10px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 2px;
+  }
+  .asp-info-val {
+    font-size: 11px;
+    color: #cbd5e1;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .asp-hr {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,.07);
+    margin: 0;
+  }
+
+  /* Cadangan section */
+  .cadangan-section {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .cadangan-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 10px;
+  }
+  .cadangan-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .cadangan-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .cadangan-icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .cadangan-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.3;
+  }
+  .cadangan-desc {
+    font-size: 10px;
+    color: #64748b;
+    line-height: 1.4;
+  }
+  .cadangan-tip-bar {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 11px;
+    color: #92400e;
   }
 
   /* CREATE AVATAR PROMPT */
@@ -955,57 +1129,139 @@
   <!-- RIGHT COLUMN -->
   <div class="right-col">
 
-    <!-- AVATAR STAGE -->
-    <section aria-labelledby="avatarStageTitle" style="margin-bottom:20px;">
-      <h2 class="sl-card-title" id="avatarStageTitle" style="padding:0 0 10px;">
+    <!-- AVATAR STAGE — Professional Redesign -->
+    <section aria-labelledby="avatarStageTitle" style="margin-bottom:16px;">
+      <h2 class="sl-card-title" id="avatarStageTitle" style="padding:0 0 2px;">
         <span aria-hidden="true">🎬</span> Avatar Stage
       </h2>
+      <p style="font-size:12px;color:var(--slate-400);margin:0 0 10px;font-weight:500;padding-left:2px;">
+        Realistic &amp; Professional Sign Language Avatar
+      </p>
 
-      <div class="avatar-stage" id="avatarStage" role="region" aria-label="Avatar signing stage" aria-live="polite">
-        <!-- Glow -->
-        <div class="stage-glow" aria-hidden="true"></div>
+      <div class="avatar-stage-pro" id="avatarStage" role="region" aria-label="Avatar signing stage" aria-live="polite">
 
-        <!-- Signing active indicator -->
-        <div class="signing-active-pulse" id="signingActivePulse" aria-hidden="true">
-          <div class="pulse-dot"></div>
-          <span>Signing…</span>
+        <!-- LEFT PANEL: Tips + badge -->
+        <div class="asp-left">
+          <div class="asp-bim-badge">🤟 Sign Language (BIM)</div>
+          <div class="asp-tips-card">
+            <div class="asp-tips-title">💡 Tips</div>
+            <ul class="asp-tips-list">
+              <li>✓ Well-lit environment</li>
+              <li>✓ Clear hand visibility</li>
+              <li>✓ Neutral background</li>
+              <li>✓ Professional pose</li>
+            </ul>
+          </div>
+          <button class="asp-change-btn" onclick="openAvatarCreator()">⟳ Change Avatar</button>
         </div>
 
-        <!-- Expression badge -->
-        <div class="stage-expr-badge" id="stageExprBadge" aria-live="polite">friendly</div>
+        <!-- CENTER PANEL: photo + controls -->
+        <div class="asp-center">
+          <!-- Signing indicator -->
+          <div class="signing-active-pulse" id="signingActivePulse" aria-hidden="true">
+            <div class="pulse-dot"></div><span>Signing…</span>
+          </div>
+          <!-- Expression badge -->
+          <div class="stage-expr-badge" id="stageExprBadge" aria-live="polite">friendly</div>
 
-        <!-- BIM Avatar container -->
-        <div id="bimAvatarContainer" aria-hidden="true"></div>
+          <!-- BIM container (JS-only, visually hidden) -->
+          <div id="bimAvatarContainer" aria-hidden="true" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;"></div>
 
-        <!-- Stage avatar image -->
-        <div class="stage-avatar-wrapper" id="stageAvatarWrapper">
-          <!-- No avatar state -->
-          <div id="stageNoAvatar" class="stage-no-avatar">
-            <div class="stage-icon" aria-hidden="true">🧑‍🦱</div>
-            <div>
-              <strong style="color:rgba(255,255,255,.75);display:block;font-size:15px;">No avatar yet</strong>
-              <span style="font-size:13px;">Create your avatar to see it sign here</span>
+          <!-- Photo / avatar frame -->
+          <div class="asp-photo-frame" id="stageAvatarWrapper">
+            <div id="stageNoAvatar" class="asp-no-avatar">
+              <div style="font-size:56px;margin-bottom:10px;">🧑‍🦱</div>
+              <strong style="color:rgba(255,255,255,.75);font-size:14px;display:block;">No avatar yet</strong>
+              <span style="font-size:12px;color:rgba(255,255,255,.45);">Create your avatar to sign here</span>
             </div>
+            <img id="stageAvatarImg" src="" alt="Your signing avatar"
+                 style="display:none;width:100%;height:100%;object-fit:cover;border-radius:12px;" />
           </div>
 
-          <!-- Avatar with image -->
-          <img
-            id="stageAvatarImg"
-            src=""
-            alt="Your signing avatar performing BIM signs"
-            style="display:none;width:180px;height:180px;border-radius:50%;border:4px solid rgba(99,102,241,.6);box-shadow:0 0 40px rgba(99,102,241,.4),0 0 0 8px rgba(99,102,241,.1);object-fit:cover;"
-          />
+          <!-- Name tag -->
+          <div class="avatar-name-tag" id="avatarNameTag" aria-live="polite" style="display:none;position:static;transform:none;background:rgba(99,102,241,.9);margin:8px auto 0;width:fit-content;"></div>
+
+          <!-- Caption -->
+          <div class="caption-bar-sign" id="captionBar" role="status" aria-live="polite" aria-atomic="true"
+               style="position:static;border-radius:10px;margin-top:8px;">
+            Ready to sign — enter text and press Start
+          </div>
         </div>
 
-        <!-- Avatar name tag -->
-        <div class="avatar-name-tag" id="avatarNameTag" aria-live="polite" style="display:none;"></div>
+        <!-- RIGHT PANEL: status info -->
+        <div class="asp-right">
+          <div class="asp-info-card">
+            <div class="asp-info-row">
+              <span class="asp-dot asp-dot-green"></span>
+              <div>
+                <div class="asp-info-label">Status</div>
+                <div class="asp-info-val" style="color:#22c55e;">Active</div>
+              </div>
+            </div>
+            <hr class="asp-hr">
+            <div class="asp-info-row">
+              <span class="asp-icon">🖐</span>
+              <div>
+                <div class="asp-info-label">Language</div>
+                <div class="asp-info-val">Bahasa Isyarat Malaysia (BIM)</div>
+              </div>
+            </div>
+            <hr class="asp-hr">
+            <div class="asp-info-row">
+              <span class="asp-icon">⚡</span>
+              <div>
+                <div class="asp-info-label">Mode</div>
+                <div class="asp-info-val">Real-time Translation</div>
+              </div>
+            </div>
+            <hr class="asp-hr">
+            <div class="asp-info-row">
+              <span class="asp-icon">🎯</span>
+              <div>
+                <div class="asp-info-label">Quality</div>
+                <div class="asp-info-val">High Definition</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <!-- Caption bar -->
-        <div class="caption-bar-sign" id="captionBar" role="status" aria-live="polite" aria-atomic="true">
-          Ready to sign — enter text and press Start
+      </div><!-- end avatar-stage-pro -->
+    </section>
+
+    <!-- CADANGAN SECTION -->
+    <div class="cadangan-section" style="margin-bottom:16px;">
+      <h3 class="cadangan-title">👤 Cadangan Untuk Avatar Yang Nampak Real</h3>
+      <div class="cadangan-grid">
+        <div class="cadangan-card">
+          <div class="cadangan-icon" style="background:rgba(34,197,94,.15);color:#22c55e;">👤</div>
+          <div class="cadangan-name">Gunakan Manusia Sebenar</div>
+          <div class="cadangan-desc">Gunakan rakaman video penutur BIM sebenar untuk ekspresi dan pergerakan yang natural.</div>
+        </div>
+        <div class="cadangan-card">
+          <div class="cadangan-icon" style="background:rgba(99,102,241,.15);color:#818cf8;">📸</div>
+          <div class="cadangan-name">Kualiti Rakaman Tinggi</div>
+          <div class="cadangan-desc">Pastikan pencahayaan baik, resolusi tinggi (HD/4K), dan latar belakang neutral.</div>
+        </div>
+        <div class="cadangan-card">
+          <div class="cadangan-icon" style="background:rgba(245,158,11,.15);color:#f59e0b;">😊</div>
+          <div class="cadangan-name">Ekspresi Wajah Semula Jadi</div>
+          <div class="cadangan-desc">Penutur menunjukkan ekspresi muka yang sesuai dengan makna ayat.</div>
+        </div>
+        <div class="cadangan-card">
+          <div class="cadangan-icon" style="background:rgba(236,72,153,.15);color:#ec4899;">🤚</div>
+          <div class="cadangan-name">Pergerakan Tangan Jelas</div>
+          <div class="cadangan-desc">Pastikan tangan sentiasa dalam bingkai dan tidak terhalang.</div>
+        </div>
+        <div class="cadangan-card">
+          <div class="cadangan-icon" style="background:rgba(14,165,233,.15);color:#0ea5e9;">👔</div>
+          <div class="cadangan-name">Pakaian Profesional</div>
+          <div class="cadangan-desc">Pakaian kemas dan sopan untuk memberikan imej yang profesional.</div>
         </div>
       </div>
-    </section>
+      <div class="cadangan-tip-bar">
+        💡 <em>Tip: Elakkan avatar 3D kartun untuk BIM. Rakaman manusia sebenar memberikan imej yang lebih profesional, diyakini dan mesra pengguna.</em>
+      </div>
+    </div>
 
     <!-- ILLUSTRATION PANEL -->
     <div id="illustrationPanel" class="sl-card-section" role="region" aria-label="Word illustration" aria-live="polite">
@@ -1495,13 +1751,17 @@ function showExistingAvatar() {
     var displayName = document.getElementById('avatarDisplayName');
 
     if (thumb) thumb.src = displayUrl;
-    if (stageImg) { stageImg.src = displayUrl; stageImg.style.display = 'block'; }
+    if (stageImg) {
+      stageImg.src = displayUrl;
+      stageImg.style.display = 'block';
+      stageImg.style.width = '100%';
+      stageImg.style.height = '100%';
+      stageImg.style.objectFit = 'cover';
+      stageImg.style.borderRadius = '12px';
+    }
     if (stageNoAvatar) stageNoAvatar.style.display = 'none';
     if (nameTag && data.name) { nameTag.textContent = data.name; nameTag.style.display = 'block'; }
     if (displayName && data.name) displayName.textContent = data.name;
-
-    // Show real photo inside BIM SVG head
-    if (window.BIM_AVATAR && photoUrl) BIM_AVATAR.setUserPhoto(photoUrl);
   } catch(e) {}
 }
 
